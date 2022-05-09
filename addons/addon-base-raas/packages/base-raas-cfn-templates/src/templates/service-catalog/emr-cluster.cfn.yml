@@ -180,7 +180,7 @@ Resources:
           - Effect: Allow
             Action:
               - 'sts:AssumeRole'
-            Resource: 'arn:aws:iam::*:role/swb-*'
+            Resource: !Sub 'arn:${AWS::Partition}:iam::*:role/swb-*'
 
   Ec2Role:
     Type: 'AWS::IAM::Role'
@@ -214,16 +214,16 @@ Resources:
               - Effect: 'Allow'
                 Action: 's3:GetObject'
                 Resource:
-                  - !Sub 'arn:aws:s3:::${AWS::Region}.elasticmapreduce/bootstrap-actions/run-if'
-                  - 'arn:aws:s3:::elasticmapreduce/bootstrap-actions/log4j/patch-log4j-emr-5.27.1-v1.sh'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${AWS::Region}.elasticmapreduce/bootstrap-actions/run-if'
+                  - !Sub 'arn:${AWS::Partition}:s3:::elasticmapreduce/bootstrap-actions/log4j/patch-log4j-emr-5.27.1-v1.sh'
                   - !Sub
-                    - 'arn:aws:s3:::${S3Location}/*'
+                    - 'arn:${AWS::Partition}:s3:::${S3Location}/*'
                     # Remove "s3://" prefix from EnvironmentInstanceFiles
                     - S3Location: !Select [1, !Split ['s3://', !Ref EnvironmentInstanceFiles]]
               - Effect: 'Allow'
                 Action: 's3:ListBucket'
                 Resource: !Sub
-                  - 'arn:aws:s3:::${S3Bucket}'
+                  - 'arn:${AWS::Partition}:s3:::${S3Bucket}'
                   - S3Bucket: !Select [2, !Split ['/', !Ref EnvironmentInstanceFiles]]
                 Condition:
                   StringLike:
@@ -246,8 +246,8 @@ Resources:
                 - elasticmapreduce.amazonaws.com
         Version: '2012-10-17'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
-      PermissionsBoundary: arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonElasticMapReduceRole'
+      PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonElasticMapReduceRole'
 
   EmrSecurityConfiguration:
     Type: AWS::EMR::SecurityConfiguration

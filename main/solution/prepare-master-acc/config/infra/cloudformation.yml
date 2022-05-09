@@ -7,7 +7,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: !Sub arn:aws:iam::${self:custom.settings.mainAccountId}:root
+              AWS: !Sub arn:${AWS::Partition}:iam::${self:custom.settings.mainAccountId}:root
             Action: sts:AssumeRole
             Condition:
               StringEquals:
@@ -32,7 +32,7 @@ Resources:
                 Effect: Allow
                 Action:
                   - sts:AssumeRole
-                Resource: "arn:aws:iam::*:role/OrganizationAccountAccessRole"
+                Resource: !Sub "arn:${AWS::Partition}:iam::*:role/OrganizationAccountAccessRole"
 Outputs:
   MasterRoleArn:
     Value: !GetAtt MasterRole.Arn

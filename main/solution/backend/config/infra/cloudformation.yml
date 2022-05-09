@@ -123,7 +123,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action:
               - 'kms:*'
             Resource: '*'
@@ -309,7 +309,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root'
             Action:
               - 'kms:*'
             Resource: '*'
@@ -491,8 +491,8 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSXrayWriteOnlyAccess'
       Policies:
         - PolicyName: db-access
           PolicyDocument:
@@ -519,7 +519,7 @@ Resources:
               Effect: Allow
               Action:
                 - ssm:GetParameter
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+              Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
         - PolicyName: cognito-access
           PolicyDocument:
             Statement:
@@ -528,7 +528,7 @@ Resources:
                 - cognito-idp:AdminGetUser
                 - cognito-idp:AdminUpdateUserAttributes
               Resource:
-                - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+                - !Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
 
   PolicyApiHandler:
     Type: AWS::IAM::ManagedPolicy
@@ -547,13 +547,13 @@ Resources:
               - dynamodb:Scan
               - dynamodb:UpdateItem
             Resource:
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
+              - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
+              - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
           - Effect: Allow
             Action:
               - ssm:GetParameter
             Resource:
-              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
           - Effect: Allow
             Action:
               - states:StartExecution
@@ -569,13 +569,13 @@ Resources:
               - s3:List*
               - s3:PutLifecycleConfiguration
             Resource:
-              - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}/*'
-              - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
-              - 'arn:aws:s3:::${self:custom.settings.externalCfnTemplatesBucketName}/*'
-              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
-              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
-              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.studyDataBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.externalCfnTemplatesBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressNotificationBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressStoreBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressNotificationBucketName}/*'
           - Effect: Allow
             Action:
               - s3:ListBucket
@@ -583,11 +583,11 @@ Resources:
               - s3:PutBucketPolicy
               - s3:ListBucketVersions
             Resource:
-              - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.studyDataBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressNotificationBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: Allow
             Action:
               - kms:GenerateDataKey
@@ -600,8 +600,8 @@ Resources:
             Resource:
               # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
               #   circular dependency in StudyDataEncryptionKey's KeyPolicy
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
+              - !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/*'
           - Effect: 'Allow'
             Action:
               - ce:GetCostAndUsage
@@ -614,20 +614,20 @@ Resources:
             Action: 'sts:AssumeRole'
             Resource:
               - !GetAtt [RoleEnvMgmt, Arn]
-              - 'arn:aws:iam::*:role/SC-*'
-              - 'arn:aws:iam::*:role/swb-*'
-              - 'arn:aws:iam::*:role/analysis-*'
-              - 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - 'arn:aws:iam::*:role/*-xacc-env-mgmt'
-              - 'arn:aws:iam::*:role/*-cfn-status-role'
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/SC-*'
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/swb-*'
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/analysis-*'
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/*-xacc-env-mgmt'
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/*-cfn-status-role'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
               - logs:CreateLogStream
               - logs:PutLogEvents
             Resource:
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
           - Effect: Allow
             Action:
               - xray:PutTraceSegments
@@ -638,18 +638,18 @@ Resources:
             Action:
               - sns:Publish
             Resource:
-              - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.egressNotificationTopicName}'
+              - !Sub 'arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.egressNotificationTopicName}'
           - Effect: Allow
             Action:
               - appstream:UpdateImagePermissions
             Resource:
-              - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
+              - !Sub 'arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
           - Effect: Allow
             Action:
               - cognito-idp:AdminGetUser
               - cognito-idp:AdminUpdateUserAttributes
             Resource:
-              - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+              - !Sub 'arn:${AWS::Partition}:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
 
   # IAM Role for the apiHandler Function
   RoleApiHandler:
@@ -685,28 +685,28 @@ Resources:
               - dynamodb:Scan
               - dynamodb:UpdateItem
             Resource:
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
+              - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
+              - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
           - Effect: Allow
             Action:
               - ssm:GetParameter
             Resource:
-              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
           - Effect: Allow
             Action:
               - ssm:PutParameter
               - ssm:DeleteParameter
             Resource:
-              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
           - Effect: 'Allow'
             Action:
               - route53:ChangeResourceRecordSets
-            Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
+            Resource: !Sub 'arn:${AWS::Partition}:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
           - Effect: Allow
             Action:
               - states:StartExecution
             Resource:
-              - !Sub 'arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${self:custom.settings.workflowStateMachineName}'
+              - !Sub 'arn:${AWS::Partition}:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${self:custom.settings.workflowStateMachineName}'
           - Effect: Allow
             Action:
               - ec2:DescribeSubnets
@@ -718,16 +718,16 @@ Resources:
           - Effect: Allow
             Action:
               - ec2:ModifyImageAttribute
-            Resource: !Sub 'arn:aws:ec2:${AWS::Region}::image/*'
+            Resource: !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}::image/*'
           - Effect: 'Allow'
             Action:
               - s3:GetBucketPolicy
               - s3:PutBucketPolicy
             Resource:
-              - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.studyDataBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: 'Allow'
             Action:
               - kms:DescribeKey
@@ -740,11 +740,11 @@ Resources:
             Resource:
               # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
               #   circular dependency in StudyDataEncryptionKey's KeyPolicy
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
+              - !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/*'
               - !If
                 - EnableEgressStore
-                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}'
+                - !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}'
                 - !Ref 'AWS::NoValue'
           - Effect: 'Allow'
             Action:
@@ -752,31 +752,31 @@ Resources:
               - s3:PutObject*
               - s3:DeleteObject
             Resource:
-              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
-              - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressStoreBucketName}/*'
           - Effect: 'Allow'
             Action:
               - s3:ListBucket
             Resource:
-              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: Allow
             Action: 'sts:AssumeRole'
             Resource:
               - !GetAtt [RoleEnvMgmt, Arn]
-              - 'arn:aws:iam::*:role/SC-*'
-              - 'arn:aws:iam::*:role/analysis-*'
-              - 'arn:aws:iam::*:role/swb-*'
-              - 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - 'arn:aws:iam::*:role/*-xacc-env-mgmt'
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/SC-*'
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/analysis-*'
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/swb-*'
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - !Sub 'arn:${AWS::Partition}:iam::*:role/*-xacc-env-mgmt'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
               - logs:CreateLogStream
               - logs:PutLogEvents
             Resource:
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:*'
           - Effect: Allow
             Action:
               - xray:PutTraceSegments
@@ -787,18 +787,18 @@ Resources:
             Action:
               - appstream:UpdateImagePermissions
             Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
           - Effect: 'Allow'
             Action:
               - s3:GetObject
             Resource:
-              - 'arn:aws:s3:::cf-templates-*/*'
-              - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::cf-templates-*/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/*'
           - Effect: Allow
             Action:
               - appstream:UpdateImagePermissions
             Resource:
-              - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
+              - !Sub 'arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
           - !If
             - EnableEgressStore
             - Effect: Allow
@@ -853,13 +853,13 @@ Resources:
               - s3:DeleteObjectVersion
               - s3:DeleteObjectVersionTagging
             Resource:
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressStoreBucketName}/*'
           - Effect: Allow
             Action:
               - s3:ListBucket
               - s3:ListBucketVersions
             Resource:
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+              - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: Allow
             Action:
               - kms:Decrypt
@@ -869,7 +869,7 @@ Resources:
               - kms:ReEncrypt*
             Resource:
               # Can't use EgressStoreEncryptionKey due to circular dependency
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !Sub 'arn:${AWS::Partition}:kms:${AWS::Region}:${AWS::AccountId}:key/*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
@@ -900,7 +900,7 @@ Resources:
               Service: !Sub 'states.${AWS::Region}.amazonaws.com'
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
       Policies:
         - PolicyName: lambda
           PolicyDocument:
@@ -922,8 +922,8 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSXrayWriteOnlyAccess'
       Policies:
         - PolicyName: db-access
           PolicyDocument:
@@ -978,17 +978,17 @@ Resources:
               - logs:CreateLogGroup
               - logs:CreateLogStream
             Resource:
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*'
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*'
           - Effect: Allow
             Action:
               - logs:PutLogEvents
             Resource:
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*:log-stream:*'
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*:log-stream:*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*:log-stream:*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*:log-stream:*'
           - Effect: Allow
             Action: 'sts:AssumeRole'
-            Resource: 'arn:aws:iam::*:role/swb-*'
+            Resource: !Sub 'arn:${AWS::Partition}:iam::*:role/swb-*'
           - Effect: Allow
             Action:
               - xray:PutTraceSegments
@@ -1038,10 +1038,10 @@ Resources:
               - logs:PutLogEvents
               - logs:CreateLogGroup
             Resource:
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-awsAccountOnboardingHandler:*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-awsAccountOnboardingHandler:*'
           - Effect: Allow
             Action: 'sts:AssumeRole'
-            Resource: 'arn:aws:iam::*:role/*-cfn-status-role'
+            Resource: !Sub 'arn:${AWS::Partition}:iam::*:role/*-cfn-status-role'
 
   #IAM Role for the awsAccountOnboardingHandler Function
   RoleAwsAccountOnboardingHandler:
@@ -1112,7 +1112,7 @@ Resources:
             Action:
               - s3:GetObject
             Resource:
-              - 'arn:aws:s3:::cf-templates-*/*'
+              - !Sub 'arn:${AWS::Partition}:s3:::cf-templates-*/*'
   # =============================================================================================
   # Step Functions
   # =============================================================================================

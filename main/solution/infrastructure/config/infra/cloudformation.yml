@@ -114,15 +114,15 @@ Resources:
           - Sid: ELB Logging permissions
             Effect: Allow
             Principal:
-              AWS: !Join ['', ['arn:aws:iam::', !FindInMap [ELBAccountIDMapping, !Ref 'AWS::Region', Id], ':root']]
+              AWS: !Join ['', ['arn:', !Ref 'AWS::Partition', ':iam::', !FindInMap [ELBAccountIDMapping, !Ref 'AWS::Region', Id], ':root']]
             Action: s3:PutObject
-            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
+            Resource: !Join ['', ['arn:', !Ref 'AWS::Partition', ':s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
           - Sid: ELB Logging permissions
             Effect: Allow
             Principal:
               Service: delivery.logs.amazonaws.com
             Action: s3:PutObject
-            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
+            Resource: !Join ['', ['arn:', !Ref 'AWS::Partition', ':s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
             Condition:
               StringEquals:
                 s3:x-amz-acl: bucket-owner-full-control
@@ -131,7 +131,7 @@ Resources:
             Principal:
               Service: delivery.logs.amazonaws.com
             Action: s3:GetBucketAcl
-            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket]]
+            Resource: !Join ['', ['arn:', !Ref 'AWS::Partition', ':s3:::', !Ref LoggingBucket]]
 
   # S3 Bucket for the static website
   WebsiteBucket:
@@ -164,9 +164,9 @@ Resources:
               - 's3:GetObject'
             Effect: Allow
             Principal:
-              AWS: !Join ['', ['arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ', !Ref 'CloudFrontOAI']]
+              AWS: !Join ['', ['arn:', !Ref 'AWS::Partition', ':iam::cloudfront:user/CloudFront Origin Access Identity ', !Ref 'CloudFrontOAI']]            
             Resource:
-              - !Join ['', ['arn:aws:s3:::', !Ref 'WebsiteBucket', '/*']]
+              - !Join ['', ['arn:', !Ref 'AWS::Partition', ':s3:::', !Ref 'WebsiteBucket', '/*']]
           - Sid: Deny requests that do not use TLS/HTTPS
             Effect: Deny
             Principal: '*'
