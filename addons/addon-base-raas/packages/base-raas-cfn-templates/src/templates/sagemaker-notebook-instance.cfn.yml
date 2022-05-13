@@ -78,13 +78,13 @@ Resources:
               - Effect: 'Allow'
                 Action: 's3:GetObject'
                 Resource: !Sub
-                  - 'arn:aws:s3:::${S3Location}/*'
+                  - 'arn:${AWS::Partition}:s3:::${S3Location}/*'
                   # Remove "s3://" prefix from EnvironmentInstanceFiles
                   - S3Location: !Select [1, !Split ['s3://', !Ref EnvironmentInstanceFiles]]
               - Effect: 'Allow'
                 Action: 's3:ListBucket'
                 Resource: !Sub
-                  - 'arn:aws:s3:::${S3Bucket}'
+                  - 'arn:${AWS::Partition}:s3:::${S3Bucket}'
                   - S3Bucket: !Select [2, !Split ['/', !Ref EnvironmentInstanceFiles]]
                 Condition:
                   StringLike:
@@ -102,7 +102,7 @@ Resources:
                 - logs:PutLogEvents
                 - logs:CreateLogGroup
               Resource:
-                - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/sagemaker/*
+                - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/sagemaker/*
   # TODO: Consider also passing DefaultCodeRepository to allow persisting notebook data
   BasicNotebookInstance:
     Type: 'AWS::SageMaker::NotebookInstance'

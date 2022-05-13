@@ -19,7 +19,7 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
       Policies:
         - PolicyName: s3-access-policy
           PolicyDocument:
@@ -29,7 +29,7 @@ Resources:
                   - s3:PutObjectTagging
                   - s3:PutObjectVersionTagging
                 Resource:
-                  - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.egressStoreBucketName}/*'
         - PolicyName: cloudwatch-access-policy
           PolicyDocument:
             Statement:
@@ -39,8 +39,8 @@ Resources:
                 - logs:CreateLogStream
                 - logs:PutLogEvents
               Resource:
-                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
-                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
+                - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
+                - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
         - PolicyName: ddb-access-policy
           PolicyDocument:
             Statement:
@@ -54,10 +54,10 @@ Resources:
                 - dynamodb:Scan
                 - dynamodb:UpdateItem
               Resource:
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}/index/*'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}/index/*'
   # IAM Role for the postDeployment Function
   RolePostDeploymentLambda:
     Type: 'AWS::IAM::Role'
@@ -70,8 +70,8 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonCognitoPowerUser'
       Policies:
         - PolicyName: assume-role
           PolicyDocument:
@@ -239,7 +239,7 @@ Resources:
                 Action:
                   - lambda:AddPermission
                 Resource:
-                  - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:custom.settings.namespace}-Cognito-PreSignUp'
+                  - !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:custom.settings.namespace}-Cognito-PreSignUp'
               - Effect: Allow
                 Action:
                   - lambda:GetFunction
@@ -306,9 +306,9 @@ Resources:
                   - iam:PassRole
                   - iam:DeleteRole
                 Resource:
-                  - 'arn:aws:iam::*:role/analysis-*'
-                  - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
-                  - 'arn:aws:iam::*:role/*-sagemaker-notebook-role'
+                  - !Sub 'arn:${AWS::Partition}:iam::*:role/analysis-*'
+                  - !Sub 'arn:${AWS::Partition}:iam::*:role/SC-*-ServiceRole-*'
+                  - !Sub 'arn:${AWS::Partition}:iam::*:role/*-sagemaker-notebook-role'
               - Effect: Allow
                 Action:
                   - iam:PutRolePolicy
@@ -317,9 +317,9 @@ Resources:
                   - iam:AttachRolePolicy
                   - iam:CreateRole
                 Resource:
-                  - 'arn:aws:iam::*:role/analysis-*'
-                  - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
-                  - 'arn:aws:iam::*:role/*-sagemaker-notebook-role'
+                  - !Sub 'arn:${AWS::Partition}:iam::*:role/analysis-*'
+                  - !Sub 'arn:${AWS::Partition}:iam::*:role/SC-*-ServiceRole-*'
+                  - !Sub 'arn:${AWS::Partition}:iam::*:role/*-sagemaker-notebook-role'
               - Effect: Allow
                 Action:
                   - iam:AddRoleToInstanceProfile
@@ -328,22 +328,22 @@ Resources:
                   - iam:DeleteInstanceProfile
                   - iam:RemoveRoleFromInstanceProfile
                 Resource:
-                  - 'arn:aws:iam::*:instance-profile/analysis-*'
-                  - 'arn:aws:iam::*:instance-profile/SC-*-InstanceProfile-*'
+                  - !Sub 'arn:${AWS::Partition}:iam::*:instance-profile/analysis-*'
+                  - !Sub 'arn:${AWS::Partition}:iam::*:instance-profile/SC-*-InstanceProfile-*'
               - Effect: Allow
                 Action:
                   - iam:GetPolicy
                   - iam:CreatePolicy
                   - iam:ListPolicyVersions
                   - iam:DeletePolicy
-                Resource: 'arn:aws:iam::*:policy/*-permission-boundary'
+                Resource: !Sub 'arn:${AWS::Partition}:iam::*:policy/*-permission-boundary'
               - Effect: Allow
                 Action:
                   - cloudformation:CreateStack
                   - cloudformation:DescribeStacks
                   - cloudformation:DescribeStackEvents
                   - cloudformation:DeleteStack
-                Resource: 'arn:aws:cloudformation:*:*:stack/SC-*/*'
+                Resource: !Sub 'arn:${AWS::Partition}:cloudformation:*:*:stack/SC-*/*'
               - Effect: Allow # Used for SC update product
                 Action:
                   - cloudformation:GetTemplateSummary
@@ -351,7 +351,7 @@ Resources:
               - Effect: Allow # Used for SC update product
                 Action:
                   - s3:GetObject
-                Resource: 'arn:aws:s3:::sc-*'
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::sc-*'
               - Effect: Allow
                 Action:
                   - ec2:AuthorizeSecurityGroupIngress
@@ -383,7 +383,7 @@ Resources:
                   - s3:PutBucketPolicy
                   - s3:GetBucketPolicy
                   - s3:DeleteBucketPolicy
-                Resource: 'arn:aws:s3:::sc-*-logbucket-*'
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::sc-*-logbucket-*'
               - Effect: Allow
                 Action:
                   - elasticmapreduce:CreateSecurityConfiguration
@@ -405,7 +405,7 @@ Resources:
                   - iam:UpdateRoleDescription
                   - iam:DeleteServiceLinkedRole
                   - iam:GetServiceLinkedRoleDeletionStatus
-                Resource: arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*
+                Resource: !Sub 'arn:${AWS::Partition}:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*'
                 Condition:
                   StringLike:
                     iam:AWSServiceName:
@@ -419,7 +419,7 @@ Resources:
                   - sagemaker:DescribeNotebookInstanceLifecycleConfig
                   - sagemaker:CreateNotebookInstanceLifecycleConfig
                   - sagemaker:DeleteNotebookInstanceLifecycleConfig
-                Resource: 'arn:aws:sagemaker:*:*:notebook-instance-lifecycle-config/basicnotebookinstancelifecycleconfig-*'
+                Resource: !Sub 'arn:${AWS::Partition}:sagemaker:*:*:notebook-instance-lifecycle-config/basicnotebookinstancelifecycleconfig-*'
               - Effect: Allow
                 Action:
                   - sagemaker:DescribeNotebookInstance
@@ -427,7 +427,7 @@ Resources:
                   - sagemaker:StopNotebookInstance
                   - sagemaker:StopNotebookInstance
                   - sagemaker:DeleteNotebookInstance
-                Resource: 'arn:aws:sagemaker:*:*:notebook-instance/basicnotebookinstance-*'
+                Resource: !Sub 'arn:${AWS::Partition}:sagemaker:*:*:notebook-instance/basicnotebookinstance-*'
               - Effect: Allow
                 Action:
                   - ec2:DescribeNetworkInterfaces
@@ -444,7 +444,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - ec2:TerminateInstances
-                Resource: 'arn:aws:ec2:*:*:instance/*'
+                Resource: !Sub 'arn:${AWS::Partition}:ec2:*:*:instance/*'
               - Effect: Allow
                 Action:
                   - ec2:RunInstances # RunInstances involves 6 different resource types, it's hard to narrow it down
@@ -475,7 +475,7 @@ Resources:
                   - elasticloadbalancing:DeregisterTargets
                   - elasticloadbalancing:AddTags
                 Resource:
-                  - 'arn:aws:elasticloadbalancing:*:*:targetgroup/analysis-*'
+                  - !Sub 'arn:${AWS::Partition}:elasticloadbalancing:*:*:targetgroup/analysis-*'
 
   # =============================================================================================
   # Cognito PreSignUp trigger
@@ -502,12 +502,12 @@ Resources:
             Statement:
               - Effect: 'Allow'
                 Action: logs:CreateLogGroup
-                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:*'
               - Effect: 'Allow'
                 Action:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.namespace}-Cognito-PreSignUp:*'
+                Resource: !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.namespace}-Cognito-PreSignUp:*'
 
   # Lambda that automatically confirms newly signed up Cognito users based on pre-defined logic
   PreSignUpLambda:
