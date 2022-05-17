@@ -285,17 +285,17 @@ class StudyService extends Service {
   }
 
   async create(requestContext, rawStudyEntity) {
-    // This flag was introduced for the Researcher to restrict the create study/org
-    // if it set to true
+    if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
+      throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
+    }
+
+    // This flag was introduced to restrict Researcher action to create study/org studies
     const disableStudyUploadByResearcher =
       this.settings.getBoolean(settingKeys.disableStudyUploadByResearcher) || false;
-
     if (disableStudyUploadByResearcher && !isAdmin(requestContext)) {
       throw this.boom.forbidden('Only admin are authorized to create studies.', true);
     }
-    if (!disableStudyUploadByResearcher && !(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
-      throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
-    }
+
     if (isOpenData(rawStudyEntity) && !isSystem(requestContext)) {
       throw this.boom.forbidden('Only the system can create Open Data studies.', true);
     }

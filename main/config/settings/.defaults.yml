@@ -186,6 +186,21 @@ customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
 # Recommended: Turning this on captures network traffic information on the hosting account's VPCs and subnets
 enableFlowLogs: true
 
+# The name of the S3 bucket used to store uploaded study data
+studyDataBucketName: ${self:custom.settings.globalNamespace}-studydata
+
+# DynamoDB table name for KeyPairs
+dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
+
+# DynamoDB table name for data lake users
+dbUsers: ${self:custom.settings.dbPrefix}-Users
+
+# DynamoDB table name for StudyPermissions
+dbStudyPermissions: ${self:custom.settings.dbPrefix}-StudyPermissions
+
+# DynamoDB table name for Environments created using AWS Service Catalog
+dbEnvironmentsSc: ${self:custom.settings.dbPrefix}-EnvironmentsSc
+
 # ================================ Data Egress Feature Settings ===========================================
 # NOTE: Following properties are ONLY allowed to change for the initial deployment. It's NOT recommended to change the following properties if you have enabled data egress feature.
 # Enable the Egress Store feature would allow researchers to securely egress data from lockdown Workspace
@@ -215,20 +230,14 @@ egressNotificationTopicName: ${self:custom.settings.namespace}-EgressTopic
 # Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
 isAppStreamEnabled: false
 
-# The name of the S3 bucket used to store uploaded study data
-studyDataBucketName: ${self:custom.settings.globalNamespace}-studydata
+# Set this to true to restrict SWB admins from accessing another user's workspace. SWB admins can still connect to their own workspace.
+restrictAdminWorkspaceConnection: false
 
-# DynamoDB table name for KeyPairs
-dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
+# Setting this to true disables create study and file upload to study by researchers, for My Studies and (non-BYOB) Organization study categories only
+disableStudyUploadByResearcher: false
 
-# DynamoDB table name for data lake users
-dbUsers: ${self:custom.settings.dbPrefix}-Users
-
-# DynamoDB table name for StudyPermissions
-dbStudyPermissions: ${self:custom.settings.dbPrefix}-StudyPermissions
-
-# DynamoDB table name for Environments created using AWS Service Catalog
-dbEnvironmentsSc: ${self:custom.settings.dbPrefix}-EnvironmentsSc
+# Setting this to true ensures SWB admin cannot be a BYOB study admin
+disableAdminBYOBSelfAssignment: false
 
 # ==================== AMI Sharing Feature Settings ====================
 enableAmiSharing: false

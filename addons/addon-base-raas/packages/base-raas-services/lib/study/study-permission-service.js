@@ -487,18 +487,15 @@ class StudyPermissionService extends Service {
         const isAdminUser = user.isAdmin;
         const isActive = _.toLower(user.status) === 'active';
         const isResearcher = user.userRole === 'researcher';
-        // Admin can assign only a researcher as a study admin in the BYOB feature.
+        if (!(isActive && (isAdminUser || isResearcher))) {
+          throw this.boom.badRequest(`User ${user.username} must be active and has to be an admin or researcher`, true);
+        }
 
+        // Admin can assign only a researcher as a study admin in the BYOB feature.
         const disableAdminBYOBSelfAssignment =
           this.settings.getBoolean(settingKeys.disableAdminBYOBSelfAssignment) || false;
-        if (disableAdminBYOBSelfAssignment === true && !(isActive && isResearcher)) {
-          throw this.boom.badRequest(`User ${user.username} must be active and has the role of researcher`, true);
-        }
-        if (disableAdminBYOBSelfAssignment !== true && !(isActive && (isAdminUser || isResearcher))) {
-          throw this.boom.badRequest(
-            `User ${user.username} must be active and either has the role of admin or the role of researcher`,
-            true,
-          );
+        if (disableAdminBYOBSelfAssignment && !(isActive && isResearcher)) {
+          throw this.boom.badRequest(`User ${user.username} must be active and with a researcher role`, true);
         }
       } catch (error) {
         errors.push(error.message);

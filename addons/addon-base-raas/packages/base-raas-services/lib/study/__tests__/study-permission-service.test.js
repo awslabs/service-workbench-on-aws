@@ -756,7 +756,7 @@ describe('StudyPermissionService', () => {
         },
       };
       await expect(service.assertValidUsers(userIds)).rejects.toThrow(
-        expect.objectContaining({ message: `User ${username} must be active and has the role of researcher` }),
+        expect.objectContaining({ message: `User ${username} must be active and with a researcher role` }),
       );
     });
 
