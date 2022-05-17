@@ -635,4 +635,72 @@ jM0re//6SUWx/9VfBLN+6Ul8wcqGR2uCmK/PJpzWYxz0IzhnyA==
       );
     });
   });
+
+  describe('verifyAccess', () => {
+    it('Should fail if the admin is try to access the researcher workspace', async () => {
+      // Env is created by the researcher
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'restrictAdminWorkspaceConnection') {
+            return true;
+          }
+          return undefined;
+        },
+      };
+      const createdBy = 'u-moQvVGabqpcaypegCqwsa'; // researcher uid
+      const projectId = 'Project-2';
+      const requestContext = {
+        principal: { isAdmin: true, status: 'active' },
+        principalIdentifier: { uid: 'u-moQvVGabqpcaypegCqwso' },
+      };
+      try {
+        await service.verifyAccess(requestContext, createdBy, projectId);
+      } catch (err) {
+        expect(err.message).toEqual(`You do not have access to other user's workspace`);
+      }
+    });
+
+    it('Should pass if the admin is try to access his own workspace', async () => {
+      // Env is created by the researcher
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'restrictAdminWorkspaceConnection') {
+            return true;
+          }
+          return undefined;
+        },
+      };
+      const createdBy = 'u-moQvVGabqpcaypegCqwso'; // researcher uid
+      const projectId = 'Project-2';
+      const requestContext = {
+        principal: { isAdmin: true, status: 'active' },
+        principalIdentifier: { uid: 'u-moQvVGabqpcaypegCqwso' },
+      };
+      try {
+        await service.verifyAccess(requestContext, createdBy, projectId);
+      } catch (err) {
+        expect(err.message).toEqual(`You do not have access to other user's workspace`);
+      }
+    });
+
+    it('Should pass if the admin is try to access the researcher workspace', async () => {
+      // Env is created by the researcher
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'restrictAdminWorkspaceConnection') {
+            return false;
+          }
+          return undefined;
+        },
+      };
+      const createdBy = 'u-moQvVGabqpcaypegCqwsa'; // researcher uid
+      const projectId = 'Project-2';
+      const requestContext = {
+        principal: { isAdmin: true, status: 'active' },
+        principalIdentifier: { uid: 'u-moQvVGabqpcaypegCqwso' },
+      };
+      const status = await service.verifyAccess(requestContext, createdBy, projectId);
+      expect(status).toEqual(true);
+    });
+  });
 });
