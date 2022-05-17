@@ -2,8 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.1.1.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.1.1...mainline)
+### [5.1.1](https://github.com/awslabs/service-workbench-on-aws/compare/v5.1.0...v5.1.1) (2022-05-17)
+
+
+### Bug Fixes
+
+* create log group for flow logs ([#984](https://github.com/awslabs/service-workbench-on-aws/issues/984)) ([5c51e97](https://github.com/awslabs/service-workbench-on-aws/commit/5c51e97c783246136b7d0792367a2050b64d7380))
+* first install ([#970](https://github.com/awslabs/service-workbench-on-aws/issues/970)) ([24010d3](https://github.com/awslabs/service-workbench-on-aws/commit/24010d3a8aa771e3eedf18d3b26a261ff53e869d))
+* replace aws-ee package name prefix with amzn ([#960](https://github.com/awslabs/service-workbench-on-aws/issues/960)) ([9e224ff](https://github.com/awslabs/service-workbench-on-aws/commit/9e224ff1aee34ccbdea14f330c7c840a9a39b125))
+* Use correct colour for pending workspace display ([#968](https://github.com/awslabs/service-workbench-on-aws/issues/968)) ([#969](https://github.com/awslabs/service-workbench-on-aws/issues/969)) ([9f694dc](https://github.com/awslabs/service-workbench-on-aws/commit/9f694dc0072a950231ea47f76bc561838ddf72ff))
 
 ### [5.1.1](https://github.com/awslabs/service-workbench-on-aws/compare/v5.1.0...v5.1.1) (2022-04-08)
 
