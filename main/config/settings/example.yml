@@ -102,3 +102,19 @@
 # Error validating existing stack policy: Unknown logical id 'LogicalResourceId/AppStream*' in statement {} - stack policies can only be applied to logical ids referenced in the template
 # Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
 #isAppStreamEnabled: false
+ 
+# Enable the AMI sharing feature so the AMIs and Appstream images can be maintained in a central devops account
+#enableAmiSharing: false
+
+# The images will be shared using the AWS CLI profile mentioned below.
+# Please make sure that the profile has necessary permissions to create images and create IAM role
+#devopsProfile: devops 
+
+# If you want to restrict the administrator to accessing the user's workspace then to enable the flag by setting it to true. Also, It will also allow the admin to connect with his own workspace. 
+# restrictAdminWorkspaceConnection: false
+
+# Disable the create study button and upload files button in the studies to the researchers, the data will flow through BYOB workflow only. To enable this feature by setting it to true
+# disableStudyUploadByResearcher: false
+
+# Application admin should not be a study admin in the creation of BYOB study. To enable this feature by setting it to true
+# disableAdminBYOBSelfAssignment: false

@@ -21,6 +21,10 @@ REACT_APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
 REACT_APP_SITE_ENV_TYPE: ${self:custom.settings.envType}
 REACT_APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
 REACT_APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
+REACT_APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER: ${self:custom.settings.disableStudyUploadByResearcher}
+REACT_APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION: ${self:custom.settings.restrictAdminWorkspaceConnection}
+REACT_APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT: ${self:custom.settings.disableAdminBYOBSelfAssignment}
+
 
 # ========================================================================
 # Overrides for .env.local

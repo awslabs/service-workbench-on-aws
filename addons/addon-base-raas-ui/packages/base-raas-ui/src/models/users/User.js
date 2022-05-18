@@ -18,6 +18,7 @@ import _ from 'lodash';
 import { storage, removeNulls } from '@amzn/base-ui/dist/helpers/utils';
 import { aesGcmEncrypt, aesGcmDecrypt } from '../../helpers/crypto';
 import localStorageKeys from '../constants/local-storage-keys';
+import { disableStudyUploadByResearcher } from '../../helpers/settings';
 
 const User = types
   .model('User', {
@@ -122,6 +123,10 @@ const User = types
       return self.id === '_system_';
     },
 
+    get isAdminRole() {
+      return self.userRole === 'admin';
+    },
+
     isSame(uid) {
       return self.uid === uid;
     },
@@ -173,8 +178,10 @@ const User = types
       const external = self.isExternalUser; // Either external guest or external user
       const externalGuest = self.isExternalGuest;
       const internalGuest = self.isInternalGuest;
+      // Disable the create study/org button for the researcher. This feature would be enable based on the flag "disableStudyUploadByResearcher" is set to true.
+      const internalResearcherRestricted = self.isInternalResearcher && disableStudyUploadByResearcher === true;
 
-      const canCreateStudy = active && !external && !internalGuest;
+      const canCreateStudy = active && !external && !internalGuest && !internalResearcherRestricted;
       const canCreateWorkspace = active && !externalGuest && !internalGuest;
       const canSelectStudy = active && !externalGuest && !internalGuest;
       const canViewDashboard = active && !external && !internalGuest;
