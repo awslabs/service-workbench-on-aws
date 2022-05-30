@@ -2,8 +2,6 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.0...mainline)
 
 ### [5.2.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.1.1...v5.2.0) (2022-05-17)
 
@@ -31,6 +29,7 @@ All notable changes to this project will be documented in this file. See [standa
 * first install ([#970](https://github.com/awslabs/service-workbench-on-aws/issues/970)) ([24010d3](https://github.com/awslabs/service-workbench-on-aws/commit/24010d3a8aa771e3eedf18d3b26a261ff53e869d))
 * replace aws-ee package name prefix with amzn ([#960](https://github.com/awslabs/service-workbench-on-aws/issues/960)) ([9e224ff](https://github.com/awslabs/service-workbench-on-aws/commit/9e224ff1aee34ccbdea14f330c7c840a9a39b125))
 * Use correct colour for pending workspace display ([#968](https://github.com/awslabs/service-workbench-on-aws/issues/968)) ([#969](https://github.com/awslabs/service-workbench-on-aws/issues/969)) ([9f694dc](https://github.com/awslabs/service-workbench-on-aws/commit/9f694dc0072a950231ea47f76bc561838ddf72ff))
+* Docs: Relevance labs changes ([#996]https://github.com/awslabs/service-workbench-on-aws/issues/996) ([8dcef6b](https://github.com/awslabs/service-workbench-on-aws/commit/8dcef6b9638ff46c07bec1793fe497caef768fa4))
 
 ### [5.1.1](https://github.com/awslabs/service-workbench-on-aws/compare/v5.1.0...v5.1.1) (2022-04-08)
 
