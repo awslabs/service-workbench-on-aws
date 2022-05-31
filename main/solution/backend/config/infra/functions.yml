@@ -20,7 +20,7 @@ openDataScrapeHandler:
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
-
+    APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER: ${self:custom.settings.disableStudyUploadByResearcher}
   events:
     - schedule:
         rate: rate(1 day)
