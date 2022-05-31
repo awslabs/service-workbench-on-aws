@@ -9,19 +9,14 @@ All notable changes to this project will be documented in this file. See [standa
 ### Features
 
 * TRE Enhancements  ([#993](https://github.com/awslabs/service-workbench-on-aws/issues/993)) ([a843926](https://github.com/awslabs/service-workbench-on-aws/commit/a8439261949f00c18f2a761518036a9756676235)):
-  The following new flags have been added to user configurations (set to `false` by default):
+  - **Support for Centralized AMI**:  Allows customers to use a centralized DevOps account for building and hosting AMIs so that these AMIs can be made available to multiple SWB installations.
+    - `enableAmiSharing` and `devopsProfile` configuration settings have been added, disabled by default. These can be overriden in your `main/config/settings/<stage>.yml` file.
+  - **Restrict access to data for Admin Role**: The admin will be allowed to view another researchers' workspaces in the Service Workbench portal, but will not be able connect to them. This ensures the admins do not get indirect access to data sources of other users. Admins can also be restricted to being BYOB data source owners without being a BYOB study admins.
+    - `restrictAdminWorkspaceConnection` and `disableAdminBYOBSelfAssignment` configuration settings have been added, disabled by default. These can be overriden in your `main/config/settings/<stage>.yml` file.
+  - **Restricted data upload capabilities for Researcher Profile**: Users with a researcher role will not have the ability to create a study or upload files to any study, allowing organization to have more control over the study creation and data ingestion.
+    - `disableStudyUploadByResearcher` configuration setting has been added, disabled by default. This can be overriden in your `main/config/settings/<stage>.yml` file.
 
-  - `restrictAdminWorkspaceConnection`:  Set this to `true` to restrict SWB admins from connecting to another user's workspace. SWB admins can still connect to their own workspace.
-
-  - `disableStudyUploadByResearcher`: Setting this to `true` disables create study and file upload to study by researchers, for My Studies and (non-BYOB) Organization study categories
-
-  - `disableAdminBYOBSelfAssignment`: Setting this to `true` ensures SWB admin cannot be a BYOB study admin
-
-  - `enableAmiSharing`: Setting this to `true` allows you to use AppStream and SC product AMIs set up in an AWS account other than the main account
-
-  - `devopsProfile`: Specify the AWS profile value if `enableAmiSharing` is set to `true`.
-
-  - Note: No changes made to environment connection logic.
+  For more information about these flags, please take a look at our [User Guide](./docs/Service_Workbench_User_Guide.pdf) document.
 
 ### Bug Fixes
 
