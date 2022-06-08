@@ -9,7 +9,7 @@ import { displayError } from '@amzn/base-ui/dist/helpers/notification';
 
 import ScEnvironmentConnections from './ScEnvironmentConnections';
 import ScEnvironmentUpdateCidrs from './ScEnvironmentUpdateCidrs';
-import { enableEgressStore, isAppStreamEnabled } from '../../../helpers/settings';
+import { enableEgressStore, isAppStreamEnabled, restrictAdminWorkspaceConnection } from '../../../helpers/settings';
 import ScEnvironmentEgressStoreDetail from './ScEnvironmentEgressStoreDetail';
 
 const PROCESSING_STATUS_CODE = 'PROCESSING';
@@ -33,6 +33,10 @@ class ScEnvironmentButtons extends React.Component {
       // A flag to indicate if the egressStore button is active
       this.egressStoreButtonActive = false;
     });
+  }
+
+  get userStore() {
+    return this.props.userStore;
   }
 
   get environment() {
@@ -133,10 +137,25 @@ class ScEnvironmentButtons extends React.Component {
     const connectionsButtonActive = this.connectionsButtonActive;
     const egressStoreButtonActive = this.egressStoreButtonActive;
     const editCidrButtonActive = this.editCidrButtonActive;
-    const canConnect = state.canConnect;
+    let canConnect = state.canConnect;
     const canStart = state.canStart && this.canChangeState();
     const canStop = state.canStop && this.canChangeState();
 
+    const envCreatedBy = env.createdBy;
+    const user = this.userStore.user;
+    const isAdmin = user.isAdmin;
+    const uid = user.uid;
+
+    //  Validate the flag "restrictAdminWorkspaceConnection" if it set to "true"
+    //  Restrict the admin to access workspaces only created by them.
+    if (restrictAdminWorkspaceConnection === true) {
+      if (isAdmin === true) {
+        canConnect = false;
+      }
+      if (uid === envCreatedBy) {
+        canConnect = true;
+      }
+    }
     return (
       <>
         <div className="clearfix" style={{ minHeight: '42px' }}>
@@ -255,6 +274,7 @@ class ScEnvironmentButtons extends React.Component {
 decorate(ScEnvironmentButtons, {
   envsStore: computed,
   environment: computed,
+  userStore: computed,
   processing: observable,
   connectionsButtonActive: observable,
   egressStoreButtonActive: observable,
@@ -267,5 +287,5 @@ decorate(ScEnvironmentButtons, {
 });
 
 // eslint-disable-next-line import/no-mutable-exports
-const exportable = inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentButtons)));
+const exportable = inject('scEnvironmentsStore', 'userStore')(withRouter(observer(ScEnvironmentButtons)));
 export default exportable;

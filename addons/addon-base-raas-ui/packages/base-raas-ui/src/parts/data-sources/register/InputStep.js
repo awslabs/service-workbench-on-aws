@@ -32,7 +32,7 @@ import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 import { regionOptions } from '../../../models/constants/aws-regions';
 import { encryptionOptions } from '../../../models/constants/bucket';
 import { getRegisterStudyForm } from '../../../models/forms/RegisterStudyForm';
-import { enableEgressStore } from '../../../helpers/settings';
+import { enableEgressStore, disableAdminBYOBSelfAssignment } from '../../../helpers/settings';
 
 const fieldRuleKey = (container, name) => `${container.key}-${name}`;
 
@@ -72,6 +72,7 @@ class InputStep extends React.Component {
     const result = [];
     _.forEach(list, user => {
       if (!user.isActive) return;
+      if ((user.isAdmin || user.userRole === 'admin') && disableAdminBYOBSelfAssignment === true) return;
       if (user.isAdmin || user.isInternalResearcher || user.userRole === 'admin') {
         result.push({
           key: user.id,

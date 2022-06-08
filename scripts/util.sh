@@ -76,3 +76,12 @@ function install_dependencies() {
   [[ -n "$INSTALL_RECURSIVE" ]] && $INSTALL_RECURSIVE
   popd
 }
+
+# Function to read stage file values
+function get_stage_value() {
+  key=$1
+  set +e
+  value="$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" 2> /dev/null | grep '^'$key':' -m 1 | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+  set -e
+  echo $value
+}

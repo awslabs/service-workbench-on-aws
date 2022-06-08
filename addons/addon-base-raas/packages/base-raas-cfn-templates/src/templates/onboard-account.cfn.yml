@@ -106,6 +106,17 @@ Parameters:
     Description: Optional custom Domain name to be created in Route53
     Type: String
     Default: ''
+  
+  EnableAmiSharing:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Use appstream image from the central devops account
+    Default: false
+  
+  DevopsAccountId:
+    Type: String
+    Description: The account id of the central AWS account where the appstream image is created.
+    Default: ''
 
   # Note: While adding additional CIDRs/Subnets ensure they don't overlap with those used by RStudio ALB (10.0.96.0 to 10.0.97.255)
 
@@ -141,6 +152,9 @@ Conditions:
   enableFlowLogs: !Equals [!Ref EnableFlowLogs, true]
   enableFlowLogsNonAppStream: !And [Condition: isNotAppStream,Condition: enableFlowLogs]
   enableFlowLogsWithAppStream: !And [Condition: isAppStream,Condition: enableFlowLogs]
+  amiSharingEnabled: !Equals
+    - !Ref EnableAmiSharing
+    - true
 
 Resources:
   Route53HostedZone:
@@ -640,7 +654,7 @@ Resources:
       ResourceType: VPC
       TrafficType: ACCEPT
       DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
-      LogGroupName: VPCLogGroup
+      LogGroupName: !Ref FlowLogCloudwatchGroup
       LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
       Tags:
         - Key: Name
@@ -683,7 +697,7 @@ Resources:
       ResourceType: Subnet
       TrafficType: ACCEPT
       DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
-      LogGroupName: PublicSubnet1LogGroup
+      LogGroupName: !Ref FlowLogCloudwatchGroup
       LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
       Tags:
         - Key: Name
@@ -754,6 +768,13 @@ Resources:
     Properties:
       AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
       TargetKeyId: !Ref EncryptionKey
+  
+  FlowLogCloudwatchGroup:
+    Type: 'AWS::Logs::LogGroup'
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Join ['', [Ref: Namespace, '-flow-logger']]
+      RetentionInDays: 30
 
   #------------AppStream Resources Below-------
   PrivateAppStreamSubnet:
@@ -776,7 +797,7 @@ Resources:
       ResourceType: Subnet
       TrafficType: ACCEPT
       DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
-      LogGroupName: PrivateAppStreamSubnetLogGroup
+      LogGroupName: !Ref FlowLogCloudwatchGroup
       LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
       Tags:
         - Key: Name
@@ -1061,7 +1082,7 @@ Resources:
       EnableDefaultInternetAccess: False
       FleetType: !Ref AppStreamFleetType
       IdleDisconnectTimeoutInSeconds: !Ref AppStreamIdleDisconnectTimeoutSeconds
-      ImageArn: !Sub 'arn:aws:appstream:${AWS::Region}:${CentralAccountId}:image/${AppStreamImageName}'
+      ImageArn: !If [amiSharingEnabled, !Sub 'arn:aws:appstream:${AWS::Region}:${DevopsAccountId}:image/${AppStreamImageName}', !Sub 'arn:aws:appstream:${AWS::Region}:${CentralAccountId}:image/${AppStreamImageName}']
       InstanceType: !Ref AppStreamInstanceType
       MaxUserDurationInSeconds: !Ref AppStreamMaxUserDurationSeconds
       Name: !Sub ${Namespace}-ServiceWorkbenchFleet
