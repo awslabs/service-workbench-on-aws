@@ -1,0 +1,17 @@
+id: wf-create-network-infra
+v: 1
+workflowTemplateId: wt-empty
+workflowTemplateVer: 1
+title: Create New Network Infra for Storage Gateway
+desc: |
+  Create new environment
+hidden: false
+builtin: true
+instanceTtl: 30 # In days, however, empty value means that it is indefinite
+selectedSteps:
+  - stepTemplateId: create-network-infrastructure
+    stepTemplateVer: 1
+    id: wf-step_1_1571231231232_20 # Randomly generated id, no need to change it
+    # configs: # add configuration key/value pairs (if needed)
+    # key1: value1
+    # key2: value2

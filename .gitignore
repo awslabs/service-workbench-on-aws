@@ -1,0 +1,38 @@
+**/.class
+**/.DS_Store
+**/coverage
+**/node_modules
+**/npm-debug.log
+**/pnpm-debug.log
+**/.docusaurus
+
+.build
+docs/build
+
+# VisualStudioCode.gitignore
+.vscode/*
+!.vscode/*.example.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+
+# IntelliJ Idea Module Files
+*.iml
+**/.idea
+
+# User-config files
+*/config/settings/*.yml
+!*/config/settings/.defaults.yml
+!*/config/settings/example*.yml
+*/*/config/settings/*.yml
+!*/*/config/settings/.defaults.yml
+!*/*/config/settings/example*.yml
+*/*/*/config/settings/*.yml
+!*/*/*/config/settings/.defaults.yml
+!*/*/*/config/settings/example*.yml
+!main/infrastructure-tests/config/settings/github.yml
+
+# rStudio specific
+source/ServiceWorkbenchOnAWS/main/solution/machine-images/config/infra/files/rstudio/*

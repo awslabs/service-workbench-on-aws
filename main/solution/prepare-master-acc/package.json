@@ -1,0 +1,13 @@
+{
+  "name": "@amzn/prepare-master-acc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A utility component to prepare Service Workbench master account containing main AWS Organization",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@amzn/base-serverless-settings-helper": "workspace:*",
+    "serverless": "^1.63.0",
+    "serverless-deployment-bucket": "^1.1.0"
+  }
+}

@@ -1,0 +1,8 @@
+id: st-share-portfolio-with-target-acc
+v: 1
+title: Share Portfolio with Target Account
+desc: |
+  Shares the AWS Service Catalog Portfolio with the target account
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "accountName": {
+      "type": "string"
+    },
+    "accountEmail": {
+      "type": "string"
+    },
+    "masterRoleArn": {
+      "type": "string"
+    },
+    "externalId": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "appStreamFleetDesiredInstances": {
+      "type": "string"
+    },
+    "appStreamIdleDisconnectTimeoutSeconds": {
+      "type": "string"
+    },
+    "appStreamDisconnectTimeoutSeconds": {
+      "type": "string"
+    },
+    "appStreamMaxUserDurationSeconds": {
+      "type": "string"
+    },
+    "appStreamImageName": {
+      "type": "string"
+    },
+    "appStreamInstanceType": {
+      "type": "string"
+    },
+    "appStreamFleetType": {
+      "type": "string"
+    }
+  },
+  "required": ["accountName", "accountEmail", "masterRoleArn", "externalId"]
+}

@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "definitions": {
+    "s3Info": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "bucket": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        }
+      },
+      "required": ["bucket", "key"]
+    }
+  },
+
+  "properties": {
+    "from": {
+      "$ref": "#/definitions/s3Info"
+    },
+    "to": {
+      "$ref": "#/definitions/s3Info"
+    }
+  },
+  "required": ["from", "to"]
+}

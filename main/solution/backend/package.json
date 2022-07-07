@@ -1,0 +1,103 @@
+{
+  "name": "@amzn/backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The API implementation for the backend",
+  "author": "Amazon Web Services",
+  "license": "Apache 2.0",
+  "dependencies": {
+    "@amzn/base-api-handler": "workspace:*",
+    "@amzn/base-api-handler-factory": "workspace:*",
+    "@amzn/base-api-services": "workspace:*",
+    "@amzn/base-authn-handler": "workspace:*",
+    "@amzn/base-controllers": "workspace:*",
+    "@amzn/base-raas-cfn-templates": "workspace:*",
+    "@amzn/base-raas-rest-api": "workspace:*",
+    "@amzn/base-raas-services": "workspace:*",
+    "@amzn/base-raas-workflow-steps": "workspace:*",
+    "@amzn/base-raas-workflows": "workspace:*",
+    "@amzn/base-raas-appstream-rest-api": "workspace:*",
+    "@amzn/base-raas-appstream-services": "workspace:*",
+    "@amzn/environment-type-mgmt-services": "workspace:*",
+    "@amzn/environment-type-mgmt-api": "workspace:*",
+    "@amzn/environment-sc-workflow-steps": "workspace:*",
+    "@amzn/environment-sc-workflows": "workspace:*",
+    "@amzn/key-pair-mgmt-api": "workspace:*",
+    "@amzn/key-pair-mgmt-services": "workspace:*",
+    "@amzn/base-services": "workspace:*",
+    "@amzn/base-services-container": "workspace:*",
+    "@amzn/base-workflow-api": "workspace:*",
+    "@amzn/base-workflow-core": "workspace:*",
+    "@amzn/base-workflow-steps": "workspace:*",
+    "services": "workspace:*",
+    "aws-sdk": "^2.1000.0",
+    "controllers": "workspace:*",
+    "js-yaml": "^3.13.1",
+    "jwt-decode": "^2.2.0",
+    "lodash": "^4.17.21",
+    "node-fetch": "^2.6.7"
+  },
+  "devDependencies": {
+    "@amzn/base-serverless-backend-tools": "workspace:*",
+    "@amzn/base-serverless-settings-helper": "workspace:*",
+    "@babel/core": "^7.8.4",
+    "@babel/plugin-transform-runtime": "^7.8.3",
+    "@babel/preset-env": "^7.8.4",
+    "babel-jest": "^24.9.0",
+    "babel-loader": "^8.0.6",
+    "babel-plugin-source-map-support": "^2.1.1",
+    "copy-webpack-plugin": "^5.1.1",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^22.21.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "fsevents": "*",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0",
+    "jest-junit": "^10.0.0",
+    "js-yaml-loader": "^1.2.2",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^1.11.1",
+    "serverless": "^1.63.0",
+    "serverless-deployment-bucket": "^1.1.0",
+    "serverless-offline": "^5.12.1",
+    "serverless-s3-sync": "^1.12.0",
+    "serverless-webpack": "^5.3.1",
+    "source-map-support": "^0.5.16",
+    "webpack": "^4.41.5",
+    "webpack-cli": "^3.3.10",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "optionalDependencies": {
+    "fsevents": "*"
+  },
+  "jest": {
+    "transform": {
+      "<rootDir>/src/.+\\.js$": "babel-jest"
+    }
+  },
+  "scripts": {
+    "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",
+    "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
+    "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
+    "start-debug": "node --inspect node_modules/.bin/serverless offline start",
+    "start": "sls offline --stage=$USER",
+    "invoke": "sls invoke local --stage=$USER -f",
+    "deploy": "sls deploy --stage=$USER",
+    "package": "sls package --stage=$USER",
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "eslint --ignore-path .gitignore . ",
+    "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "format": "pnpm run format:eslint && pnpm run format:prettier",
+    "format:eslint": "eslint --fix --ignore-path .gitignore . ",
+    "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' "
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged --pattern '**/*.*(js|jsx)'"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+# For full config options, see docs.serverless.com
+# Note that most settings in here come from config/settings/*.yaml
+service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-cicd-src
+
+provider:
+  name: aws
+  region: ${self:custom.settings.awsRegion}
+  profile: ${self:custom.settings.awsProfile}
+  stackName: ${self:custom.settings.envName}-${self:service}
+  deploymentBucket:
+    # The deployment bucket is named "${self:custom.settings.deploymentBucketName}" for all other serverless projects
+    # under the "solution" directory as they all get deployed to one account and can share the deployment bucket
+    # from that account. This project (i.e., cicd-source-role project) creates resources in the source account where
+    # the code is located and hence it can not use the same bucket name as the rest of the solution projects
+    # (as the s3 bucket names are global).
+    # Because of this, using different name "${self:custom.settings.globalNamespace}-src-artifacts" here instead
+    name: ${self:custom.settings.globalNamespace}-src-artifacts
+  stackTags: ${self:custom.tags}
+  # All references beginning with ${self:*, ${opt:*, ${file:*, ${deep:*, and ${cf:* will be resolved by Serverless
+  # All other ${* references will be resolved by CloudFormation
+  # See https://forum.serverless.com/t/getting-handle-accountid-in-serverless-config/946/11 and
+  # See https://github.com/serverless/serverless/issues/5011
+  variableSyntax: '\$\{((((self|opt|deep|cf):)|file)((?!\$\{).)+?)}'
+
+custom:
+  deploymentBucket:
+    versioning: true
+  settings: ${file(./config/settings/.settings.js):merged}
+  tags:
+    Name: ${self:custom.settings.envName}-${self:service}
+
+resources:
+  - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} CICD-Source
+  - ${file(./config/infra/cloudformation.yml)}
+
+plugins:
+  - serverless-deployment-bucket

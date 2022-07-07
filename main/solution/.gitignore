@@ -1,0 +1,26 @@
+**/.class
+**/.DS_Store
+**/coverage
+**/node_modules
+
+**/npm-debug.log
+**/pnpm-debug.log
+
+# Serverless directories
+.serverless
+
+# Used by the backend tools plugin
+.layers
+
+# VisualStudioCode.gitignore
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ Idea Module Files
+*.iml
+
+# Some scratch files
+scratch*.*

@@ -1,0 +1,37 @@
+# ========================================================================
+# Variables shared between .env.local and .env.production
+# ========================================================================
+
+SKIP_PREFLIGHT_CHECK: true
+REACT_APP_LOCAL_DEV: false
+REACT_APP_AWS_REGION: ${self:custom.settings.awsRegion}
+REACT_APP_API_URL: ${self:custom.settings.apiUrl}
+REACT_APP_WEBSITE_URL: ${self:custom.settings.websiteUrl}
+REACT_APP_STAGE: ${self:custom.settings.envName}
+REACT_APP_REGION: ${self:custom.settings.awsRegion}
+REACT_APP_BRAND_PAGE_TITLE: ${self:custom.settings.brandPageTitle}
+REACT_APP_BRAND_MAIN_TITLE: ${self:custom.settings.brandMainTitle}
+REACT_APP_BRAND_LOGIN_TITLE: ${self:custom.settings.brandLoginTitle}
+REACT_APP_BRAND_LOGIN_SUBTITLE: ${self:custom.settings.brandLoginSubtitle}
+REACT_APP_AUTO_LOGOUT_TIMEOUT_IN_MINUTES: ${self:custom.settings.autoLogoutTimeoutInMinutes}
+REACT_APP_ENV_MGMT_ROLE_NAME: ${self:custom.settings.envMgmtRoleName}
+REACT_APP_ENABLE_BUILT_IN_WORKSPACES: ${self:custom.settings.enableBuiltInWorkspaces}
+REACT_APP_VERSION_AND_DATE: ${self:custom.settings.versionAndDate}
+REACT_APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+REACT_APP_SITE_ENV_TYPE: ${self:custom.settings.envType}
+REACT_APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+REACT_APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
+REACT_APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER: ${self:custom.settings.disableStudyUploadByResearcher}
+REACT_APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION: ${self:custom.settings.restrictAdminWorkspaceConnection}
+REACT_APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT: ${self:custom.settings.disableAdminBYOBSelfAssignment}
+
+
+# ========================================================================
+# Overrides for .env.local
+# ========================================================================
+
+localOverrides:
+  REACT_APP_LOCAL_DEV: true
+  REACT_APP_API_URL: 'http://localhost:4000'
+  REACT_APP_WEBSITE_URL: 'http://localhost:3000'
+  REACT_APP_BRAND_PAGE_TITLE: LOCAL ${self:custom.settings.brandPageTitle}

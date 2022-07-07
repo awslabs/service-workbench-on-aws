@@ -1,0 +1,591 @@
+Conditions:
+  PreSignUpNativePoolUsers: !And
+    - !Equals ['${self:custom.settings.enableNativeUserPoolUsers}', 'true']
+    - !Equals ['${self:custom.settings.autoConfirmNativeUsers}', 'true']
+
+Resources:
+  # =============================================================================================
+  # IAM Roles
+  # =============================================================================================
+  # IAM Role for the egressStoreObjectHandler function
+  RoleEgressStoreObjectsHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: s3-access-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObjectTagging
+                  - s3:PutObjectVersionTagging
+                Resource:
+                  - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+        - PolicyName: cloudwatch-access-policy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
+        - PolicyName: ddb-access-policy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:BatchGetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}/index/*'
+  # IAM Role for the postDeployment Function
+  RolePostDeploymentLambda:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+      Policies:
+        - PolicyName: assume-role
+          PolicyDocument:
+            Statement:
+              Action: 'sts:AssumeRole'
+              Effect: Allow
+              Resource: !Sub ${self:custom.settings.envMgmtRoleArn}
+        - PolicyName: iam-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                # required for associating lambda@edge to cf distro
+                # see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-permissions.html#lambda-edge-permissions-required
+                - iam:CreateServiceLinkedRole
+                - iam:GetRole
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/replicator.lambda.amazonaws.com/AWSServiceRoleForLambdaReplicator'
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/logger.cloudfront.amazonaws.com/AWSServiceRoleForCloudFrontLogger'
+              Condition:
+                ForAllValues:StringLike:
+                  iam:AWSServiceName:
+                    - replicator.lambda.amazonaws.com
+                    - logger.cloudfront.amazonaws.com
+        - PolicyName: launch-constraint-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource:
+                - !GetAtt ServiceCatalogLaunchConstraintRole.Arn
+        - PolicyName: s3-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/service-catalog-products/*'
+              - Effect: Allow
+                Action:
+                  - s3:GetBucketPolicy
+                  - s3:PutBucketPolicy
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.studyDataBucketName}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}'
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:DeleteItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource:
+                - !GetAtt [DeploymentStoreDb, Arn]
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPasswords}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUsers}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUsers}/index/*'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAuthenticationProviderTypes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAuthenticationProviderConfigs}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStepTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflows}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWfAssignments}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWfAssignments}/index/*'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUserRoles}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowInstances}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowTemplateDrafts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowDrafts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbRevokedTokens}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUserApiKeys}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAccounts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAwsAccounts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbCostApiCaches}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEnvironmentsSc}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbIndexes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEnvironmentTypes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEnvironments}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbKeyPairs}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbProjects}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStudyPermissions}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStudies}'
+
+                # DEPRECATED
+                - !GetAtt [DbDeploymentStore, Arn]
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTablePasswords}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUsers}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAuthenticationProviderTypes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAuthenticationProviderConfigs}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableStepTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflows}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWfAssignments}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowInstances}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowTemplateDrafts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowDrafts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableRevokedTokens}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableLocks}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUserApiKeys}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAccounts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUserRoles}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAwsAccounts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableCostApiCaches}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableEnvironmentsSc}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableIndexes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableEnvironmentTypes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableEnvironments}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableKeyPairs}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableProjects}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableStudyPermissions}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableStudies}'
+        - PolicyName: param-store-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:PutParameter
+              Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+        - PolicyName: kms-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:DescribeKey
+                Resource: '*'
+        - PolicyName: cfn-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudformation:DescribeStacks
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}/*'
+                - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.namespace}-postDeployment/*'
+        - PolicyName: cloudfront-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudfront:GetDistributionConfig
+                - cloudfront:UpdateDistribution
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${self:custom.settings.cloudFrontId}'
+        - PolicyName: lambda-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:GetFunction
+                  - lambda:UpdateFunctionConfiguration
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:custom.settings.workflowLambdaName}'
+              - Effect: Allow
+                Action:
+                  - lambda:AddPermission
+                Resource:
+                  - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:custom.settings.namespace}-Cognito-PreSignUp'
+              - Effect: Allow
+                Action:
+                  - lambda:GetFunction
+                  - lambda:publishVersion
+                  - lambda:EnableReplication
+                Resource:
+                  - ${self:custom.settings.edgeLambdaArn}
+                  - ${self:custom.settings.edgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
+        - PolicyName: service-catalog-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - servicecatalog:CreatePortfolio
+                - servicecatalog:UpdatePortfolio
+                - servicecatalog:DescribePortfolio
+                - servicecatalog:CreateProduct
+                - servicecatalog:UpdateProduct
+                - servicecatalog:DescribeProduct
+                - servicecatalog:AssociatePrincipalWithPortfolio
+                - servicecatalog:AssociateProductWithPortfolio
+                - servicecatalog:CreateConstraint
+                - servicecatalog:ListPortfolios
+                - servicecatalog:CreateProvisioningArtifact
+              Resource:
+                - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*
+                - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:product/*
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:*
+        - PolicyName: cloudformation-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudformation:GetStackPolicy
+                - cloudformation:SetStackPolicy
+              Resource:
+                - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}
+                - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}/*
+
+  ServiceCatalogLaunchConstraintRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${self:custom.settings.launchConstraintRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - servicecatalog.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CommonSCProductLaunchPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:*TagRole*
+                  - iam:PassRole
+                  - iam:DeleteRole
+                Resource:
+                  - 'arn:aws:iam::*:role/analysis-*'
+                  - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
+                  - 'arn:aws:iam::*:role/*-sagemaker-notebook-role'
+              - Effect: Allow
+                Action:
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                Resource:
+                  - 'arn:aws:iam::*:role/analysis-*'
+                  - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
+                  - 'arn:aws:iam::*:role/*-sagemaker-notebook-role'
+              - Effect: Allow
+                Action:
+                  - iam:AddRoleToInstanceProfile
+                  - iam:CreateInstanceProfile
+                  - iam:GetInstanceProfile
+                  - iam:DeleteInstanceProfile
+                  - iam:RemoveRoleFromInstanceProfile
+                Resource:
+                  - 'arn:aws:iam::*:instance-profile/analysis-*'
+                  - 'arn:aws:iam::*:instance-profile/SC-*-InstanceProfile-*'
+              - Effect: Allow
+                Action:
+                  - iam:GetPolicy
+                  - iam:CreatePolicy
+                  - iam:ListPolicyVersions
+                  - iam:DeletePolicy
+                Resource: 'arn:aws:iam::*:policy/*-permission-boundary'
+              - Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:DeleteStack
+                Resource: 'arn:aws:cloudformation:*:*:stack/SC-*/*'
+              - Effect: Allow # Used for SC update product
+                Action:
+                  - cloudformation:GetTemplateSummary
+                Resource: '*'
+              - Effect: Allow # Used for SC update product
+                Action:
+                  - s3:GetObject
+                Resource: 'arn:aws:s3:::sc-*'
+              - Effect: Allow
+                Action:
+                  - ec2:AuthorizeSecurityGroupIngress
+                  - ec2:AuthorizeSecurityGroupEgress
+                  - ec2:RevokeSecurityGroupEgress
+                  - ec2:CreateSecurityGroup
+                  - ec2:DeleteSecurityGroup
+                  - ec2:CreateTags
+                  - ec2:DescribeTags
+                  - ec2:DescribeKeyPairs
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeVpcs
+                Resource: '*' # EMR slave node security group has a machine generated ID and no tags, can not specify resource or add condition here
+              - Effect: Allow
+                Action:
+                  - kms:CreateGrant
+                Resource: '*' # Customer can choose to manually create the KMS key used here, can not specify resource
+        - PolicyName: EMRLaunchPermissions
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:CreateBucket
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:PutBucketTagging
+                  - s3:PutEncryptionConfiguration
+                  - s3:PutBucketVersioning
+                  - s3:PutBucketPolicy
+                  - s3:GetBucketPolicy
+                  - s3:DeleteBucketPolicy
+                Resource: 'arn:aws:s3:::sc-*-logbucket-*'
+              - Effect: Allow
+                Action:
+                  - elasticmapreduce:CreateSecurityConfiguration
+                  - elasticmapreduce:RunJobFlow
+                  - elasticmapreduce:TerminateJobFlows
+                  - elasticmapreduce:DeleteSecurityConfiguration
+                Resource: '*' # The above actions do not support specifying resources or resource tag
+              - Effect: Allow
+                Action:
+                  - elasticmapreduce:DescribeCluster
+                Resource: '*'
+                Condition:
+                  StringLike:
+                    aws:ResourceTag/name: 'analysis-*-emr'
+              - Effect: Allow
+                Action:
+                  - iam:CreateServiceLinkedRole
+                  - iam:PutRolePolicy
+                  - iam:UpdateRoleDescription
+                  - iam:DeleteServiceLinkedRole
+                  - iam:GetServiceLinkedRoleDeletionStatus
+                Resource: arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*
+                Condition:
+                  StringLike:
+                    iam:AWSServiceName:
+                      - elasticmapreduce.amazonaws.com
+                      - elasticmapreduce.amazonaws.com.cn
+        - PolicyName: SageMakerLaunchPermissions
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sagemaker:DescribeNotebookInstanceLifecycleConfig
+                  - sagemaker:CreateNotebookInstanceLifecycleConfig
+                  - sagemaker:DeleteNotebookInstanceLifecycleConfig
+                Resource: 'arn:aws:sagemaker:*:*:notebook-instance-lifecycle-config/basicnotebookinstancelifecycleconfig-*'
+              - Effect: Allow
+                Action:
+                  - sagemaker:DescribeNotebookInstance
+                  - sagemaker:CreateNotebookInstance
+                  - sagemaker:StopNotebookInstance
+                  - sagemaker:StopNotebookInstance
+                  - sagemaker:DeleteNotebookInstance
+                Resource: 'arn:aws:sagemaker:*:*:notebook-instance/basicnotebookinstance-*'
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:CreateNetworkInterface
+                  - ec2:DeleteNetworkInterface
+                Resource: '*' # Network interfaces created here have a machine generated name and do not have any tags
+        - PolicyName: EC2LaunchPermissions
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:GenerateDataKeyWithoutPlaintext
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ec2:TerminateInstances
+                Resource: 'arn:aws:ec2:*:*:instance/*'
+              - Effect: Allow
+                Action:
+                  - ec2:RunInstances # RunInstances involves 6 different resource types, it's hard to narrow it down
+                  - ec2:DescribeInstances # DescribeInstances does not support specifying resources
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ec2:AuthorizeSecurityGroupEgress
+                  - ec2:RevokeSecurityGroupEgress
+                Resource: '*'
+                Condition:
+                  StringLike:
+                    ec2:ResourceTag/name: 'analysis-*-sg'
+        - PolicyName: RstudioLaunchPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeTargetHealth
+                  - elasticloadbalancing:DescribeTargetGroups # DescribeTargetGroups does not support specifying resources
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:CreateTargetGroup
+                  - elasticloadbalancing:RegisterTargets
+                  - elasticloadbalancing:DeleteTargetGroup
+                  - elasticloadbalancing:DeregisterTargets
+                  - elasticloadbalancing:AddTags
+                Resource:
+                  - 'arn:aws:elasticloadbalancing:*:*:targetgroup/analysis-*'
+
+  # =============================================================================================
+  # Cognito PreSignUp trigger
+  # =============================================================================================
+
+  PreSignUpLambdaRole:
+    Condition: PreSignUpNativePoolUsers
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub '${self:custom.settings.namespace}-Cognito-PreSignUp-Role'
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: cloudwatch-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action: logs:CreateLogGroup
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+              - Effect: 'Allow'
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.namespace}-Cognito-PreSignUp:*'
+
+  # Lambda that automatically confirms newly signed up Cognito users based on pre-defined logic
+  PreSignUpLambda:
+    Condition: PreSignUpNativePoolUsers
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Description: PreSignUp lambda to auto-confirm newly signed up users in Cognito
+      Runtime: nodejs14.x
+      Handler: index.handler
+      FunctionName: !Sub '${self:custom.settings.namespace}-Cognito-PreSignUp'
+      Role: !GetAtt PreSignUpLambdaRole.Arn
+      Code:
+        ZipFile: |
+          exports.handler = (event, context, callback) => {
+          event.response.autoConfirmUser = true;
+          // This regex check should be the same as the one in create-user email pattern
+          const emailRegex = /^\w+([\.+-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,63})+$/
+          const { userPoolId, triggerSource, request, userName } = event
+          const logInfo = { userPoolId, triggerSource, userName, 
+          requestBody: { name: request.name, given_name: request.given_name, family_name: request.family_name, email: request.email } }
+          console.info("Event-parsed details:\n" + JSON.stringify(logInfo, null, 2));
+
+          // Only perform email verification for native user pool users, external IdPs should send valid data
+          if(triggerSource !== 'PreSignUp_ExternalProvider' && !emailRegex.test(userName)){
+              throw new Error("Username should be in email format");
+          }
+
+          callback(null, event);
+          };
+
+  # =============================================================================================
+  # Dynamo db
+  # =============================================================================================
+
+  DeploymentStoreDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbDeploymentStore}
+      AttributeDefinitions:
+        - AttributeName: 'type'
+          AttributeType: 'S'
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'type'
+          KeyType: 'HASH'
+        - AttributeName: 'id'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  # =============================================================================================
+  # DEPRECATED -- Dynamo DB
+  # =============================================================================================
+
+  DbDeploymentStore:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableDeploymentStore}
+      AttributeDefinitions:
+        - AttributeName: 'type'
+          AttributeType: 'S'
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'type'
+          KeyType: 'HASH'
+        - AttributeName: 'id'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+# =============================================================================================
+# Outputs
+# =============================================================================================
+Outputs:
+  PostDeploymentRoleArn:
+    Value: !GetAtt RolePostDeploymentLambda.Arn
+  EgressStoreObjectsHandlerRoleArn:
+    Value: !GetAtt RoleEgressStoreObjectsHandler.Arn
+  PreSignUpLambdaArn:
+    Condition: PreSignUpNativePoolUsers
+    Value: !GetAtt PreSignUpLambda.Arn

@@ -1,0 +1,234 @@
+authenticationLayerHandler:
+  handler: src/lambdas/authentication-layer-handler/handler.handler
+  role: RoleAuthenticationLayerHandler
+  tags: ${self:custom.tags}
+  description: Handles the authentication layer for API handlers.
+  environment:
+    APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
+    APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+
+openDataScrapeHandler:
+  handler: src/lambdas/open-data-scrape-handler/handler.handler
+  role: RoleOpenDataScrapeHandler
+  tags: ${self:custom.tags}
+  timeout: 30 # in seconds, default is 6. this function usually finishes in 10secs, setting it to 30 just to be safe
+  description: Handles scraping the metadata from the AWS open data registry.
+  environment:
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER: ${self:custom.settings.disableStudyUploadByResearcher}
+  events:
+    - schedule:
+        rate: rate(1 day)
+        description: 'Invokes the lambda function that scrapes the awslabs/open-data-registry to find new studies and insert them into DynamoDB.'
+
+envStatusPollHandler:
+  handler: src/lambdas/env-status-poll-handler/handler.handler
+  role: RoleApiHandler # This is a temporary patch for cross account assume role
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Handles status polling for sc environments
+  events:
+    - schedule:
+        rate: rate(1 minute)
+        description: 'Invokes the lambda function that polls and synchronize environment status.'
+  environment:
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+
+dataSourceReachabilityHandler:
+  handler: src/lambdas/data-source-reachability/handler.handler
+  role: RoleDataSourceReachabilityHandler
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Handles data source reachability polling (5 min)
+  events:
+    - schedule:
+        rate: rate(5 minutes)
+        description: 'Invokes the lambda function that polls and synchronize data source account and study status.'
+  environment:
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+
+dataSourceReachabilityDailyHandler:
+  handler: src/lambdas/data-source-reachability-daily/handler.handler
+  role: RoleDataSourceReachabilityHandler
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Handles data source reachability polling (1 day)
+  events:
+    - schedule:
+        rate: rate(1 day)
+        description: 'Invokes the lambda function that polls and synchronize data source account and study status.'
+  environment:
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+
+awsAccountOnboardingHandler:
+  handler: src/lambdas/aws-account-onboarding/handler.handler
+  role: RoleAwsAccountOnboardingHandler
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Attempts to onboard any pending AWS accounts
+  events:
+    - schedule:
+        rate: rate(1 minute) # Setting this to be the same as the dataSourceReachabilityHandler
+        description: 'Invokes the lambda function that polls CFN stacks and onboarding any pending accounts.'
+  environment:
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
+    APP_DOMAIN_NAME: ${self:custom.settings.domainName}
+    APP_ENABLE_AMI_SHARING: ${self:custom.settings.enableAmiSharing}
+    APP_DEVOPS_ROLE_ARN: ${self:custom.settings.devopsRoleArn, 'null'}
+    APP_DEVOPS_ROLE_EXTERNAL_ID: ${self:custom.settings.devopsRoleExternalId}
+
+apiHandler:
+  timeout: 30 # in seconds, default is 6
+  handler: src/lambdas/api-handler/handler.handler
+  role: RoleApiHandler
+  tags: ${self:custom.tags}
+  description: The API handler for all /api/* APIs
+  events:
+    # Public APIs
+    - http:
+        path: /api/authentication/public/provider/configs
+        method: GET
+        cors: true
+    - http:
+        path: /api/authentication/id-tokens
+        method: POST
+        cors: true
+    # Protected APIs
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api
+        method: GET
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api/{proxy+}
+        method: GET
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api
+        method: POST
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api/{proxy+}
+        method: POST
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api
+        method: PUT
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api/{proxy+}
+        method: PUT
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api
+        method: DELETE
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api/{proxy+}
+        method: DELETE
+        cors: true
+  environment:
+    APP_HOSTED_ZONE_ID: ${self:custom.settings.hostedZoneId}
+    APP_DOMAIN_NAME: ${self:custom.settings.domainName}
+    APP_WEBSITE_URL: ${self:custom.settings.websiteUrl}
+    APP_CORS_ALLOW_LIST: ${self:custom.settings.corsAllowList}
+    APP_CORS_ALLOW_LIST_LOCAL: ${self:custom.settings.corsAllowListLocal}
+    APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
+    APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_PARAM_STORE_ROOT: ${self:custom.settings.paramStoreRoot}
+    APP_EC2_RSTUDIO_AMI_PREFIX: ${self:custom.settings.ec2RStudioAmiPrefix}
+    APP_EC2_LINUX_AMI_PREFIX: ${self:custom.settings.ec2LinuxAmiPrefix}
+    APP_EC2_WINDOWS_AMI_PREFIX: ${self:custom.settings.ec2WindowsAmiPrefix}
+    APP_EMR_AMI_PREFIX: ${self:custom.settings.emrAmiPrefix}
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_WORKFLOW_ROLE_ARN: ${self:custom.settings.workflowLoopRunnerRoleArn}
+    APP_API_HANDLER_ARN: ${self:custom.settings.apiHandlerRoleArn}
+    APP_EXTERNAL_CFN_TEMPLATES_BUCKET_NAME: ${self:custom.settings.externalCfnTemplatesBucketName}
+    APP_ENVIRONMENT_INSTANCE_FILES: ${self:custom.settings.environmentInstanceFiles}
+    APP_STUDY_DATA_KMS_KEY_ALIAS: ${self:custom.settings.studyDataKmsKeyAlias}
+    APP_STUDY_DATA_KMS_KEY_ARN: ${self:custom.settings.studyDataKmsKeyAliasArn}
+    APP_STUDY_DATA_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.studyDataKmsPolicyWorkspaceSid}
+    APP_ENV_MGMT_ROLE_ARN: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.envMgmtRoleName}
+    APP_LAUNCH_CONSTRAINT_ROLE_PREFIX: ${self:custom.settings.launchConstraintRolePrefix}
+    APP_LAUNCH_CONSTRAINT_POLICY_PREFIX: ${self:custom.settings.launchConstraintPolicyPrefix}
+    APP_ENV_TYPE_CONFIGS_BUCKET_NAME: ${self:custom.settings.envTypeConfigsBucketName}
+    APP_ENV_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_ROOT_USER_NAME: ${self:custom.settings.rootUserName}
+    APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
+    APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
+    APP_EGRESS_NOTIFICATION_BUCKET_NAME: ${self:custom.settings.egressNotificationBucketName}
+    APP_EGRESS_NOTIFICATION_SNS_TOPIC_ARN: ${self:custom.settings.egressNotificationSnsTopicArn}
+    APP_ENABLE_AMI_SHARING: ${self:custom.settings.enableAmiSharing}
+    APP_DEVOPS_ROLE_ARN: ${self:custom.settings.devopsRoleArn, 'null'}
+    APP_DEVOPS_ROLE_EXTERNAL_ID: ${self:custom.settings.devopsRoleExternalId} 
+    APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER: ${self:custom.settings.disableStudyUploadByResearcher}
+    APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION: ${self:custom.settings.restrictAdminWorkspaceConnection}
+    APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT: ${self:custom.settings.disableAdminBYOBSelfAssignment}
+    
+workflowLoopRunner:
+  handler: src/lambdas/workflow-loop-runner/handler.handler
+  role: RoleWorkflowLoopRunner
+  timeout: 900 # 15 min
+  tags: ${self:custom.tags}
+  description: The workflow loop runner, it is expected to be invoked by AWS Step Functions and not directly
+  environment:
+    # We cannot use "!Ref SMWorkflow" below as that will create circular dependency
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_PARAM_STORE_ROOT: ${self:custom.settings.paramStoreRoot}
+    APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
+    APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_ARTIFACTS_BUCKET_NAME: ${self:custom.settings.deploymentBucketName}
+    APP_ENVIRONMENT_INSTANCE_FILES: ${self:custom.settings.environmentInstanceFiles}
+    APP_STUDY_DATA_KMS_KEY_ALIAS: ${self:custom.settings.studyDataKmsKeyAlias}
+    APP_STUDY_DATA_KMS_KEY_ARN: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}
+    APP_STUDY_DATA_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.studyDataKmsPolicyWorkspaceSid}
+    APP_ENV_MGMT_ROLE_ARN: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.envMgmtRoleName}
+    APP_LAUNCH_CONSTRAINT_ROLE_PREFIX: ${self:custom.settings.launchConstraintRolePrefix}
+    APP_LAUNCH_CONSTRAINT_POLICY_PREFIX: ${self:custom.settings.launchConstraintPolicyPrefix}
+    APP_ENV_TYPE_CONFIGS_BUCKET_NAME: ${self:custom.settings.envTypeConfigsBucketName}
+    APP_HOSTED_ZONE_ID: ${self:custom.settings.hostedZoneId}
+    APP_DOMAIN_NAME: ${self:custom.settings.domainName}
+    APP_ENV_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+    APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
+    APP_EGRESS_STORE_KMS_KEY_ALIAS_ARN: ${self:custom.settings.egressStoreKmsKeyAliasArn}
+    APP_EGRESS_STORE_KMS_KEY_ARN: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}
+    APP_EGRESS_STORE_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.egressStoreKmsPolicyWorkspaceSid}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
+    APP_PERMISSION_BOUNDARY_POLICY_STUDY_BUCKET_ARN: !Sub arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.permissionBoundaryPolicyStudyBucket}
+    APP_LOGGING_BUCKET_NAME: ${self:custom.settings.loggingBucketName}
+    APP_ENABLE_AMI_SHARING: ${self:custom.settings.enableAmiSharing}
+    APP_DEVOPS_ROLE_ARN: ${self:custom.settings.devopsRoleArn, 'null'}
+    APP_DEVOPS_ROLE_EXTERNAL_ID: ${self:custom.settings.devopsRoleExternalId}

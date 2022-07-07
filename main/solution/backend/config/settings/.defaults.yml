@@ -1,0 +1,300 @@
+# Options used when issuing JWT token such as which algorithm to use for hashing and how long to keep the tokens alive etc
+# Note that default expiry of access token is set to one hour. This will force the user to logout and login back after an hour
+jwtOptions: '{"algorithm":"HS256","expiresIn":"1 hours"}'
+
+# Name of the parameter in parameter store containing secret key for JWT. This key is used for signing and validating JWT tokens
+# issued by data lake authentication providers
+paramStoreJwtSecret: '/${self:custom.settings.paramStoreRoot}/jwt/secret'
+
+# TODO: Remove this dependency from the "infrastructure" stack and set the default "corsAllowList" to empty array
+# Move these settings that are dependent on "infrastructure" stack to the "addon-base-ui" once the addon cli task to
+# insert settings is available. Until then, the "addon-rest-api" cannot be installed stand alone without also having
+# to install the "addon-base-ui"
+#
+# The stack name of the 'infrastructure' serverless service
+infrastructureStackName: ${self:custom.settings.namespace}-infrastructure
+
+# Hosted zone ID for the custom domain
+hostedZoneId: ${cf:${self:custom.settings.infrastructureStackName}.HostedZoneId}
+
+# URL of the website
+websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
+
+# a list of domain names to allow in the API
+corsAllowList: '["${self:custom.settings.websiteUrl}"]'
+
+# a list of domain names to allow in the API while in dev (envType == dev)
+corsAllowListLocal: '["http://localhost:3000"]'
+
+# The S3 bucket name used to host the static website
+websiteBucketName: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteBucket}
+
+# The S3 bucket name used for S3 access logging
+loggingBucketName: ${cf:${self:custom.settings.infrastructureStackName}.LoggingBucket}
+
+# The S3 bucket name to be used to the data
+dataBucketName: ${self:custom.settings.globalNamespace}-data
+
+# The S3 bucket name to be where the external CloudFormation templates will be stored
+externalCfnTemplatesBucketName: ${self:custom.settings.globalNamespace}-external-templates
+
+# The alias used for the KMS key created to encrypt/decrypt study data
+studyDataKmsKeyAlias: ${self:custom.settings.globalNamespace}/s3/studydata
+
+# The arn of the KMS Key alias
+studyDataKmsKeyAliasArn: arn:aws:kms:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}
+
+# The statement ID in the generated KMS key's key policy that controls which workspaces
+#   can decrypt data in the study data bucket
+studyDataKmsPolicyWorkspaceSid: Allow workspace environments to retrieve S3 objects
+
+# The name of the IAM role created for the Lambda API handler
+apiHandlerRoleName: ${self:custom.settings.namespace}-ApiHandler
+
+# The IAM role arn for the Lambda API handler, we need to define it in the settings because it is being passed to lambdas as an env var
+apiHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.apiHandlerRoleName}'
+
+# S3 bucket used to store environment type configurations (the config objects that define small, medium, large etc.
+# env launch options)
+envTypeConfigsBucketName: ${self:custom.settings.globalNamespace}-env-type-configs
+
+# Enable or disable workflow processing
+workflowsEnabled: true
+
+# The workflow state machine name
+workflowStateMachineName: ${self:custom.settings.namespace}-workflow
+
+# The workflow state machine arn, we need to define it in the settings because it is being passed to lambdas as an env var
+workflowStateMachineArn: 'arn:aws:states:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:stateMachine:${self:custom.settings.workflowStateMachineName}'
+
+# The name of the IAM role created for the workflow Lambda function
+workflowLoopRunnerRoleName: ${self:custom.settings.namespace}-WorkflowLoopRunner
+
+# The IAM role arn for the Lambda API handler, we need to define it in the settings because it is being passed to lambdas as an env var
+workflowLoopRunnerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.workflowLoopRunnerRoleName}'
+
+# The prefix of the ami used to create environments
+# This component expects these AMIs to exists in the account where the platform is deployed
+# Use utility component "main/solution/machine-images" to create the AMIs
+ec2RStudioAmiPrefix: ${self:custom.settings.namespace}-EC2-RSTUDIO-AMI
+ec2LinuxAmiPrefix: ${self:custom.settings.namespace}-EC2-LINUX-AMI
+ec2WindowsAmiPrefix: ${self:custom.settings.namespace}-EC2-WINDOWS-AMI
+emrAmiPrefix: ${self:custom.settings.namespace}-EMR-AMI
+
+# S3 location of files copied to an environment instance along with bootstrap scripts
+environmentInstanceFiles: s3://${self:custom.settings.environmentsBootstrapBucketName}/${self:custom.settings.environmentsBootstrapBucketPrefix}
+
+# ================================ DB Settings ===========================================
+
+# DynamoDB table name for supported authentication provider types
+dbAuthenticationProviderTypes: ${self:custom.settings.dbPrefix}-AuthenticationProviderTypes
+
+# DynamoDB table name for authentication provider configurations
+dbAuthenticationProviderConfigs: ${self:custom.settings.dbPrefix}-AuthenticationProviderConfigs
+
+# DynamoDB table name for passwords for the internal data lake users
+# (applicable only to the users authenticated by internal authentication provider)
+dbPasswords: ${self:custom.settings.dbPrefix}-Passwords
+
+# DynamoDB table name for User's API Keys. These keys are different from the user's passwords.
+# These keys allow the user invoke Data Lake APIs directly outside of the UI.
+dbUserApiKeys: ${self:custom.settings.dbPrefix}-UserApiKeys
+
+# DynamoDB table name for Token Revocation Table
+dbRevokedTokens: ${self:custom.settings.dbPrefix}-RevokedTokens
+
+# DynamoDB table name for Locks
+dbLocks: ${self:custom.settings.dbPrefix}-Locks
+
+# DynamoDB table name for Step Templates
+dbStepTemplates: ${self:custom.settings.dbPrefix}-StepTemplates
+
+# DynamoDB table name for Workflow Templates
+dbWorkflowTemplates: ${self:custom.settings.dbPrefix}-WorkflowTemplates
+
+# DynamoDB table name for Workflow Templates Drafts
+dbWorkflowTemplateDrafts: ${self:custom.settings.dbPrefix}-WorkflowTemplateDrafts
+
+# DynamoDB table name for Workflows
+dbWorkflows: ${self:custom.settings.dbPrefix}-Workflows
+
+# DynamoDB table name for Workflow Drafts
+dbWorkflowDrafts: ${self:custom.settings.dbPrefix}-WorkflowDrafts
+
+# DynamoDB table name for Workflow Instances
+dbWorkflowInstances: ${self:custom.settings.dbPrefix}-WorkflowInstances
+
+# DynamoDB table name for WfAssignments
+dbWfAssignments: ${self:custom.settings.dbPrefix}-WfAssignments
+
+# DynamoDB table name for Studies
+dbStudies: ${self:custom.settings.dbPrefix}-Studies
+
+# DynamoDB table global secondary index name for the "category" field
+dbStudiesCategoryIndex: CategoryIndex
+
+# DynamoDB table global secondary index name for the "accountId" field
+dbStudiesAccountIdIndex: AccountIdIndex
+
+# DynamoDB table name for Environments
+dbEnvironments: ${self:custom.settings.dbPrefix}-Environments
+
+# DynamoDB table name for Environment Types
+dbEnvironmentTypes: ${self:custom.settings.dbPrefix}-EnvironmentTypes
+
+# DynamoDB table name for UserRoles
+dbUserRoles: ${self:custom.settings.dbPrefix}-UserRoles
+
+# DynamoDB table name for AwsAccounts
+dbAwsAccounts: ${self:custom.settings.dbPrefix}-AwsAccounts
+
+# DynamoDB table name for Indexes
+dbIndexes: ${self:custom.settings.dbPrefix}-Indexes
+
+# DynamoDB table name for CostApiCaches
+dbCostApiCaches: ${self:custom.settings.dbPrefix}-CostApiCaches
+
+# DynamoDB table name for Accounts
+dbAccounts: ${self:custom.settings.dbPrefix}-Accounts
+
+# DynamoDB table name for Projects
+dbProjects: ${self:custom.settings.dbPrefix}-Projects
+
+# DynamoDB table name for EnvironmentTokens
+dbEnvironmentTokens: ${self:custom.settings.dbPrefix}-EnvironmentTokens
+
+# DynamoDB table for managing StorageGateway
+dbStorageGateway: ${self:custom.settings.dbPrefix}-StorageGateway
+
+# DynamoDB table name for the deployment store
+dbDeploymentStore: ${self:custom.settings.dbPrefix}-DeploymentStore
+# DynamoDB table name for Data source accounts
+dbDsAccounts: ${self:custom.settings.dbPrefix}-DsAccounts
+
+# DynamoDB table name for Role allocations
+dbRoleAllocations: ${self:custom.settings.dbPrefix}-RoleAllocations
+
+# DynamoDB table name for Resource usages
+dbResourceUsages: ${self:custom.settings.dbPrefix}-ResourceUsages
+
+# DynamoDB table global secondary index name for the "WorkspaceIdIndex" field
+dbEgressStoreWorkspaceIdIndex: WorkspaceIdIndex
+
+# ================================ DB Settings - Depreciated ===========================================
+
+# DynamoDB table name for supported authentication provider types
+dbTableAuthenticationProviderTypes: ${self:custom.settings.dbPrefix}-DbAuthenticationProviderTypes
+
+# DynamoDB table name for authentication provider configurations
+dbTableAuthenticationProviderConfigs: ${self:custom.settings.dbPrefix}-DbAuthenticationProviderConfigs
+
+# DynamoDB table name for data lake users
+dbTableUsers: ${self:custom.settings.dbPrefix}-DbUsers
+
+# DynamoDB table name for passwords for the internal data lake users
+# (applicable only to the users authenticated by internal authentication provider)
+dbTablePasswords: ${self:custom.settings.dbPrefix}-DbPasswords
+
+# DynamoDB table name for User's API Keys. These keys are different from the user's passwords.
+# These keys allow the user invoke Data Lake APIs directly outside of the UI.
+dbTableUserApiKeys: ${self:custom.settings.dbPrefix}-DbUserApiKeys
+
+# DynamoDB table name for Token Revocation Table
+dbTableRevokedTokens: ${self:custom.settings.dbPrefix}-DbRevokedTokens
+
+# DynamoDB table name for Locks
+dbTableLocks: ${self:custom.settings.dbPrefix}-DbLocks
+
+# DynamoDB table name for Step Templates
+dbTableStepTemplates: ${self:custom.settings.dbPrefix}-DbStepTemplates
+
+# DynamoDB table name for Workflow Templates
+dbTableWorkflowTemplates: ${self:custom.settings.dbPrefix}-DbWorkflowTemplates
+
+# DynamoDB table name for Workflow Templates Drafts
+dbTableWorkflowTemplateDrafts: ${self:custom.settings.dbPrefix}-DbWorkflowTemplateDrafts
+
+# DynamoDB table name for Workflows
+dbTableWorkflows: ${self:custom.settings.dbPrefix}-DbWorkflows
+
+# DynamoDB table name for Workflow Drafts
+dbTableWorkflowDrafts: ${self:custom.settings.dbPrefix}-DbWorkflowDrafts
+
+# DynamoDB table name for Workflow Instances
+dbTableWorkflowInstances: ${self:custom.settings.dbPrefix}-DbWorkflowInstances
+
+# DynamoDB table name for WfAssignments
+dbTableWfAssignments: ${self:custom.settings.dbPrefix}-DbWfAssignments
+
+# DynamoDB table name for Studies
+dbTableStudies: ${self:custom.settings.dbPrefix}-DbStudies
+
+# DynamoDB table global secondary index name for the "category" field
+dbTableStudiesCategoryIndex: CategoryIndex
+
+# DynamoDB table name for Environments
+dbTableEnvironments: ${self:custom.settings.dbPrefix}-DbEnvironments
+
+# DynamoDB table name for Environments created using AWS Service Catalog
+dbTableEnvironmentsSc: ${self:custom.settings.dbPrefix}-DbEnvironmentsSc
+
+# DynamoDB table name for Environment Types
+dbTableEnvironmentTypes: ${self:custom.settings.dbPrefix}-DbEnvironmentTypes
+
+# DynamoDB table name for UserRoles
+dbTableUserRoles: ${self:custom.settings.dbPrefix}-DbUserRoles
+
+# DynamoDB table name for AwsAccounts
+dbTableAwsAccounts: ${self:custom.settings.dbPrefix}-DbAwsAccounts
+
+# DynamoDB table name for Indexes
+dbTableIndexes: ${self:custom.settings.dbPrefix}-DbIndexes
+
+# DynamoDB table name for CostApiCaches
+dbTableCostApiCaches: ${self:custom.settings.dbPrefix}-DbCostApiCaches
+
+# DynamoDB table name for Accounts
+dbTableAccounts: ${self:custom.settings.dbPrefix}-DbAccounts
+
+# DynamoDB table name for Projects
+dbTableProjects: ${self:custom.settings.dbPrefix}-DbProjects
+
+# DynamoDB table name for EnvironmentTokens
+dbTableEnvironmentTokens: ${self:custom.settings.dbPrefix}-DbEnvironmentTokens
+
+# DynamoDB table name for StudyPermissions
+dbTableStudyPermissions: ${self:custom.settings.dbPrefix}-DbStudyPermissions
+
+# DynamoDB table name for KeyPairs
+dbTableKeyPairs: ${self:custom.settings.dbPrefix}-DbKeyPairs
+
+permissionBoundaryPolicyStudyBucket: ${self:custom.settings.namespace}-PermissionBoundaryPolicyStudyBucket
+
+# ================================ Data Egress Feature Settings ===========================================
+# NOTE: Following properties are ONLY allowed to change for the initial deployment. It's NOT recommended to change the following properties if you have enabled data egress feature.
+
+# The S3 bucket name to be used to store egress store data
+egressStoreBucketName: ${self:custom.settings.globalNamespace}-egress-store
+
+# The alias used for the KMS key created to encrypt/decrypt egress store
+egressStoreKmsKeyAlias: ${self:custom.settings.globalNamespace}/s3/egressstore
+
+# The arn of the egress store KMS Key alias
+egressStoreKmsKeyAliasArn: arn:aws:kms:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}
+
+# The statement ID in the generated KMS key's key policy that controls which workspaces
+#   can decrypt data in the egress store data bucket
+egressStoreKmsPolicyWorkspaceSid: Allow workspace environments to access egress data
+
+# The name of the IAM role created for the Lambda egressStoreObjectsHandler
+egressStoreObjectHandlerRoleName: ${self:custom.settings.namespace}-EgressStoreObject
+# =========================================================================================================
+
+# ================================ DevOps Role details ===========================================
+# Stack name of the prep-devops component
+# Expanding global namespace since the settings expander only supports upto two levels currently
+prepDevopsStackName: prep-devops-account-${self:custom.settings.awsAccountInfo.awsAccountId}-${self:custom.settings.namespace}
+
+# ExternalID to assume the above role
+devopsRoleExternalId: ${self:custom.settings.awsAccountInfo.awsAccountId}
+# =========================================================================================================

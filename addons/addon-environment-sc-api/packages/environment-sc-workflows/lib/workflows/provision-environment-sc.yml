@@ -1,0 +1,29 @@
+id: wf-provision-environment-sc
+v: 1
+workflowTemplateId: wt-empty
+workflowTemplateVer: 1
+title: Provision New Environment using AWS Service Catalog
+desc: |
+  Provision new environment using AWS Service Catalog based on the specified environment type and configuration
+hidden: false
+builtin: true
+instanceTtl: 30 # In days, however, empty value means that it is indefinite
+selectedSteps:
+  - stepTemplateId: st-pre-environment-provisioning
+    stepTemplateVer: 1
+    id: wf-step_1_1576783029730_20
+  - stepTemplateId: st-read-environment-info
+    stepTemplateVer: 1
+    id: wf-step_1_1576783029739_21
+  - stepTemplateId: st-replicate-launch-constraint-in-target-acc
+    stepTemplateVer: 1
+    id: wf-step_2_1576783029739_22
+  - stepTemplateId: st-share-portfolio-with-target-acc
+    stepTemplateVer: 1
+    id: wf-step_3_1576783029739_23
+  - stepTemplateId: st-check-launch-dependency
+    stepTemplateVer: 1
+    id: wf-step_4_1576783029739_24
+  - stepTemplateId: st-launch-product
+    stepTemplateVer: 1
+    id: wf-step_5_1576783029739_25

@@ -1,0 +1,17 @@
+{
+  "name": "@amzn/cicd-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CI/CD pipeline implementation for the PoC",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@amzn/base-serverless-settings-helper": "workspace:*",
+    "serverless": "^1.63.0",
+    "serverless-deployment-bucket": "^1.1.0",
+    "serverless-hooks-plugin": "^1.1.0"
+  },
+  "optionalDependencies": {
+    "fsevents": "*"
+  }
+}

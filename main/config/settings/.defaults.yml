@@ -1,0 +1,245 @@
+version: 1.0.0
+
+regionShortNamesMap:
+  'us-east-2': 'oh'
+  'us-east-1': 'va'
+  'us-west-1': 'ca'
+  'us-west-2': 'or'
+  'ap-east-1': 'hk'
+  'ap-south-1': 'mum'
+  'ap-northeast-3': 'osa'
+  'ap-northeast-2': 'sel'
+  'ap-southeast-1': 'sg'
+  'ap-southeast-2': 'syd'
+  'ap-northeast-1': 'ty'
+  'ca-central-1': 'ca'
+  'cn-north-1': 'cn'
+  'cn-northwest-1': 'nx'
+  'eu-central-1': 'fr'
+  'eu-west-1': 'irl'
+  'eu-west-2': 'ldn'
+  'eu-west-3': 'par'
+  'eu-north-1': 'sth'
+  'me-south-1': 'bhr'
+  'sa-east-1': 'sao'
+  'us-gov-east-1': 'gce'
+  'us-gov-west-1': 'gcw'
+
+# The default region to deploy to
+awsRegion: us-east-1
+
+# Short region name
+# This is used in the namespace to avoid naming collisions to allow deploying the same solution across multiple regions
+# Currently using the ISO country code or state code or city abbreviation as short name of the region
+# See "regionShortNamesMap" defined above.
+# The above mapping needs to be updated when deploying to any region other than the ones listed above in future
+awsRegionShortName: ${self:custom.settings.regionShortNamesMap.${self:custom.settings.awsRegion}}
+
+# This prefix is used for naming various resources
+namespace: ${self:custom.settings.envName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}
+
+# This is the namespace for naming resources that have global namespace such as S3 bucket names
+globalNamespace: ${self:custom.settings.awsAccountInfo.awsAccountId}-${self:custom.settings.namespace}
+
+# Name of the deployment bucket. The serverless framework uploads various artifacts to this bucket.
+# These artifacts include things like Lambda function code ZIP files, AWS CloudFormation Templates etc
+deploymentBucketName: ${self:custom.settings.globalNamespace}-artifacts
+
+# Bucket policy for the deployment bucket.
+# THIS IS A DYNAMIC BUCKET POLICY DO NOT EDIT ANYTHING HERE--USE EDIT-S3-BUCKET-POLICY-SERVICE
+deploymentBucketPolicy:
+  {
+    'Version': '2008-10-17',
+    'Statement':
+      [
+        {
+          'Sid': 'Deny requests that do not use TLS/HTTPS',
+          'Effect': 'Deny',
+          'Principal': '*',
+          'Action': 's3:*',
+          'Resource':
+            [
+              'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+              'arn:aws:s3:::${self:custom.settings.deploymentBucketName}',
+            ],
+          'Condition': { 'Bool': { 'aws:SecureTransport': 'false' } },
+        },
+        {
+          'Sid': 'Deny requests that do not use SigV4',
+          'Effect': 'Deny',
+          'Principal': '*',
+          'Action': 's3:*',
+          'Resource': 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+          'Condition': { 'StringNotEquals': { 's3:signatureversion': 'AWS4-HMAC-SHA256' } },
+        },
+      ],
+  }
+
+# The S3 bucket name used to host environment bootstrap scripts
+environmentsBootstrapBucketName: ${self:custom.settings.globalNamespace}-environments-bootstrap-scripts
+
+# The S3 prefix for the environment bootstrap scripts
+environmentsBootstrapBucketPrefix: environment-files
+
+# The short solution name is used to namespace a few AWS resources
+# Try to keep this setting short to avoid hitting long strings issues
+# solutionName: sw
+
+# The environment name where you want to deploy the solution to. (e.g. developer1, developer2, demo, prod etc.)
+# This is also used for creating a namespace for resources. Usually, this is same as serverless "stage".
+# All resource names reference "envName" instead of directly using "opt:stage".
+# This indirection allows for easy incorporation of extra variables in the "envName", if required.
+# For example, if the same solution needs to be deployed across multiple AWS accounts we can easily
+# add account specific variable in "envName" for keeping the namespace specific to each account.
+envName: ${opt:stage}
+
+# The environment type (e.g. dev, demo, prod). This is for grouping multiple environments
+# into types. For example, all developers' environments can be of type "dev". This can be
+# used for enabling conditionals in code that might need to be different between dev and
+# production builds (for example, enabling CORS for localhost for local development).
+envType: prod
+
+# This prefix is used to construct the full name of a table
+dbPrefix: ${self:custom.settings.namespace}
+
+# Root path in parameter store for parameters used by this solution.
+paramStoreRoot: '${self:custom.settings.envName}/${self:custom.settings.solutionName}'
+
+# Information about the root admin user.
+# The root admin user is created by default in the internal authentication provider
+# The root user can be used for provisioning additional authentication providers
+# Note: These details are also used for creating the first admin user in the Cognito native user pool, if enableNativeUserPoolUsers is set to true
+# Root user's username
+rootUserName: root
+# Root user's first name
+rootUserFirstName: root
+# Root user's last name
+rootUserLastName: root
+# Root user's email address
+# Note: The value set to rootUserEmail will be used ad the username for Cognito native user pool's default user
+rootUserEmail: root@example.com
+
+# Enable/disable external researchers feature
+# When enableExternalResearchers = true, it allows users to be assigned to an "External Researcher" role.
+# These users can launch analytics workspaces in external AWS accounts.
+# When enableExternalResearchers = false (default setting), it does NOT allow any user to be assigned with
+# "External Researcher" role (any existing users who have "External Researcher" role will no longer be able to login).
+enableExternalResearchers: false
+
+# THIS SETTING IS ONLY APPLICABLE FOR LOCAL DEVELOPMENT
+# A flag indicating if lambda function role's trust policy (assume role policy) should be automatically adjusted to
+# allow assuming the role from local machine (applicable only for local development)
+localRoleAutoAdjustTrust: true
+
+# Optional custom domain name; if empty, use the CloudFront domain name
+domainName: ''
+certificateArn: ''
+hostedZoneId: ''
+
+# An environment management role giving AWS Service Catalog Permissions
+# This is the role that the Admin users share their AWS Service Catalog products/portfolios with.
+# The products shared with this role become candidates for being imported in the platform as environment types.
+# The APIHandler and WorkflowLoopRunner lambdas both assume this role for any interaction
+# with the AWS Service Catalog
+# Equivalent role for launching/terminating environments in each on-boarded account with cross account trust is
+# created by "addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml"
+envMgmtRoleName: ${self:custom.settings.namespace}-EnvMgmt
+
+# AWS Service Catalog launch-constraint role name pattern. When admins publish new products under AWS Service Catalog
+# portfolios, they are expected to specify a local role name as a launch constraint. The AWS Service Catalog will assume
+# that role before launching the product (i.e., before launching the CFN stack). The platform code (the workflow that
+# launches the environments under researchers' accounts) will clone the role with the same name in the target account
+# before launching the environment.
+# Code does this cloning after assuming the role specified by the "envMgmtRoleName" above (or its equivalent role
+# created by onboard-account.cfn.yml in on-boarded account). This means the envMgmtRole needs IAM permissions to
+# read role information and create a role in target account.
+# This pattern specified here is used for restricting AWS IAM permissions required by the envMgmtRole role for
+# specific pattern
+# Specify wild-card ( i.e., '*') here to allow any prefix pattern
+launchConstraintRolePrefix: '${self:custom.settings.namespace}-*'
+launchConstraintRoleName: '${self:custom.settings.namespace}-LaunchConstraint'
+
+# Customer managed policy names' prefix for launch constraint roles.
+# Similar to "launchConstraintRolePrefix" but applicable to customer managed AWS IAM Policies
+# Specify wild-card ( i.e., '*') here to allow any prefix pattern
+launchConstraintPolicyPrefix: '*'
+
+# Disable support for built-in workspaces and built-in workspace types.
+# AWS Service Catalog Products/Versions is enabled and the built-in workspaces feature is disabled
+# Note that setting enableBuiltInWorkspaces = true won't be enough to get the built-in workspace support. In order to
+# get built-in workspaces support please open a new issue with Service Workbench
+# https://github.com/awslabs/service-workbench-on-aws/issues/new
+enableBuiltInWorkspaces: false
+
+# Name of the audit QLDB. This is the name of the QLDB ledger that will keep the audit logs.
+auditQldbName: ${self:custom.settings.namespace}-audit
+
+# Enable this to create a Service Catalog portfolio and populate workspace products
+# Override and disable this setting if you wish to create your portfolio manually
+createServiceCatalogPortfolio: true
+
+# Metadata provided with AWS SDK calls
+customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
+
+# Flow Logs are a feature that allows users to capture information about network traffic to, from, and within a Subnet.
+# Flow Logs are stored using AWS CloudWatch, which can be configured to alarm in the event there is anomalous traffic, or to aid in forensic efforts after a network compromise.
+# Recommended: Turning this on captures network traffic information on the hosting account's VPCs and subnets
+enableFlowLogs: true
+
+# The name of the S3 bucket used to store uploaded study data
+studyDataBucketName: ${self:custom.settings.globalNamespace}-studydata
+
+# DynamoDB table name for KeyPairs
+dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
+
+# DynamoDB table name for data lake users
+dbUsers: ${self:custom.settings.dbPrefix}-Users
+
+# DynamoDB table name for StudyPermissions
+dbStudyPermissions: ${self:custom.settings.dbPrefix}-StudyPermissions
+
+# DynamoDB table name for Environments created using AWS Service Catalog
+dbEnvironmentsSc: ${self:custom.settings.dbPrefix}-EnvironmentsSc
+
+# ================================ Data Egress Feature Settings ===========================================
+# NOTE: Following properties are ONLY allowed to change for the initial deployment. It's NOT recommended to change the following properties if you have enabled data egress feature.
+# Enable the Egress Store feature would allow researchers to securely egress data from lockdown Workspace
+# NOTE: Once the enableEgressStore is set to true, the egress store feature will be enabled and can NOT be toggled off.
+# If you toggle the egress store from true to false and redeploy the whole solution, the backend stack deployment shold error out with following message:
+# Error validating existing stack policy: Unknown logical id 'LogicalResourceId/EgressStore*' in statement {} - stack policies can only be applied to logical ids referenced in the template
+# Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
+enableEgressStore: false
+
+# DynamoDB table name for Egress Store
+dbEgressStore: ${self:custom.settings.dbPrefix}-EgressStore
+
+# The S3 bucket name to be used to store egress store data
+egressNotificationBucketName: ${self:custom.settings.globalNamespace}-egress-notification-bucket
+
+# The ARN of egress notification topic
+egressNotificationSnsTopicArn: arn:aws:sns:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:${self:custom.settings.egressNotificationTopicName}
+
+# The name of the IAM role created for the Lambda egressStoreObjectsHandler
+egressNotificationTopicName: ${self:custom.settings.namespace}-EgressTopic
+# =========================================================================================================
+
+# Determine whether workspace should be accessible only through AppStream
+# NOTE: Once the isAppStreamEnabled is set to true, the AppStream feature will be enabled and can NOT be toggled off.
+# If you toggle the AppStream feature from true to false and redeploy the whole solution, the backend stack deployment shold error out with following message:
+# Error validating existing stack policy: Unknown logical id 'LogicalResourceId/AppStream*' in statement {} - stack policies can only be applied to logical ids referenced in the template
+# Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
+isAppStreamEnabled: false
+
+# Set this to true to restrict SWB admins from accessing another user's workspace. SWB admins can still connect to their own workspace.
+restrictAdminWorkspaceConnection: false
+
+# Setting this to true disables create study and file upload to study by researchers, for My Studies and (non-BYOB) Organization study categories only
+disableStudyUploadByResearcher: false
+
+# Setting this to true ensures SWB admin cannot be a BYOB study admin
+disableAdminBYOBSelfAssignment: false
+
+# ==================== AMI Sharing Feature Settings ====================
+enableAmiSharing: false
+devopsProfile: devops
+# ======================================================================

@@ -1,0 +1,64 @@
+{
+  "name": "@amzn/base-raas-services",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A library containing a set of base Service Workbench related services and utilities",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@amzn/base-api-services": "workspace:*",
+    "@amzn/base-services": "workspace:*",
+    "@amzn/base-services-container": "workspace:*",
+    "@amzn/key-pair-mgmt-services": "workspace:*",
+    "is-cidr": "^3.1.0",
+    "js-yaml": "^4.0.0",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.2",
+    "nanoid": "^3.1.16",
+    "node-cache": "^4.2.1",
+    "node-fetch": "^2.6.7",
+    "node-rsa": "^1.1.1",
+    "object-path": "^0.11.8",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.8",
+    "uuid": "^3.4.0",
+    "xml": "^1.0.1",
+    "yaml": "^1.10.2",
+    "yaml-cfn": "^0.3.1"
+  },
+  "devDependencies": {
+    "@amzn/base-workflow-core": "workspace:*",
+    "@amzn/environment-type-mgmt-services": "workspace:*",
+    "aws-sdk-mock": "^5.1.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^22.21.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0",
+    "jest-junit": "^10.0.0",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^1.11.1",
+    "sinon": "^9.0.3",
+    "source-map-support": "^0.5.16"
+  },
+  "scripts": {
+    "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",
+    "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
+    "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "eslint --quiet --ignore-path .gitignore .",
+    "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}'",
+    "format": "pnpm run format:eslint; yarn run format:prettier",
+    "format:eslint": "eslint --fix --ignore-path .gitignore . || true",
+    "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' || true"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged --pattern '**/*.*(js|jsx)'"
+    }
+  }
+}

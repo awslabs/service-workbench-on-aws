@@ -1,0 +1,41 @@
+{
+  "name": "@amzn/base-raas-cfn-templates",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Contains base Service Workbench CFN templates",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.9.0",
+    "babel-plugin-inline-import": "^3.0.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^22.21.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "jest": "^24.9.0",
+    "jest-junit": "^10.0.0",
+    "prettier": "^1.19.1",
+    "source-map-support": "^0.5.16"
+  },
+  "scripts": {
+    "babel": "babel src/ --out-dir dist/ --source-maps",
+    "babel:watch": "babel src/ --out-dir dist/ --source-maps --watch",
+    "build": "pnpm run babel",
+    "build:watch": "pnpm run babel:watch",
+    "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",
+    "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
+    "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "eslint --quiet --ignore-path .gitignore .",
+    "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}'",
+    "format": "pnpm run format:eslint; yarn run format:prettier",
+    "format:eslint": "eslint --fix --ignore-path .gitignore . || true",
+    "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' || true",
+    "prepare": "pnpm run build"
+  }
+}

@@ -1,0 +1,63 @@
+# AWS credentials profile for the AWS Account holding the source code repository
+# Make sure to specify the profile for Source Account and NOT the Target Account here.
+# The cicd-source stack needs to be deployed to the Source Account and not the Target Account.
+awsProfile: service-workbench-source
+
+# the AWS Account ID of the Target AWS account where the solution and the AWS code pipeline needs to be deployed
+targetAccountId: 123456789012
+
+# name of the AWS CodeCommit repository containing the source code of the solution
+# for which you want to deploy the CI/CD pipeline
+repoName: service-workbench-on-aws
+
+# The name of the git branch of the source code repository the code pipeline needs to build and deploy
+repoBranch: master
+
+#
+# NOTE: CIRCULAR DEPENDENCY between "cicd-source" and "cicd-pipeline" stacks for the following settings
+#
+#artifactsS3BucketArn:
+# ----------------------
+# ARN of the artifacts S3 bucket that holds input and ouput artifacts consumed and produced by
+# various stages of the CodePipeline.
+# See "https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html" to learn more about artifacts and other
+# CodePipeline concepts. This bucket is created by the "cicd-pipeline" stack.
+#
+#artifactsKmsKeyArn:
+# ----------------------
+# ARN of the KMS key to be used for server-side encryption (SSE-KMS) of the artifacts S3 bucket.
+# This KMS key is created by the "cicd-pipeline" stack.
+#
+# Why is this circular dependency created?
+# --------------------------------------------
+# The "cicd-pipeline" stack requires the "CodeCommitSourceRole" to be created by this ("cicd-source") stack first.
+# This causes the circular dependency as follows,
+#
+# 1. The "cicd-pipeline" needs "cicd-source" stack to be created to reference the ARN of the "CodeCommitSourceRole" that
+#    gets created by "cicd-source" in the AWS account containing the source code
+#
+# 2. The "cicd-source" stack needs "artifactsS3BucketArn" and "artifactsKmsKeyArn" to lock down the permissions in the
+#    "CodeCommitSourceRole" role.
+#
+# What is the work around to move past this circular dependency deadlock?
+# -----------------------------------------------------------------------
+# 1. Deploy the "cicd-source" stack in the AWS Account containing the source code CodeCommit repository with
+#    the wild-card for "artifactsKmsKeyArn" and "artifactsS3BucketArn" below.
+#
+#       artifactsS3BucketArn: "*"
+#       artifactsKmsKeyArn: "*"
+#
+# 2. Once the stack is deployed take the "CodeCommitSourceRoleArn" output from the stack and provide it in the settings
+#    file for the "cicd-pipeline" and deploy the "cicd-pipeline" stack in the target AWS Account.
+#    That stack will create the AWS CodePipeline with AWS CodeBuild projects in the target account.
+#    The stack will also create artifacts S3 bucket and the corresponding KMS key. Take the stack outputs
+#    "ArtifactBucketKeyArn" and "AppArtifactBucketArn" and provide them here in the settings "artifactsKmsKeyArn" and
+#    "artifactsS3BucketArn" respectively then deploy "cicd-source" stack again to lock down the permissions in
+#    "CodeCommitSourceRole"
+#
+#       artifactsS3BucketArn: "arn:aws:s3:::<artifact-bucket-name>"
+#       artifactsKmsKeyArn: "arn:aws:kms:<region>:<target-aws-account>:key/<kms-key-id>"
+#
+
+artifactsS3BucketArn: '*'
+artifactsKmsKeyArn: '*'

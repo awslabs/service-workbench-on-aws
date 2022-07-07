@@ -1,0 +1,43 @@
+# The stack name of the 'backend' serverless service
+backendStackName: ${self:custom.settings.namespace}-backend
+
+# The Gateway API endpoint
+apiUrl: ${cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
+
+# The lambda@edge that is deployed by this component intercepts Amazon CloudFront origin-response and adds various security
+# related headers including "content-security-policy" header. The "connect-src" in that header lists the hosts the
+# browser should allow communication to for AJAX requests. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/connect-src
+#
+# The lambda allows the backend api calls. In addition, it also needs to allow the following endpoints
+#
+# 1. Cloud Formation Endpoints
+# ------------------------------
+#   This is required to support use-case of launching analytics env directly in external researchers account using CFN.
+#
+#   The connect-src supports wildcards BUT only for sub-domain or port so wildcard for region name below does not work
+#   (for example, https://cloudformation.*.amazonaws.com and https://cloudformation-fips.*.amazonaws.com do NOT work)
+#
+#   This setting specifies the other connect-src values to be added to the "content-security-policy" header
+#
+#   Currently, allowing all AWS service endpoints across all regions using wildcard as follows
+#   This also takes care of allowing all S3 endpoints mentioned in #2 below
+#   otherConnectSrc: *.amazonaws.com
+#
+#   Alternatively you can allow all AWS CloudFormation service endpoints across all currently supported regions.
+#   See https://docs.aws.amazon.com/general/latest/gr/cfn.html.
+#
+# 2. S3 Endpoints
+# ----------------
+#   This is required to support uploading data files to studies.
+#
+# -------------------
+#   This is required to auto-populate user's IP address when launching EC2 based workspace from the UI
+#
+#otherConnectSrc: cloudformation.us-east-2.amazonaws.com cloudformation-fips.us-east-2.amazonaws.com cloudformation.us-east-1.amazonaws.com cloudformation-fips.us-east-1.amazonaws.com cloudformation.us-west-1.amazonaws.com cloudformation-fips.us-west-1.amazonaws.com cloudformation.us-west-2.amazonaws.com cloudformation-fips.us-west-2.amazonaws.com cloudformation.ap-south-1.amazonaws.com cloudformation.ap-northeast-3.amazonaws.com cloudformation.ap-northeast-2.amazonaws.com cloudformation.ap-southeast-1.amazonaws.com cloudformation.ap-southeast-2.amazonaws.com cloudformation.ap-northeast-1.amazonaws.com cloudformation.ca-central-1.amazonaws.com cloudformation.cn-north-1.amazonaws.com.cn cloudformation.cn-northwest-1.amazonaws.com.cn cloudformation.eu-central-1.amazonaws.com cloudformation.eu-west-1.amazonaws.com cloudformation.eu-west-2.amazonaws.com cloudformation.eu-west-3.amazonaws.com cloudformation.sa-east-1.amazonaws.com cloudformation.sa-east-1.amazonaws.com cloudformation.us-gov-west-1.amazonaws.com
+otherConnectSrc: '*.amazonaws.com'
+
+# When this flag is set to true, the settings merge logic will override the awsRegion for this stack and
+# force it to us-east-1. This is necessary for Lambda@Edge because edge functions can only be deployed from
+# CloudFormation stacks in us-east-1 (see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html).
+# The function is automatically replicated to Cloudfront edge locations in all regions.
+globalDeployment: true

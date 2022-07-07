@@ -1,0 +1,20 @@
+id: st-release-write-lock
+v: 1
+title: Release Write Lock
+desc: |
+  This step releases a write lock given the write lock token.
+
+skippable: false # this is important, leave it as false so that this step is called even if pervious steps had errors
+hidden: false
+
+inputManifest:
+  sections:
+    - title: Configuration
+      children:
+        - name: writeTokenKeyName
+          type: stringInput
+          title: Payload key name for the write token value
+          rules: required
+          default: writeLockToken
+          desc: |
+            This is the key name to use obtain the value of the write lock token from the payload.

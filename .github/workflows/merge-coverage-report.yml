@@ -1,0 +1,39 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Push Merge Commit Coverage Report
+on:
+  push:
+    branches:
+      - develop
+jobs:
+  codecov:
+    name: Send merge commit coverage report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+            ${{ runner.os }}-
+      - name: Install Node.js dependencies
+        run: |
+          npm install -g pnpm@5.18.9
+          npm install -g codecov
+          pnpm recursive install --unsafe-perm --stream
+      - name: Run unit tests
+        run: |
+          pnpm run coverage --recursive --if-present --stream
+      - name: CodeCov
+        run: bash <(curl -s https://codecov.io/bash) -f ./coverage/coverage-final.json

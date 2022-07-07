@@ -1,0 +1,99 @@
+Resources:
+  # =============================================================================================
+  # IAM Role for CloudFront Interceptor Lambda (Lambda@Edge)
+  # =============================================================================================
+  RoleCloudFrontInterceptor:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+        - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+      Policies:
+        - PolicyName: logs-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: 'arn:aws:logs:*:*:*'
+
+  # =============================================================================================
+  # CloudFront Interceptor Lambda (Lambda@Edge)
+  # =============================================================================================
+
+  # Lambda@Edge that intercepts CloudFront response and adds various security headers in the response
+  EdgeLambda:
+    Type: 'AWS::Lambda::Function'
+    # Avoid to try to delete the Edge Lambda because it raises errors until all associations with Cloudfront are removed.
+    # Even then, replicas are being automatically deleted only 1 hour after the removal of all associations.
+    # After that, the Edge lambda can be deleted manually at https://console.aws.amazon.com/lambda/home
+    DeletionPolicy: Retain
+    Properties:
+      Description: Lambda@Edge function to set security headers in CloudFront responses
+      Runtime: nodejs12.x
+      Handler: index.handler
+      Role: !GetAtt RoleCloudFrontInterceptor.Arn
+      # Declaring Lambda Function Code inline because the code requires API Gateway URL for the backend APIs (to set "connect-src" part of the "content-security-policy" header)
+      # Lambda@Edge currently does not support passing environment variables (See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html)
+      # To get around this limitation, we are accessing API URL inline in the code below using "${self:custom.settings.apiUrl}"
+      Code:
+        ZipFile: |
+          "use strict";
+          const url = require("url");
+
+          const handler = async event => {
+            //Get contents of cloudfront response
+            const response = event.Records[0].cf.response;
+            const headers = response.headers;
+
+            //Set new headers
+            headers["strict-transport-security"] = [
+              {
+                key: "Strict-Transport-Security",
+                value: "max-age=63072000; includeSubdomains"
+              }
+            ];
+
+            const q = url.parse('${self:custom.settings.apiUrl}');
+            // q.host includes port number
+            const backendApi = `${q.protocol}//${q.host}`;
+            const otherConnectSrc = '${self:custom.settings.otherConnectSrc}';
+            const connectSrc = `${backendApi} ${otherConnectSrc}`;
+            headers["content-security-policy"] = [
+              {
+                key: "Content-Security-Policy",
+                value: `default-src 'none'; connect-src ${connectSrc}; img-src 'self' data:; script-src 'self'; style-src 'strict-dynamic' 'self'; font-src 'self' data:`
+              }
+            ];
+
+            headers["x-content-type-options"] = [
+              { key: "X-Content-Type-Options", value: "nosniff" }
+            ];
+            headers["x-frame-options"] = [{ key: "X-Frame-Options", value: "DENY" }];
+            headers["x-xss-protection"] = [
+              { key: "X-XSS-Protection", value: "1; mode=block" }
+            ];
+            headers["referrer-policy"] = [
+              { key: "Referrer-Policy", value: "same-origin" }
+            ];
+            //Return modified response
+            return response;
+          };
+
+          module.exports.handler = handler;
+
+Outputs:
+  EdgeLambdaArn:
+    Description: The ARN of the Lambda@Edge function
+    Value: !GetAtt [EdgeLambda, Arn]

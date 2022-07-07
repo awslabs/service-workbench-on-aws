@@ -1,0 +1,18 @@
+**/.class
+**/.DS_Store
+**/coverage
+**/node_modules
+
+**/npm-debug.log
+
+# VisualStudioCode.gitignore
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+bin/
+
+/coverage/
+.build

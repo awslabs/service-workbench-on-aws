@@ -1,0 +1,55 @@
+# AWS Region of the source repository, only used for CodeCommit; defaults to same region as pipeline
+sourceAwsRegion: ${self:custom.settings.awsRegion}
+
+# Name of the repository in either CodeCommit or Github
+repoName: service-workbench-on-aws
+
+# The git branch name of the source code repository the code pipeline should build and deploy
+repoBranch: master
+
+# Path to repo token (e.g. Github access token) in parameter store
+tokenName: /${self:custom.settings.paramStoreRoot}/github/token
+
+# Name of the AWS CodePipeline instance
+pipelineName: ${self:custom.settings.namespace}-${self:custom.settings.repoBranch}
+cicdAppArtifactBucketName: ${self:custom.settings.globalNamespace}-cicd-appartifacts
+
+# Either specify a Github owner (and an OAuth Token in CloudFormation) or source account and role (for CodeCommit)
+githubOwner: 'awslabs'
+sourceAccountId: ''
+sourceRoleArn: ''
+
+# Flag indicating whether to create a staging environment.
+# If this flag is set to true the pipeline will first deploy the solution to a staging environment before deploying the
+# solution to the target environment. By default, the staging environment is named by suffixing "stg" to the
+# target environment name.
+# For example, if the name of the target environment is "prod" the staging env will be named "prodstg".
+# You can change the name of the staging environment by specifying "stgEnvName" setting
+# If this flag is set to true then you MUST also provide settings file for the staging env.
+# For example, if createStagingEnv=true and if the stgEnvName=t"prodstg" then make sure you have
+# "prodstg.yml" file in top level "config/settings" directory
+createStagingEnv: false
+
+# Flag indicating whether to require manual approval before deploying to target environment
+requireManualApproval: false
+
+# Flag indicating whether to run integration tests against the target environment
+# Set this to false if you do not want to run automated tests against target env (such as production)
+# This flag is only to control tests against target env. The tests are always run against staging env
+# when "createStagingEnv" is "true" irrespective of this flag.
+runTestsAgainstTargetEnv: true
+
+# Name of the staging environment to run the integration tests against.
+# This setting is ignored when createStagingEnv is not true.
+stgEnvName: ${self:custom.settings.envName}stg
+
+# WARNING: Setting this to true deletes the installed Service Workbench environment at the end of the pipeline
+# This can be used for testing the fresh install and uninstall experience of the product using CodePipeline
+deleteAfterInstall: false
+
+# This is only used by the pipeline when deleteAfterInstall is set to true.
+# It adds a delay of 60min before installation step to prevent multiple pipeline triggers clashing into each other
+# For eg.
+#   Commit #1 is in the deletion step of pipeline run #1
+#   Commit #2 with the same stage name is trying to install the product's resources that are already being deleted by run #1
+preventCollision: true

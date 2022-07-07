@@ -1,0 +1,13 @@
+# This file matches on the word Brazil (the country)
+main/solution/ui/src/css/semantic.min.css
+.gitallowed
+.github/workflows/unit-test-code-analysis.yml
+
+# Fake Account id used for testing
+123456789011
+999999999999
+012345678910
+111111111111
+012345678998
+123456789012
+333333333333

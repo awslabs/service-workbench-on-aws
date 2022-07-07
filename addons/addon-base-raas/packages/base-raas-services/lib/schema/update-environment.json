@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9-_ ]+$"
+    },
+    "status": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "stackId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255
+    },
+    "instanceInfo": {
+      "type": "object"
+    },
+    "sharedWithUsers": {
+      "type": "array",
+      "items": [
+        {
+          "type": "array",
+          "items": [
+            {
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "default": []
+    },
+    "error": {
+      "type": "string",
+      "maxLength": 2048
+    }
+  },
+  "required": ["id"]
+}

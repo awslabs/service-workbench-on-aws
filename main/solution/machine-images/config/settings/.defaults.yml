@@ -1,0 +1,4 @@
+ec2RStudioAmiPrefix: ${self:custom.settings.namespace}-EC2-RSTUDIO-AMI
+ec2LinuxAmiPrefix: ${self:custom.settings.namespace}-EC2-LINUX-AMI
+ec2WindowsAmiPrefix: ${self:custom.settings.namespace}-EC2-WINDOWS-AMI
+emrAmiPrefix: ${self:custom.settings.namespace}-EMR-AMI

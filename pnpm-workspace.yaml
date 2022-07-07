@@ -1,0 +1,8 @@
+packages:
+  - addons/*/packages/*
+  - main/packages/*
+  - main/solution/*
+  - main/integration-tests
+  - main/infrastructure-tests
+  - main/end-to-end-tests
+  - main/cicd/*

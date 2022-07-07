@@ -1,0 +1,4 @@
+awsProfile: awesome-poc-admin
+awsRegion: us-east-1
+awsRegionShortName: euw1
+dbPrefix: bob-db- # temporarily override to point at Bob's stack.

@@ -1,0 +1,17 @@
+id: wf-delete-environment
+v: 1
+workflowTemplateId: wt-empty
+workflowTemplateVer: 1
+title: Delete an Environment
+desc: |
+  Delete an environment
+hidden: false
+builtin: true
+instanceTtl: 30 # In days, however, empty value means that it is indefinite
+selectedSteps:
+  - stepTemplateId: st-delete-environment
+    stepTemplateVer: 1
+    id: wf-step_1_1576786737060_55 # Randomly generated id, no need to change it
+    # configs: # add configuration key/value pairs (if needed)
+    # key1: value1
+    # key2: value2

@@ -1,0 +1,25 @@
+# The AWS region where the service workbench application is deployed
+awsRegion: us-east-1
+
+# AWS profile with permissions to the main account. Example: default
+awsProfile:
+
+# Make sure that the solutionName matches the one you are using in /main/config/settings
+solutionName:
+
+# Required. Usually, this is the same as the stage name that you used when you deployed the service
+# workbench application
+envName:
+
+# Make sure that the envType matches the one you are using in /main/config/settings
+envType: dev
+
+# Account id of hosting account that you would like to run infrastructure tests on
+hostingAccountId: <12 Digits AWS Account Number>
+
+# The name of the Cloudformation stack that SWB created for the hosting account
+# E.g: initial-stack-1628108240381
+hostingAccountStackName:
+
+# ExternalId set for the trust relationship of the assumed role in the hosting account. By default it's `workbench`
+externalId: workbench

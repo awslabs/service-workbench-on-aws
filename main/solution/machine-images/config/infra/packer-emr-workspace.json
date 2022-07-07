@@ -1,0 +1,40 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "vpcId": "",
+    "subnetId": "",
+    "awsProfile": "",
+    "awsRegion": "",
+    "amiName": ""
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "profile": "{{user `awsProfile`}}",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "{{user `awsRegion`}}",
+      "vpc_id": "{{user `vpcId`}}",
+      "subnet_id": "{{user `subnetId`}}",
+      "source_ami_filter": {
+        "filters": {
+          "virtualization-type": "hvm",
+          "name": "amzn-ami-hvm-*-x86_64-ebs",
+          "root-device-type": "ebs"
+        },
+        "owners": ["amazon"],
+        "most_recent": true
+      },
+      "instance_type": "t2.medium",
+      "ssh_username": "ec2-user",
+      "ami_name": "{{user `emrAmiPrefix`}}-{{timestamp}}"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "./config/infra/provisioners/provision-hail.sh"
+    }
+  ]
+}

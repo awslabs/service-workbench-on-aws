@@ -1,0 +1,309 @@
+Conditions:
+  IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
+  UseCustomDomain: !Not
+    - !Equals ['${self:custom.settings.domainName}', '']
+  UseHostedZoneId: !Not
+    - !Equals ['${self:custom.settings.hostedZoneId}', '']
+  CustomDomainWithoutHostedZoneId: !And
+    - !Not
+      - !Equals ['${self:custom.settings.domainName}', '']
+    - !Equals ['${self:custom.settings.hostedZoneId}', '']
+
+Description: (SO0144) Service Workbench on AWS Solution
+
+Mappings:
+  ELBAccountIDMapping:
+    us-east-1:
+      Id: '127311923021'
+    us-east-2:
+      Id: '033677994240'
+    us-west-1:
+      Id: '027434742980'
+    us-west-2:
+      Id: '797873946194'
+    af-south-1:
+      Id: '098369216593'
+    ca-central-1:
+      Id: '985666609251'
+    eu-central-1:
+      Id: '054676820928'
+    eu-west-1:
+      Id: '156460612806'
+    eu-west-2:
+      Id: '652711504416'
+    eu-south-1:
+      Id: '635631232127'
+    eu-west-3:
+      Id: '009996457667'
+    eu-north-1:
+      Id: '897822967062'
+    ap-east-1:
+      Id: '754344448648'
+    ap-northeast-1:
+      Id: '582318560864'
+    ap-northeast-2:
+      Id: '600734575887'
+    ap-northeast-3:
+      Id: '383597477331'
+    ap-southeast-1:
+      Id: '114774131450'
+    ap-southeast-2:
+      Id: '783225319266'
+    ap-south-1:
+      Id: '718504428378'
+    me-south-1:
+      Id: '076674570225'
+    sa-east-1:
+      Id: '507241528517'
+    us-gov-west-1:
+      Id: '048591011584'
+    us-gov-east-1:
+      Id: '190560391635'
+    cn-north-1:
+      Id: '638102146993'
+    cn-northwest-1:
+      Id: '037604701340'
+
+Resources:
+  # =============================================================================================
+  # S3 Buckets
+  # =============================================================================================
+
+  # S3 Bucket for S3 access logs
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.loggingBucketName}
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  LoggingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LoggingBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny requests that do not use TLS/HTTPS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+              - !GetAtt LoggingBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: ELB Logging permissions
+            Effect: Allow
+            Principal:
+              AWS: !Join ['', ['arn:aws:iam::', !FindInMap [ELBAccountIDMapping, !Ref 'AWS::Region', Id], ':root']]
+            Action: s3:PutObject
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
+          - Sid: ELB Logging permissions
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
+          - Sid: ELB Logging permissions
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket]]
+
+  # S3 Bucket for the static website
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.websiteBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Allow CloudFront Origin Access Identity
+            Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Principal:
+              AWS: !Join ['', ['arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ', !Ref 'CloudFrontOAI']]
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'WebsiteBucket', '/*']]
+          - Sid: Deny requests that do not use TLS/HTTPS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+              - !GetAtt WebsiteBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  # =============================================================================================
+  # CloudFront
+  # =============================================================================================
+
+  WebsiteCloudFront:
+    Type: AWS::CloudFront::Distribution
+    DependsOn:
+      - WebsiteBucket
+    Properties:
+      DistributionConfig:
+        Comment: 'CloudFront Distribution pointing to ${self:custom.settings.websiteBucketName}'
+        Origins:
+          - DomainName: !GetAtt WebsiteBucket.RegionalDomainName
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Join ['', ['origin-access-identity/cloudfront/', !Ref 'CloudFrontOAI']]
+        Enabled: true
+        HttpVersion: 'http2'
+        Aliases: !If
+          - UseCustomDomain
+          - ['${self:custom.settings.domainName}']
+          - !Ref AWS::NoValue
+        ViewerCertificate: !If
+          - UseCustomDomain
+          - AcmCertificateArn: ${self:custom.settings.certificateArn}
+            MinimumProtocolVersion: TLSv1.2_2018
+            SslSupportMethod: sni-only
+          - !Ref AWS::NoValue
+        DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCachingMinTTL: 300
+            ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCachingMinTTL: 300
+            ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        DefaultCacheBehavior:
+          DefaultTTL: 0
+          MinTTL: 0
+          MaxTTL: 0
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          TargetOriginId: S3Origin
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        Logging:
+          Bucket: ${self:custom.settings.loggingBucketName}.s3.amazonaws.com
+          Prefix: cloudfront/
+
+  CloudFrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: 'OAI for ${self:custom.settings.websiteBucketName}'
+
+  # =============================================================================================
+  # Route 53
+  # =============================================================================================
+
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: CustomDomainWithoutHostedZoneId
+    DeletionPolicy: Retain
+    Properties:
+      Name: ${self:custom.settings.domainName}
+
+  DomainRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: UseCustomDomain
+    Properties:
+      # Blank hosted zone ID in stage file creates a new one
+      # This is to ensure backwards compatibility
+      HostedZoneId: !If
+        - UseHostedZoneId
+        - ${self:custom.settings.hostedZoneId}
+        - !Ref HostedZone
+      RecordSets:
+        - Name: ${self:custom.settings.domainName}
+          Type: A
+          AliasTarget:
+            HostedZoneId: Z2FDTNDATAQYW2 # This is a required hard-coded string that is to be used for AWS
+            DNSName: !GetAtt WebsiteCloudFront.DomainName
+
+Outputs:
+  WebsiteUrl:
+    Description: URL for the main website hosted on S3 via CloudFront
+    Value: !If
+      - UseCustomDomain
+      - https://${self:custom.settings.domainName}
+      - !Join ['', ['https://', !GetAtt WebsiteCloudFront.DomainName]]
+
+  WebsiteBucket:
+    Description: The bucket name of the static website
+    Value: !Ref WebsiteBucket
+
+  LoggingBucket:
+    Description: The bucket name for S3 access logging
+    Value: !Ref LoggingBucket
+
+  CloudFrontId:
+    Description: Id of the CloudFront distribution
+    Value: !Ref WebsiteCloudFront
+
+  HostedZoneId:
+    Description: Id of the hosted zone created when a custom domain is used
+    Value: !If
+      - UseCustomDomain
+      - !If
+        - UseHostedZoneId
+        - ${self:custom.settings.hostedZoneId}
+        - !Ref HostedZone
+      - 'CustomDomainNotSet'

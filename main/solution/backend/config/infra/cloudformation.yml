@@ -1,0 +1,2186 @@
+Conditions:
+  IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
+  EnableEgressStore: !Equals ['${self:custom.settings.enableEgressStore}', true]
+  AppStreamEnabled: !Equals ['${self:custom.settings.isAppStreamEnabled}', true]
+
+Resources:
+  # =============================================================================================
+  # SSM
+  # =============================================================================================
+
+  # This parameter is created for its LogicalID. This is leveraged to ensure user cannot
+  # deploy SWB with AppStream disabled once it has been activated
+  AppStreamEnabled:
+    Condition: AppStreamEnabled
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: '${self:custom.settings.isAppStreamEnabled}'
+
+  # =============================================================================================
+  # S3
+  # =============================================================================================
+
+  # S3 Bucket used for storing uploaded study data
+  StudyDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.studyDataBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt StudyDataEncryptionKey.Arn
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: studydata/
+      VersioningConfiguration:
+        Status: Enabled
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - ${self:custom.settings.websiteUrl}
+              - !If
+                - IsDev
+                - http://localhost:3000
+                - !Ref 'AWS::NoValue'
+            AllowedMethods:
+              - POST
+            ExposedHeaders:
+              - ETag
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  # THIS IS A DYNAMIC BUCKET POLICY DO NOT EDIT ANYTHING HERE--USE EDIT-S3-BUCKET-POLICY-SERVICE
+  StudyDataBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref StudyDataBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: PutObjectPolicy
+        Statement:
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Join ['/', [!GetAtt StudyDataBucket.Arn, '*']]
+            Condition:
+              # The Null-condition allows uploads without encryption information in the request
+              # (i.e., requests with default S3 bucket encryption) and the
+              # StringNotEquals-condition denies uploads with invalid encryption information.
+              # Note that using StringNotEqualsIfExists doesn’t work for uploads without encryption information.
+              # The condition evaluates to true and denies the upload because of the Deny-effect.
+              'Null':
+                s3:x-amz-server-side-encryption: false
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption: 'aws:kms'
+          - Sid: Deny object uploads not using default encryption settings
+            Effect: Deny
+            Principal: '*'
+            Action: s3:PutObject
+            Resource: !Join ['/', [!GetAtt StudyDataBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: 'aws:kms'
+              StringNotEqualsIfExists:
+                s3:x-amz-server-side-encryption-aws-kms-key-id: !GetAtt StudyDataEncryptionKey.Arn
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt StudyDataBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt StudyDataBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  StudyDataEncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: >-
+        Master key used to encrypt objects stored in the
+        ${self:custom.settings.studyDataBucketName} bucket
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: study-data-kms-policy
+        Statement:
+          - Sid: Allow root
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Sid: Allow API access to create object and update policy for new workspaces
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleApiHandler, Arn]
+            Action:
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource: '*'
+          - Sid: Allow workflows to update key policy for new workspaces
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleWorkflowLoopRunner, Arn]
+            Action:
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource: '*'
+
+  StudyDataEncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/${self:custom.settings.studyDataKmsKeyAlias}
+      TargetKeyId: !Ref StudyDataEncryptionKey
+
+  ExternalCfnTemplatesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.externalCfnTemplatesBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              # Using default SSE-S3 instead of KMS encryption due to an issue with serverless-s3-sync plugin
+              # See "https://github.com/k1LoW/serverless-s3-sync/issues/23" for details
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: external-cfn-templates/
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  ExternalCfnTemplatesBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ExternalCfnTemplatesBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Deny requests that do not use TLS/HTTPS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt ExternalCfnTemplatesBucket.Arn, '*']]
+              - !GetAtt ExternalCfnTemplatesBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt ExternalCfnTemplatesBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  # S3 bucket used to store environment bootstrap scripts
+  EnvironmentsBootstrapBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.environmentsBootstrapBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  # THIS IS A DYNAMIC BUCKET POLICY DO NOT EDIT ANYTHING HERE--USE EDIT-S3-BUCKET-POLICY-SERVICE
+  EnvironmentsBootstrapBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EnvironmentsBootstrapBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: PutObjectPolicy
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EnvironmentsBootstrapBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EnvironmentsBootstrapBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  # S3 bucket used to store environment type configurations (the config objects that define small, medium, large etc
+  # env launch options)
+  EnvTypeConfigsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.envTypeConfigsBucketName}
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: env-type-configs/
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  EnvTypeConfigsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EnvTypeConfigsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: PutObjectPolicy
+        Statement:
+          - Sid: Deny requests that do not use TLS/HTTPS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt EnvTypeConfigsBucket.Arn, '*']]
+              - !GetAtt EnvTypeConfigsBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EnvTypeConfigsBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  EgressStoreEncryptionKey:
+    Condition: EnableEgressStore
+    Type: AWS::KMS::Key
+    Properties:
+      Description: >-
+        Master key used to encrypt objects stored in the
+        ${self:custom.settings.egressStoreBucketName} bucket
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: egress-store-kms-policy
+        Statement:
+          - Sid: Allow root
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Sid: Allow API access to create object and update policy for new workspaces
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleApiHandler, Arn]
+            Action:
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource: '*'
+          - Sid: Allow workflows to update key policy for new workspaces
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleWorkflowLoopRunner, Arn]
+            Action:
+              - kms:GenerateDataKey
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:ReEncrypt*
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource: '*'
+
+  EgressStoreEncryptionKeyAlias:
+    Condition: EnableEgressStore
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/${self:custom.settings.egressStoreKmsKeyAlias}
+      TargetKeyId: !Ref EgressStoreEncryptionKey
+
+  # S3 bucket used to store egress data from workspace
+  EgressStoreBucket:
+    Condition: EnableEgressStore
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.egressStoreBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt EgressStoreEncryptionKey.Arn
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: egressStore/
+      VersioningConfiguration:
+        Status: Enabled
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - ${self:custom.settings.websiteUrl}
+              - !If
+                - IsDev
+                - http://localhost:3000
+                - !Ref 'AWS::NoValue'
+            AllowedMethods:
+              - POST
+            ExposedHeaders:
+              - ETag
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  EgressNotificationBucket:
+    Condition: EnableEgressStore
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.egressNotificationBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt EgressStoreEncryptionKey.Arn
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: egressNotificationBucket/
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - ${self:custom.settings.websiteUrl}
+              - !If
+                - IsDev
+                - http://localhost:3000
+                - !Ref 'AWS::NoValue'
+            AllowedMethods:
+              - POST
+            ExposedHeaders:
+              - ETag
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  EgressStoreBucketPolicy:
+    Condition: EnableEgressStore
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EgressStoreBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: PutObjectPolicy
+        Statement:
+          - Sid: Deny requests that do not use TLS/HTTPS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt EgressStoreBucket.Arn, '*']]
+              - !GetAtt EgressStoreBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EgressStoreBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  EgressNotificationBucketPolicy:
+    Condition: EnableEgressStore
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EgressNotificationBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: PutObjectPolicy
+        Statement:
+          - Sid: Deny requests that do not use TLS/HTTPS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt EgressNotificationBucket.Arn, '*']]
+              - !GetAtt EgressNotificationBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EgressNotificationBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  # =============================================================================================
+  # IAM Roles
+  # =============================================================================================
+
+  # IAM Role for the authenticationLayerHandler Function
+  RoleAuthenticationLayerHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Policies:
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [PasswordsDb, Arn]
+                - !GetAtt [UsersDb, Arn]
+                - !Sub '${UsersDb.Arn}/index/*'
+                - !GetAtt [AuthenticationProviderTypesDb, Arn]
+                - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+                - !GetAtt [RevokedTokensDb, Arn]
+                - !GetAtt [UserRolesDb, Arn]
+        - PolicyName: param-store-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+        - PolicyName: cognito-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+                - cognito-idp:AdminUpdateUserAttributes
+              Resource:
+                - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+
+  PolicyApiHandler:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to create resources required for SWB backend functionality
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:DeleteItem
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:PutItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+          - Effect: Allow
+            Action:
+              - states:StartExecution
+            Resource:
+              - !Ref SMWorkflow
+          - Effect: Allow
+            Action:
+              - s3:GetObject*
+              - s3:AbortMultipartUpload
+              - s3:ListMultipartUploadParts
+              - s3:PutObject*
+              - s3:DeleteObject*
+              - s3:List*
+              - s3:PutLifecycleConfiguration
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.externalCfnTemplatesBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}/*'
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:GetBucketPolicy
+              - s3:PutBucketPolicy
+              - s3:ListBucketVersions
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+          - Effect: Allow
+            Action:
+              - kms:GenerateDataKey
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:ReEncrypt*
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource:
+              # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
+              #   circular dependency in StudyDataEncryptionKey's KeyPolicy
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+          - Effect: 'Allow'
+            Action:
+              - ce:GetCostAndUsage
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - sts:GetCallerIdentity
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource:
+              - !GetAtt [RoleEnvMgmt, Arn]
+              - 'arn:aws:iam::*:role/SC-*'
+              - 'arn:aws:iam::*:role/swb-*'
+              - 'arn:aws:iam::*:role/analysis-*'
+              - 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - 'arn:aws:iam::*:role/*-cfn-status-role'
+              - 'arn:aws:iam::*:role/${self:custom.settings.globalNamespace}-DevopsRole'
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
+          - Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource:
+              - '*'
+          - Effect: Allow
+            Action:
+              - sns:Publish
+            Resource:
+              - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.egressNotificationTopicName}'
+          - Effect: Allow
+            Action:
+              - appstream:UpdateImagePermissions
+            Resource:
+              - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
+          - Effect: Allow
+            Action:
+              - cognito-idp:AdminGetUser
+              - cognito-idp:AdminUpdateUserAttributes
+            Resource:
+              - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+
+  # IAM Role for the apiHandler Function
+  RoleApiHandler:
+    Type: 'AWS::IAM::Role'
+    DependsOn: RoleEnvMgmt
+    Properties:
+      RoleName: ${self:custom.settings.apiHandlerRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref PolicyApiHandler
+      PermissionsBoundary: !Ref PolicyApiHandler
+
+  PolicyWorkflowLoopRunner:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to create resources required for SWB backend functionality
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:DeleteItem
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:PutItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+          - Effect: Allow
+            Action:
+              - ssm:PutParameter
+              - ssm:DeleteParameter
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+          - Effect: 'Allow'
+            Action:
+              - route53:ChangeResourceRecordSets
+            Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
+          - Effect: Allow
+            Action:
+              - states:StartExecution
+            Resource:
+              - !Sub 'arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${self:custom.settings.workflowStateMachineName}'
+          - Effect: Allow
+            Action:
+              - ec2:DescribeSubnets
+              - ec2:DescribeVpcs
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeImages
+              - ec2:DescribeSpotPriceHistory
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - ec2:ModifyImageAttribute
+            Resource: !Sub 'arn:aws:ec2:${AWS::Region}::image/*'
+          - Effect: 'Allow'
+            Action:
+              - s3:GetBucketPolicy
+              - s3:PutBucketPolicy
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+          - Effect: 'Allow'
+            Action:
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+              - kms:GenerateDataKey
+              - kms:Decrypt
+              - kms:Encrypt
+              - kms:ReEncrypt*
+            Resource:
+              # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
+              #   circular dependency in StudyDataEncryptionKey's KeyPolicy
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}'
+                - !Ref 'AWS::NoValue'
+          - Effect: 'Allow'
+            Action:
+              - s3:GetObject*
+              - s3:PutObject*
+              - s3:DeleteObject
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+          - Effect: 'Allow'
+            Action:
+              - s3:ListBucket
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource:
+              - !GetAtt [RoleEnvMgmt, Arn]
+              - 'arn:aws:iam::*:role/SC-*'
+              - 'arn:aws:iam::*:role/analysis-*'
+              - 'arn:aws:iam::*:role/swb-*'
+              - 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+              - 'arn:aws:iam::*:role/${self:custom.settings.globalNamespace}-DevopsRole'
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:*'
+          - Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource:
+              - '*'
+          - Effect: Allow
+            Action:
+              - appstream:UpdateImagePermissions
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+          - Effect: 'Allow'
+            Action:
+              - s3:GetObject
+            Resource:
+              - 'arn:aws:s3:::cf-templates-*/*'
+              - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*'
+          - Effect: Allow
+            Action:
+              - appstream:UpdateImagePermissions
+            Resource:
+              - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
+          - !If
+            - EnableEgressStore
+            - Effect: Allow
+              Action:
+                - iam:CreateRole
+              Condition:
+                StringEquals:
+                  iam:PermissionsBoundary: !Ref PermissionBoundaryPolicyStudyBucket
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
+            - !Ref 'AWS::NoValue'
+          - Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+              - iam:DeleteRole
+              - iam:DetachRolePolicy
+              - iam:ListAttachedRolePolicies
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
+          - Effect: Allow
+            Action:
+              - iam:CreatePolicy
+              - iam:DeletePolicy
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/swb-study-*'
+
+  PermissionBoundaryPolicyStudyBucket:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: EnableEgressStore
+    Properties:
+      Description: Permission boundary for study bucket
+      ManagedPolicyName: '${self:custom.settings.permissionBoundaryPolicyStudyBucket}'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:GetObjectTagging
+              - s3:GetObjectTorrent
+              - s3:GetObjectVersion
+              - s3:GetObjectVersionTagging
+              - s3:GetObjectVersionTorrent
+              - s3:AbortMultipartUpload
+              - s3:ListMultipartUploadParts
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:PutObjectTagging
+              - s3:PutObjectVersionTagging
+              - s3:DeleteObject
+              - s3:DeleteObjectTagging
+              - s3:DeleteObjectVersion
+              - s3:DeleteObjectVersionTagging
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:ListBucketVersions
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:GenerateDataKey*
+              - kms:ReEncrypt*
+            Resource:
+              # Can't use EgressStoreEncryptionKey due to circular dependency
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+
+  # IAM Role for the workflowLoopRunner Function
+  RoleWorkflowLoopRunner:
+    Type: 'AWS::IAM::Role'
+    DependsOn: RoleEnvMgmt
+    Properties:
+      RoleName: ${self:custom.settings.workflowLoopRunnerRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref PolicyWorkflowLoopRunner
+      PermissionsBoundary: !Ref PolicyWorkflowLoopRunner
+
+  # IAM Role for Step Functions to invoke lambda
+  RoleStepFunctionsWorkflow:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: !Sub 'states.${AWS::Region}.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: lambda
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action: 'lambda:InvokeFunction'
+                Resource:
+                  - !GetAtt 'WorkflowLoopRunnerLambdaFunction.Arn'
+
+  # IAM Role for the openDataScrapeHandler Function
+  RoleOpenDataScrapeHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
+      Policies:
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !GetAtt [StudiesDb, Arn]
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource:
+                  - !GetAtt [StudyPermissionsDb, Arn]
+
+  PolicyDataSourceReachabilityHandler:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Grant ClouWatch access for logging and ddb access to studies and accounts table
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt [StudiesDb, Arn]
+              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+              - !GetAtt [DsAccountsDb, Arn]
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+            Resource: !GetAtt [WorkflowsDb, Arn]
+          - Effect: Allow
+            Action: dynamodb:UpdateItem
+            Resource: !GetAtt [WorkflowInstancesDb, Arn]
+          - Effect: Allow
+            Action:
+              - states:StartExecution
+            Resource:
+              - !Ref SMWorkflow
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*'
+          - Effect: Allow
+            Action:
+              - logs:PutLogEvents
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*:log-stream:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*:log-stream:*'
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource: 'arn:aws:iam::*:role/swb-*'
+          - Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource:
+              - '*'
+
+    # IAM Role for the dataSourceReachabilityHandler Function
+  RoleDataSourceReachabilityHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref PolicyDataSourceReachabilityHandler
+      PermissionsBoundary: !Ref PolicyDataSourceReachabilityHandler
+
+  PolicyAwsAccountOnboardingHandler:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Grant CloudFormation access to check CFN stack status and ddb access to onboard accounts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt [AwsAccountsDb, Arn]
+              - !GetAtt [IndexesDb, Arn]
+              - !GetAtt [ProjectsDb, Arn]
+              - !GetAtt [EnvironmentsScDb, Arn]
+              - !Join ['', [!GetAtt [AwsAccountsDb, Arn], '/index/*']]
+              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
+              - logs:CreateLogGroup
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-awsAccountOnboardingHandler:*'
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource: 'arn:aws:iam::*:role/*-cfn-status-role'
+
+  #IAM Role for the awsAccountOnboardingHandler Function
+  RoleAwsAccountOnboardingHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref PolicyAwsAccountOnboardingHandler
+      PermissionsBoundary: !Ref PolicyAwsAccountOnboardingHandler
+
+  # An environment management role giving AWS Service Catalog Permissions
+  # This is the role that the Admin users share their AWS Service Catalog products/portfolios with.
+  # The products shared with this role become candidates for being imported in the platform as environment types.
+  # The APIHandler and WorkflowLoopRunner lambdas both assume this role for any interaction
+  # with the AWS Service Catalog
+  # Equivalent role for launching/terminating environments in each on-boarded account with cross account trust is
+  # created by "addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml"
+  RoleEnvMgmt:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ${self:custom.settings.envMgmtRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !Sub ${AWS::AccountId}
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref PolicyEnvMgmt
+      PermissionsBoundary: !Ref PolicyEnvMgmt
+
+  PolicyEnvMgmt:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EnvMgmt role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - iam:GetRole
+              - iam:TagRole
+              - iam:GetRolePolicy
+              - iam:ListRolePolicies
+              - iam:ListAttachedRolePolicies
+              - iam:UpdateRoleDescription
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.launchConstraintRolePrefix}LaunchConstraint'
+          - Effect: Allow
+            Action:
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:ListPolicyVersions
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${self:custom.settings.launchConstraintPolicyPrefix}'
+          - Effect: Allow
+            Action:
+              - servicecatalog:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              - 'arn:aws:s3:::cf-templates-*/*'
+  # =============================================================================================
+  # Step Functions
+  # =============================================================================================
+
+  # Workflow State Machine
+  SMWorkflow:
+    Type: 'AWS::StepFunctions::StateMachine'
+    Properties:
+      StateMachineName: ${self:custom.settings.workflowStateMachineName}
+      DefinitionString: !Sub |
+        {
+          "Comment": "Workflow State Machine",
+          "StartAt": "WorkflowLoopRunner",
+          "Version": "1.0",
+          "States": {
+            "WorkflowLoopRunner": {
+              "Type": "Task",
+              "Resource": "${WorkflowLoopRunnerLambdaFunction.Arn}",
+              "ResultPath": "$.loop",
+              "Next": "MakeAChoice",
+              "Catch": [{
+                "ErrorEquals": ["States.ALL"],
+                "ResultPath": "$.error",
+                "Next": "Failed"
+              }]
+            },
+            "MakeAChoice": {
+              "Type": "Choice",
+              "Choices": [{
+                "Variable": "$.loop.shouldWait",
+                "NumericEquals": 1,
+                "Next": "LetsWait"
+              }, {
+                "Variable": "$.loop.shouldLoop",
+                "NumericEquals": 1,
+                "Next": "WorkflowLoopRunner"
+              }, {
+                "Variable": "$.loop.shouldPass",
+                "NumericEquals": 1,
+                "Next": "Passed"
+              }, {
+                "Variable": "$.loop.shouldFail",
+                "NumericEquals": 1,
+                "Next": "Failed"
+              }],
+              "Default": "Failed"
+            },
+            "LetsWait": {
+              "Type": "Wait",
+              "SecondsPath": "$.loop.wait",
+              "Next": "WorkflowLoopRunner"
+            },
+            "Passed": {
+              "Type": "Pass",
+              "End": true
+            },
+            "Failed": {
+              "Type": "Fail"
+            }
+          }
+        }
+      RoleArn: !GetAtt 'RoleStepFunctionsWorkflow.Arn'
+
+  # =============================================================================================
+  # Dynamo DB
+  # =============================================================================================
+
+  PasswordsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbPasswords}
+      AttributeDefinitions:
+        - AttributeName: 'username'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'username'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  UserApiKeysDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbUserApiKeys}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: ALL
+
+  UsersDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: PasswordsDb
+    Properties:
+      TableName: ${self:custom.settings.dbUsers}
+      AttributeDefinitions:
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+        - AttributeName: 'username'
+          AttributeType: 'S'
+        - AttributeName: 'ns'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'uid'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: Principal
+          KeySchema:
+            - AttributeName: 'username'
+              KeyType: 'HASH'
+            - AttributeName: 'ns'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: ALL
+
+  AuthenticationProviderTypesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAuthenticationProviderTypes}
+      AttributeDefinitions:
+        - AttributeName: 'type'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'type'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  AuthenticationProviderConfigsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAuthenticationProviderConfigs}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  RevokedTokensDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbRevokedTokens}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      BillingMode: PAY_PER_REQUEST
+
+  LocksDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbLocks}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      BillingMode: PAY_PER_REQUEST
+
+  StudiesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbStudies}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'category'
+          AttributeType: 'S'
+        - AttributeName: 'accountId'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ${self:custom.settings.dbStudiesCategoryIndex}
+          KeySchema:
+            - AttributeName: 'category'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: ${self:custom.settings.dbStudiesAccountIdIndex}
+          KeySchema:
+            - AttributeName: 'accountId'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  StepTemplatesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbStepTemplates}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  WorkflowTemplatesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowTemplates}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  WorkflowsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflows}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  WorkflowTemplateDraftsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowTemplateDrafts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  WorkflowDraftsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowDrafts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  WorkflowInstancesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowInstances}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'createdAt'
+          AttributeType: 'S'
+        - AttributeName: 'wf'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: 'WorkflowIndex'
+          KeySchema:
+            - AttributeName: 'wf'
+              KeyType: 'HASH'
+            - AttributeName: 'createdAt'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+
+  WfAssignmentsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWfAssignments}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'triggerType' # trigger type
+          AttributeType: 'S'
+        - AttributeName: 'triggerTypeData' # trigger type data (qualifier)
+          AttributeType: 'S'
+        - AttributeName: 'wf' # workflow id
+          AttributeType: 'S'
+        - AttributeName: 'createdAt'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: 'WorkflowIndex'
+          KeySchema:
+            - AttributeName: 'wf'
+              KeyType: 'HASH'
+            - AttributeName: 'createdAt'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'TypeIndex'
+          KeySchema:
+            - AttributeName: 'triggerType'
+              KeyType: 'HASH'
+            - AttributeName: 'triggerTypeData'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+
+  EnvironmentsDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: AccountsDb
+    Properties:
+      TableName: ${self:custom.settings.dbEnvironments}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  # Table for environments created using AWS Service Catalog
+  EnvironmentsScDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbEnvironmentsSc}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'createdBy'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: ByOwnerUID
+          KeySchema:
+            - AttributeName: 'createdBy'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: ALL
+      BillingMode: PAY_PER_REQUEST
+
+  EnvironmentsTypesDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: UserRolesDb
+    Properties:
+      TableName: ${self:custom.settings.dbEnvironmentTypes}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  UserRolesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbUserRoles}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  AwsAccountsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAwsAccounts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  IndexesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbIndexes}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  CostApiCachesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbCostApiCaches}
+      AttributeDefinitions:
+        - AttributeName: 'indexId'
+          AttributeType: 'S'
+        - AttributeName: 'query'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'indexId'
+          KeyType: 'HASH'
+        - AttributeName: 'query'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  AccountsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAccounts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  ProjectsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbProjects}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  StudyPermissionsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbStudyPermissions}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  KeyPairsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbKeyPairs}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid' # This is username with namespace
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid' # This is username with namespace
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: PAY_PER_REQUEST
+
+  StorageGatewayDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: StudiesDb
+    Properties:
+      TableName: ${self:custom.settings.dbStorageGateway}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DsAccountsDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: StudiesDb
+    Properties:
+      TableName: ${self:custom.settings.dbDsAccounts}
+      AttributeDefinitions:
+        - AttributeName: 'pk'
+          AttributeType: 'S'
+        - AttributeName: 'sk'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'pk'
+          KeyType: 'HASH'
+        - AttributeName: 'sk'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  RoleAllocationsDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: DsAccountsDb
+    Properties:
+      TableName: ${self:custom.settings.dbRoleAllocations}
+      AttributeDefinitions:
+        - AttributeName: 'pk'
+          AttributeType: 'S'
+        - AttributeName: 'sk'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'pk'
+          KeyType: 'HASH'
+        - AttributeName: 'sk'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  ResourceUsagesDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: DsAccountsDb
+    Properties:
+      TableName: ${self:custom.settings.dbResourceUsages}
+      AttributeDefinitions:
+        - AttributeName: 'pk'
+          AttributeType: 'S'
+        - AttributeName: 'sk'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'pk'
+          KeyType: 'HASH'
+        - AttributeName: 'sk'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  EgressStoreDb:
+    Condition: EnableEgressStore
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbEgressStore}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'workspaceId'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ${self:custom.settings.dbEgressStoreWorkspaceIdIndex}
+          KeySchema:
+            - AttributeName: 'workspaceId'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  # =============================================================================================
+  # SNS
+  # =============================================================================================
+  EgressNotificationTopic:
+    Condition: EnableEgressStore
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: ${self:custom.settings.egressNotificationTopicName}
+      KmsMasterKeyId: !Ref EgressStoreEncryptionKey
+      TopicName: ${self:custom.settings.egressNotificationTopicName}
+
+  # =============================================================================================
+  # DEPRECATED -- Dynamo DB
+  # =============================================================================================
+
+  DbPasswords:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTablePasswords}
+      AttributeDefinitions:
+        - AttributeName: 'username'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'username'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DbUserApiKeys:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableUserApiKeys}
+      AttributeDefinitions:
+        - AttributeName: 'unameWithNs' # Username with Namespace (ns)
+          AttributeType: 'S'
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'unameWithNs'
+          KeyType: 'HASH'
+        - AttributeName: 'id'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  DbUsers:
+    Type: AWS::DynamoDB::Table
+    DependsOn: DbPasswords
+    Properties:
+      TableName: ${self:custom.settings.dbTableUsers}
+      AttributeDefinitions:
+        - AttributeName: 'username'
+          AttributeType: 'S'
+        - AttributeName: 'ns'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'username'
+          KeyType: 'HASH'
+        - AttributeName: 'ns'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  DbAuthenticationProviderTypes:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableAuthenticationProviderTypes}
+      AttributeDefinitions:
+        - AttributeName: 'type'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'type'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DbAuthenticationProviderConfigs:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableAuthenticationProviderConfigs}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DbRevokedTokens:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableRevokedTokens}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      BillingMode: PAY_PER_REQUEST
+
+  DbLocks:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableLocks}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      BillingMode: PAY_PER_REQUEST
+
+  DbStudies:
+    Type: AWS::DynamoDB::Table
+    DependsOn: DbLocks
+    Properties:
+      TableName: ${self:custom.settings.dbTableStudies}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'category'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ${self:custom.settings.dbTableStudiesCategoryIndex}
+          KeySchema:
+            - AttributeName: 'category'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  DbStepTemplates:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableStepTemplates}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  DbWorkflowTemplates:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableWorkflowTemplates}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  DbWorkflows:
+    Type: AWS::DynamoDB::Table
+    DependsOn: DbWorkflowInstances
+    Properties:
+      TableName: ${self:custom.settings.dbTableWorkflows}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  DbWorkflowTemplateDrafts:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableWorkflowTemplateDrafts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'username'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: 'UsernameIndex'
+          KeySchema:
+            - AttributeName: 'username'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  DbWorkflowDrafts:
+    Type: AWS::DynamoDB::Table
+    DependsOn: DbWorkflowTemplates
+    Properties:
+      TableName: ${self:custom.settings.dbTableWorkflowDrafts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'username'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: 'UsernameIndex'
+          KeySchema:
+            - AttributeName: 'username'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  DbWorkflowInstances:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableWorkflowInstances}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'createdAt'
+          AttributeType: 'S'
+        - AttributeName: 'wf'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: 'WorkflowIndex'
+          KeySchema:
+            - AttributeName: 'wf'
+              KeyType: 'HASH'
+            - AttributeName: 'createdAt'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+
+  DbWfAssignments:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableWfAssignments}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'triggerType' # trigger type
+          AttributeType: 'S'
+        - AttributeName: 'triggerTypeData' # trigger type data (qualifier)
+          AttributeType: 'S'
+        - AttributeName: 'wf' # workflow id
+          AttributeType: 'S'
+        - AttributeName: 'createdAt'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: 'WorkflowIndex'
+          KeySchema:
+            - AttributeName: 'wf'
+              KeyType: 'HASH'
+            - AttributeName: 'createdAt'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'TypeIndex'
+          KeySchema:
+            - AttributeName: 'triggerType'
+              KeyType: 'HASH'
+            - AttributeName: 'triggerTypeData'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+
+  DbEnvironments:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableEnvironments}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  # Table for environments created using AWS Service Catalog
+  DbEnvironmentsSc:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableEnvironmentsSc}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      ProvisionedThroughput:
+        ReadCapacityUnits: '10'
+        WriteCapacityUnits: '10'
+
+  DbEnvironmentsTypes:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableEnvironmentTypes}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      ProvisionedThroughput:
+        ReadCapacityUnits: '10'
+        WriteCapacityUnits: '10'
+
+  DbUserRoles:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableUserRoles}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DbAwsAccounts:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableAwsAccounts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DbIndexes:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableIndexes}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DbCostApiCaches:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableCostApiCaches}
+      AttributeDefinitions:
+        - AttributeName: 'indexId'
+          AttributeType: 'S'
+        - AttributeName: 'query'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'indexId'
+          KeyType: 'HASH'
+        - AttributeName: 'query'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  DbAccounts:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableAccounts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DbProjects:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableProjects}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DbStudyPermissions:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableStudyPermissions}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DbKeyPairs:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableKeyPairs}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'username' # This is username with namespace
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: 'UsernameIndex'
+          KeySchema:
+            - AttributeName: 'username' # This is username with namespace
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: PAY_PER_REQUEST
+
+# =============================================================================================
+# Outputs
+# =============================================================================================
+Outputs:
+  AuthenticationLayerHandlerRoleArn:
+    Value: !GetAtt RoleAuthenticationLayerHandler.Arn
+  ApiHandlerRoleArn:
+    Value: !GetAtt RoleApiHandler.Arn
+  WorkflowLoopRunnerRoleArn:
+    Value: !GetAtt RoleWorkflowLoopRunner.Arn
+  OpenDataScrapeHandlerRoleArn:
+    Value: !GetAtt RoleOpenDataScrapeHandler.Arn
+  DataSourceReachabilityHandlerRoleArn:
+    Value: !GetAtt RoleDataSourceReachabilityHandler.Arn
+  EnvMgmtRoleArn:
+    Value: !GetAtt RoleEnvMgmt.Arn
+  EgressNotificationTopicArn:
+    Value: !Ref EgressNotificationTopic
+    Condition: EnableEgressStore

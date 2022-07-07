@@ -1,0 +1,17 @@
+id: wt-empty
+v: 1
+title: Empty Workflow
+desc: |
+    An empty workflow so that you have full control of the workflow.
+hidden: false
+builtin: true
+propsOverrideOption: # these are for the workflow template itself and not for the step templates
+  allowed:
+    - title
+    - desc
+    - instanceTtl
+    - steps
+    - runSpecSize
+    - runSpecTarget
+instanceTtl: # Empty value means that it is indefinite
+selectedSteps: []

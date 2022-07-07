@@ -1,0 +1,19 @@
+{
+  "name": "@amzn/environment-tools",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Amazon Web Services",
+  "license": "SEE LICENSE IN LICENSE",
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "devDependencies": {
+    "@amzn/serverless-go-build-tools": "workspace:*",
+    "@amzn/base-serverless-settings-helper": "workspace:*",
+    "@amzn/s3-synchronizer": "workspace:*",
+    "serverless": "^1.63.0"
+  }
+}

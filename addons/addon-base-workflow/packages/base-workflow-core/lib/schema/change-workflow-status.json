@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://basedl/root.json",
+  "type": "object",
+  "required": [
+    "instanceId",
+    "status"
+  ],
+  "properties": {
+    "instanceId": { "type": "string" },
+    "status": { "type": "string", "enum": ["not_started", "in_progress", "paused", "error", "done"] },
+    "clearMessage": { "type": "boolean" },
+    "message": { "type": "string" }
+  }
+}
