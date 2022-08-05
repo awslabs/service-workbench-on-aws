@@ -6,6 +6,8 @@
 **/pnpm-debug.log
 **/.docusaurus
 
+.pnpm-store/*
+
 .build
 docs/build
 

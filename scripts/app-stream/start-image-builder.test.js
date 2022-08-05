@@ -54,7 +54,7 @@ describe("start-image-builder", () => {
       expect(appStreamMock.calls(0)[0].args[0].input).toEqual({
         DisplayName: expect.stringMatching(nameRegEx),
         EnableDefaultInternetAccess: true,
-        ImageName: "AppStream-WinServer2019-10-08-2021",
+        ImageName: "AppStream-WinServer2019-07-12-2022",
         InstanceType: "stream.standard.medium",
         Name: expect.stringMatching(nameRegEx),
         VpcConfig: {
