@@ -26,7 +26,7 @@ if [ -e "${CONFIG_TARGET_PATH}" ]; then
   echo "Already present; not overwriting!"
 else
   echo "Not present; checking if present in S3"
-  aws s3api head-object --bucket $DEPLOYMENT_BUCKET --key "integration-test/$ENV_NAME.yml" || TEST_CONFIG_EXISTS=false
+  aws s3api head-object --bucket $DEPLOYMENT_BUCKET --key "integration-test/$ENV_NAME.yml" --no-cli-pager || TEST_CONFIG_EXISTS=false
 
   if [ "$TEST_CONFIG_EXISTS" == true ]; then
     echo "Test config found! Downloading from ${CONFIG_S3_PATH}"
