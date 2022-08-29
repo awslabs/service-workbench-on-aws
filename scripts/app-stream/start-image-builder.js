@@ -23,7 +23,7 @@ const StartImageBuilder = class StartImageBuilder {
     this.imageBuilderName = `SWBImageBuilder-${Date.now()}`;
     this.imageName =
       imageName === "default"
-        ? "AppStream-WinServer2019-10-08-2021"
+        ? "AppStream-WinServer2019-07-12-2022"
         : imageName;
     this.imageSize =
       imageSize === "default" ? "stream.standard.medium" : imageSize;
