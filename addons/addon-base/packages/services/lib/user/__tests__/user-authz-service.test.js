@@ -65,4 +65,26 @@ describe('UserAuthzService', () => {
       });
     });
   });
+
+  it('should not allow Guest to list users', async () => {
+    // BUILD
+    const activeGuest = {
+      principal: {
+        status: 'active',
+        userRole: 'guest',
+      },
+    };
+
+    // OPERATE
+    const guestListingUsers = await service.authorizeList(activeGuest, { action: 'list' });
+
+    // CHECK
+    expect(guestListingUsers).toMatchObject({
+      effect: 'deny',
+      reason: {
+        message: 'You are not authorized to list users',
+        safe: true,
+      },
+    });
+  });
 });

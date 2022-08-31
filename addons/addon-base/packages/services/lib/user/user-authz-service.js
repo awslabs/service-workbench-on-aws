@@ -41,6 +41,8 @@ class UserAuthzService extends Service {
         return this.authorizeUpdate(requestContext, { action }, ...args);
       case 'updateAttributes':
         return this.authorizeUpdateAttributes(requestContext, { action }, ...args);
+      case 'list':
+        return this.authorizeList(requestContext);
       default:
         // This authorizer does not know how to perform authorizer for the specified action so return with the current
         // authorization decision collected so far
@@ -49,6 +51,13 @@ class UserAuthzService extends Service {
   }
 
   // Protected methods
+  async authorizeList(requestContext) {
+    if (requestContext.principal.userRole === 'guest') {
+      return deny('You are not authorized to list users', true);
+    }
+    return allow();
+  }
+
   async authorizeCreate(requestContext, { action }, user) {
     // Make sure the caller is active
     let permissionSoFar = await allowIfActive(requestContext, { action });
