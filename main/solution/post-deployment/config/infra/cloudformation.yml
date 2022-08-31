@@ -424,7 +424,7 @@ Resources:
                 Action:
                   - sagemaker:DescribeNotebookInstance
                   - sagemaker:CreateNotebookInstance
-                  - sagemaker:StopNotebookInstance
+                  - sagemaker:AddTags
                   - sagemaker:StopNotebookInstance
                   - sagemaker:DeleteNotebookInstance
                 Resource: 'arn:aws:sagemaker:*:*:notebook-instance/basicnotebookinstance-*'
