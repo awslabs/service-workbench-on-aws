@@ -7,8 +7,8 @@ pnpm audit --json --audit-level high --prod > audit-results.json
 high_vul=$(cat audit-results.json | jq '.metadata.vulnerabilities.high')
 critical_vul=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical')
 
-high_vul_threshold=4
-critical_vul_threshold=0
+high_vul_threshold=5
+critical_vul_threshold=1
 printf "\nHigh vulnerabilities threshold set at $high_vul_threshold\n"
 echo "Critical vulnerabilities threshold set at $critical_vul_threshold"
 
