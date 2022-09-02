@@ -33,7 +33,12 @@ const UsersStore = BaseStore.named('UsersStore')
 
     return {
       async doLoad() {
-        const users = (await getUsers()) || [];
+        let users = [];
+        try {
+          users = await getUsers();
+        } catch (e) {
+          console.error('Could not get users', e);
+        }
         self.runInAction(() => {
           users.forEach(user => {
             const userModel = User.create(user);
