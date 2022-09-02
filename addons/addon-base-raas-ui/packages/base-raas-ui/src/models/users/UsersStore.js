@@ -33,7 +33,15 @@ const UsersStore = BaseStore.named('UsersStore')
 
     return {
       async doLoad() {
-        const users = (await getUsers()) || [];
+        let users = [];
+        try {
+          users = await getUsers();
+        } catch (e) {
+          console.error(
+            'Could not get users. This is expected if you have a Guest role, but is not expected behavior for any other roles',
+            e,
+          );
+        }
         self.runInAction(() => {
           users.forEach(user => {
             const userModel = User.create(user);
