@@ -2,10 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.1.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.1...mainline)
+### [5.2.2](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.1...v5.2.2) (2022-09-02)
 
-### [5.2.1](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.0...v5.2.1) (2022-09-01)
+
+### Bug Fixes
+
+* allow Guest users to log in ([#1031](https://github.com/awslabs/service-workbench-on-aws/issues/1031)) ([6072b4e](https://github.com/awslabs/service-workbench-on-aws/commit/6072b4e5c7dcb7ace0bcf1548c2d6bfb1921d29b))
+
+### [5.2.1](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.0...v5.2.1) (2022-09-01) 
 
 
 ### Bug Fixes
