@@ -38,8 +38,8 @@ then
         if ([ "$oldVersionNumber" != "$versionNumber" ]) || ([ "$oldVersionDate" != "$versionDate" ])
         then
             # Yes-->Replace new with old
-            sed -i -e "s/versionNumber: '$oldVersionNumber/versionNumber: '$versionNumber/" "$FILE"
-            sed -i -e "s/versionDate: '$oldVersionDate/versionDate: '$versionDate/" $FILE
+            sed -i -e "/^versionNumber: /s/.*/versionNumber: '$versionNumber'/" "$FILE"
+            sed -i -e "/^versionDate: /s/.*/versionDate: '$versionDate'/" $FILE
         fi
     else
         # No-->Append new

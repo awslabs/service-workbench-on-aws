@@ -2,9 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.0...mainline)
+### [5.2.2](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.1...v5.2.2) (2022-09-02)
 
+
+### Bug Fixes
+
+* allow Guest users to log in ([#1031](https://github.com/awslabs/service-workbench-on-aws/issues/1031)) ([6072b4e](https://github.com/awslabs/service-workbench-on-aws/commit/6072b4e5c7dcb7ace0bcf1548c2d6bfb1921d29b))
+
+### [5.2.1](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.0...v5.2.1) (2022-09-01) 
+
+
+### Bug Fixes
+
+* appstream image version update ([#1022](https://github.com/awslabs/service-workbench-on-aws/issues/1022)) ([99880b3](https://github.com/awslabs/service-workbench-on-aws/commit/99880b3277d9c56948fc81cb6711669d8821f3ae))
+* cicd pipeline S3 config check fail  ([#1025](https://github.com/awslabs/service-workbench-on-aws/issues/1025)) ([21713f7](https://github.com/awslabs/service-workbench-on-aws/commit/21713f7b1b9749bdca67eaea7e334848acbe34bf))
+* dependabot resolution for got package ([#1008](https://github.com/awslabs/service-workbench-on-aws/issues/1008)) ([8619c6e](https://github.com/awslabs/service-workbench-on-aws/commit/8619c6e0aeaaa31346155115be64cd316fb43e22))
+* remove permission for Guest to list users ([#1028](https://github.com/awslabs/service-workbench-on-aws/issues/1028)) ([e88eca4](https://github.com/awslabs/service-workbench-on-aws/commit/e88eca466cbcf718b1d350f968e2fd45a376da8e))
 
 ### [5.2.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.1.1...v5.2.0) (2022-05-17)
 
