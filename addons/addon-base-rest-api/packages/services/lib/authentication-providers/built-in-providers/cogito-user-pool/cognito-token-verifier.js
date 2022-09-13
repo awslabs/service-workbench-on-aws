@@ -13,7 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-const request = require('request');
 const jwkToPem = require('jwk-to-pem');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
@@ -31,9 +30,17 @@ async function getCognitoTokenVerifier(userPoolUri, logger = console) {
   // build key cache from cognito user pools
   const jwtKeySetUri = `${userPoolUri}/.well-known/jwks.json`;
   const pemKeyCache = await new Promise((resolve, reject) => {
-    request({ url: jwtKeySetUri, json: true }, (error, response, body) => {
-      if (!error && response && response.statusCode === 200) {
-        const keys = body.keys;
+    fetch(jwtKeySetUri)
+      .then((response) => {
+        if (!response.ok) {
+          const errorMessage = `Failed to retrieve the keys from the well known user-pool URI, response status: ${response.status}`;
+          logger.error(errorMessage);
+          reject(errorMessage);
+        }
+        return response.json();
+      })
+      .then((response) => {
+        const keys = response.keys;
         const keyCache = {};
         _.forEach(keys, key => {
           // kid = key id
@@ -41,11 +48,11 @@ async function getCognitoTokenVerifier(userPoolUri, logger = console) {
           keyCache[kid] = toPem(key);
         });
         resolve(keyCache);
-      } else {
-        logger.error('Failed to retrieve the keys from the well known user-pool URI');
+      })
+      .catch((error) => {
+        logger.error(`Failed to retrieve the keys from the well known user-pool URI : ${error}`);
         reject(error);
-      }
-    });
+      });
   });
 
   const verify = async token => {
