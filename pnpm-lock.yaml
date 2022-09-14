@@ -780,6 +780,7 @@ importers:
       jwk-to-pem: 2.0.5
       jwt-decode: 2.2.0
       lodash: 4.17.21
+      node-fetch: 2.6.7
       underscore: 1.13.1
       uuid: 3.4.0
       validatorjs: 3.18.1
@@ -817,6 +818,7 @@ importers:
       jwk-to-pem: ^2.0.5
       jwt-decode: ^2.2.0
       lodash: ^4.17.21
+      node-fetch: ^2.6.7
       prettier: ^1.19.1
       source-map-support: ^0.5.16
       underscore: ^1.13.1
@@ -24305,7 +24307,7 @@ packages:
       integrity: sha512-yQyJ0u4pZsv9D4clxO69OEjLWYw+jbgspjTue4lTQZLfV0c5l1VmK2y1JK8E9ahdpltPOaAThPcp5nKPUgSnsg==
   /tr46/0.0.3:
     resolution:
-      integrity: sha1-gYT9NH2snNwYWZLzpmIuFLnZq2o=
+      integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==
   /tr46/1.0.1:
     dependencies:
       punycode: 2.1.1
@@ -25045,7 +25047,7 @@ packages:
       integrity: sha512-O84QOnr0icsbFGLS0O3bI5FswxzRr8/gHwWkDlQFskhSPryQXvrTMxjxGP4+iWYoauLoBvfDpkrOauZ+0iZpDA==
   /webidl-conversions/3.0.1:
     resolution:
-      integrity: sha1-JFNCdeKnvGvnvIZhHMFq4KVlSHE=
+      integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==
   /webidl-conversions/4.0.2:
     dev: true
     resolution:
@@ -25330,7 +25332,7 @@ packages:
       tr46: 0.0.3
       webidl-conversions: 3.0.1
     resolution:
-      integrity: sha1-lmRU6HZUYuN2RNNib2dCzotwll0=
+      integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==
   /whatwg-url/6.5.0:
     dependencies:
       lodash.sortby: 4.7.0

@@ -10,6 +10,7 @@
     "@amzn/base-services": "workspace:*",
     "ajv": "^6.11.0",
     "aws-sdk": "^2.1000.0",
+    "node-fetch": "^2.6.7",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",
     "jwt-decode": "^2.2.0",

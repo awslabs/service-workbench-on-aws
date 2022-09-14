@@ -17,7 +17,12 @@ const crypto = require('crypto');
 const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
 const Service = require('@amzn/base-services-container/lib/service');
+let fetch = require('node-fetch');
 
+// Webpack messes with the fetch function import and it breaks in lambda.
+if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'function') {
+  fetch = fetch.default;
+}
 class EnvironmentUrlService extends Service {
   constructor() {
     super();

@@ -16,6 +16,12 @@
 const jwkToPem = require('jwk-to-pem');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
+let fetch = require('node-fetch');
+
+// Webpack messes with the fetch function import and it breaks in lambda.
+if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'function') {
+  fetch = fetch.default;
+}
 
 async function getCognitoTokenVerifier(userPoolUri, logger = console) {
   function toPem(keyDictionary) {
