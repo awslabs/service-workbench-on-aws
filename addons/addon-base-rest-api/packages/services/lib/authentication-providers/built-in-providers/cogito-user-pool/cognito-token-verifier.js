@@ -37,7 +37,7 @@ async function getCognitoTokenVerifier(userPoolUri, logger = console) {
   const jwtKeySetUri = `${userPoolUri}/.well-known/jwks.json`;
   const pemKeyCache = await new Promise((resolve, reject) => {
     fetch(jwtKeySetUri)
-      .then((response) => {
+      .then(response => {
         if (!response.ok) {
           const errorMessage = `Failed to retrieve the keys from the well known user-pool URI, response status: ${response.status}`;
           logger.error(errorMessage);
@@ -45,7 +45,7 @@ async function getCognitoTokenVerifier(userPoolUri, logger = console) {
         }
         return response.json();
       })
-      .then((response) => {
+      .then(response => {
         const keys = response.keys;
         const keyCache = {};
         _.forEach(keys, key => {
@@ -55,7 +55,7 @@ async function getCognitoTokenVerifier(userPoolUri, logger = console) {
         });
         resolve(keyCache);
       })
-      .catch((error) => {
+      .catch(error => {
         logger.error(`Failed to retrieve the keys from the well known user-pool URI : ${error}`);
         reject(error);
       });
