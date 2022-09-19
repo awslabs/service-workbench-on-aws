@@ -11,7 +11,7 @@ on:
 jobs:
   pre-deployment-check:
     name: Pre deployment check
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     timeout-minutes: 10
     steps:
       - name: "Block Concurrent Deployments"
@@ -22,7 +22,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     name: Deploy to AppStream Dev
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: pre-deployment-check
     steps:
       - name: Checkout
@@ -54,7 +54,7 @@ jobs:
           ./scripts/environment-deploy.sh ${STAGE_NAME}
   infrastructure-test:
     name: Infrastructure test
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: deploy
     steps:
       - name: Checkout
@@ -78,7 +78,7 @@ jobs:
           INFRA_TESTS_HOSTING_ACCOUNT_STACK_NAME: ${{ secrets.INFRA_TESTS_HOSTING_ACCOUNT_STACK_NAME }}
   integration-test:
     name: Integration test
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: infrastructure-test
     steps:
       - name: Checkout
@@ -105,7 +105,7 @@ jobs:
           aws-region: us-east-1
   cypress-test:
     name: Cypress test
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     needs: integration-test
     steps:
       - name: Checkout
