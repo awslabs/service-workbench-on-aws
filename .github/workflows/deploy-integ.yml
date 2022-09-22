@@ -78,6 +78,7 @@ jobs:
           STAGE_NAME: e2etest
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          REGION: us-east-1
           aws-region: us-east-1
   cypress-test:
     name: Cypress test
