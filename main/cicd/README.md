@@ -36,7 +36,7 @@ The pipeline stops upon failure of any stage and notifies user via configured SN
   settings file. Developers can set `createStagingEnv` to `false` to skip creation and deployment to staging environment 
   and directly push changes to their target development environment. Region `us-east-1` will be used if not specified by 
   user in `cicd/cicd-pipeline/config/buildspec/buildspec-int-tests.yml` build command 
-  ./scripts/run-integration-tests.sh "$ENV_NAME" <REGION>. 
+  `./scripts/run-integration-tests.sh "$ENV_NAME" <REGION>`. 
 
   4.4 **Push-To-Target-Env:** This stage is for manual approval to deploy to target environment. The pipeline will pause
   at this stage and wait for manual approval. The user will receive an email notification via configured SNS topic. The 
