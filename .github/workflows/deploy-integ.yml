@@ -71,14 +71,13 @@ jobs:
         run: pnpm install
         working-directory: main/integration-tests
       - name: Run integration tests
-        run: ./scripts/run-integration-tests.sh ${STAGE_NAME}
+        run: ./scripts/run-integration-tests.sh ${STAGE_NAME} us-east-1
         working-directory: ./
         env:
           DEPLOYMENT_BUCKET: ${{ secrets.DEPLOYMENT_BUCKET}}
           STAGE_NAME: e2etest
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          REGION: us-east-1
           aws-region: us-east-1
   cypress-test:
     name: Cypress test

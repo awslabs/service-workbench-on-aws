@@ -95,7 +95,7 @@ jobs:
         run: pnpm install
         working-directory: main/integration-tests
       - name: Run integration tests
-        run: ./scripts/run-integration-tests.sh ${STAGE_NAME} AppStreamEgress
+        run: ./scripts/run-integration-tests.sh ${STAGE_NAME} us-east-1 AppStreamEgress
         working-directory: ./
         env:
           DEPLOYMENT_BUCKET: ${{ secrets.DEPLOYMENT_BUCKET_APPSTREAM_EGRESS}}

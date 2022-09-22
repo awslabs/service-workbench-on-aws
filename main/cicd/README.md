@@ -29,11 +29,13 @@ The pipeline stops upon failure of any stage and notifies user via configured SN
   creation and deployment to staging environment and directly push changes to their target development environment. This 
   flag should be set to `true` for higher environments (such as `demo` or `production`) to make sure code is deployed and 
   tested in a staging environment before pushing to target environment.
+ 
 
   4.3 **Test-Staging-Env:** This stage uses [AWS CodeBuild](https://aws.amazon.com/codebuild/) to execute integration 
   tests against the staging environment. This stage is only created if `createStagingEnv` setting is set to `true` in 
   settings file. Developers can set `createStagingEnv` to `false` to skip creation and deployment to staging environment 
-  and directly push changes to their target development environment.
+  and directly push changes to their target development environment. Region `us-east-1` will be used if not specified by 
+  user. 
 
   4.4 **Push-To-Target-Env:** This stage is for manual approval to deploy to target environment. The pipeline will pause
   at this stage and wait for manual approval. The user will receive an email notification via configured SNS topic. The 
