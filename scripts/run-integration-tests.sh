@@ -14,10 +14,11 @@ ENV_NAME=${PARAMETER_ARRAY[0]}
 REGION=${PARAMETER_ARRAY[1]}
 APPSTREAM_EGRESS_ENABLED=${PARAMETER_ARRAY[2]}
 
-#if loop for region
-if [ "$REGION" == ""]; then
+if [ "$REGION" == "" ]; then
   echo "Region not set; Setting Region to us-east-1"
   REGION="us-east-1"
+fi
+
 if [ "$APPSTREAM_EGRESS_ENABLED" == "AppStreamEgress" ]; then
   echo "Testing with AppStream and Secure Egress Enabled"
 else
