@@ -36,7 +36,7 @@ else
 
   if [ "$TEST_CONFIG_EXISTS" == true ]; then
     echo "Test config found! Downloading from ${CONFIG_S3_PATH}"
-    aws s3 cp "${CONFIG_S3_PATH}" "${CONFIG_TARGET_PATH}"
+    aws s3 cp "${CONFIG_S3_PATH}" "${CONFIG_TARGET_PATH}"  --region $REGION 
   else
     echo "Test config file does not exist. Integration tests will be skipped!"
   fi
