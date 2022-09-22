@@ -71,7 +71,7 @@ jobs:
         run: pnpm install
         working-directory: main/integration-tests
       - name: Run integration tests
-        run: ./scripts/run-integration-tests.sh ${STAGE_NAME}
+        run: ./scripts/run-integration-tests.sh ${STAGE_NAME} us-east-1
         working-directory: ./
         env:
           DEPLOYMENT_BUCKET: ${{ secrets.DEPLOYMENT_BUCKET}}
