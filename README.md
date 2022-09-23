@@ -237,7 +237,7 @@ Pre-requisites: Before creating a workspace, you must setup Service Catalog. Ref
      3.	Update `<salt2>` and `<hash2>` to match your password’s corresponding values.
      4.	On your local repo, navigate to `main/solution/machine-images`.
      5.	Run `pnpx sls build-image -s <stage>` to create a new AMI for EMR environment types.
-     s6.	Use the generated AMI ID in the environment type configuration key AmId. Your selected password becomes active.
+     6.	Use the generated AMI ID in the environment type configuration key AmId. Your selected password becomes active.
 
      **Note:** EMR workspaces are not available if AppStream is enabled for the deployment.
      + RStudio: You can connect to RStudio workspace type by using the template and AMI provided in AWS partner's [repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). For more information, refer to the [Create RStudio ALB workspace](/deployment/post_deployment/aws_accounts#creating-rstudio-alb-workspace) section of *Service Workbench Post Deployment Guide*.
