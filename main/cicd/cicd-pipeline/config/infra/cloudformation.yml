@@ -240,12 +240,20 @@ Resources:
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
+              - !If
+                - CreateStagingEnv
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
           - Action:
               - iam:PassRole
             Effect: Allow
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
+              - !If
+                - CreateStagingEnv
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
           - Action:
               - iam:CreatePolicy
               - iam:GetPolicy
@@ -285,6 +293,14 @@ Resources:
               - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*'
               - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*:*'
               - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*'
+              - !If
+                - CreateStagingEnv
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*:*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*:*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*:*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*'
           - Action:
               - 's3:*'
             Effect: Allow
@@ -293,12 +309,21 @@ Resources:
               - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*/*
               - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*
               - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*/*
+              - !If
+                - CreateStagingEnv
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*/*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*/*
           - Effect: Allow
             Action:
               - ssm:GetParameter
               - ssm:DeleteParameter
             Resource:
               - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.envName}/*'
+              - !If
+                - CreateStagingEnv
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.stgEnvName}/*'
           - Effect: Allow
             Action:
               - iam:ListRoles
@@ -362,6 +387,10 @@ Resources:
             Resource:
               - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.namespace}-*'
               - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*'
+              - !If
+                - CreateStagingEnv
+                - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*'
           - Effect: 'Allow'
             Action:
               - kms:DescribeKey
@@ -870,7 +899,7 @@ Resources:
           InputTransformer:
             InputPathsMap:
               pipeline: '$.detail.pipeline'
-            InputTemplate: '{"The Pipeline has failed.":<pipeline>}'
+            InputTemplate: '{'The Pipeline has failed.':<pipeline>}'
 
   # A resource level policy for the default event bus in the target account (target account = the AWS account where code need to be deployed)
   # to allow CodeCommit events to be published from the source account (source account = the AWS account containing the AWS CodeCommit repo with the source code)
@@ -887,5 +916,8 @@ Outputs:
   AppArtifactBucketArn: { Value: !GetAtt AppArtifactBucket.Arn }
   ArtifactBucketKeyArn: { Value: !GetAtt ArtifactBucketKey.Arn }
   AppPipelineName: { Value: !Ref AppPipeline }
-  AppPipelineArn: { Value: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}' }
+  AppPipelineArn:
+    {
+      Value: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}',
+    }
   PipelineNotificationsTopic: { Value: !Ref PipelineNotificationsTopic }
