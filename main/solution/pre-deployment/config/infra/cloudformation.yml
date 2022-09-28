@@ -54,3 +54,5 @@ Resources:
 Outputs:
   PreDeploymentRoleArn:
     Value: !GetAtt RolePreDeploymentLambda.Arn
+    Export:
+      Name: PreDeploymentRoleArn

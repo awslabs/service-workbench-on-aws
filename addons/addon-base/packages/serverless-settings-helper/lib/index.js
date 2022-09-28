@@ -15,6 +15,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const YAML = require('js-yaml');
 
 const { getAwsAccountInfo } = require('./aws-acc-context');
 const { getCloudFormationCrossRegionValues } = require('./cloud-formation-cross-region-values');
@@ -35,11 +36,14 @@ const { getCloudFormationCrossAccountValues } = require('./cloud-formation-cross
  */
 const newExpander = (env = process.env) => s =>
   s.replace(/\\(\$)|\$([_\w]+)|\$\{([_\w]+)\}/g, (_, $, plain, braced) => {
+    // console.log('S:', s);
     if ($) {
+      // console.log($);
       return $;
     }
     const key = plain || braced;
     const got = env[key];
+    // console.log('GOT:', got);
     if (typeof got === 'undefined') {
       throw new Error(`missing substitution: ${JSON.stringify(key)}`);
     }
@@ -80,7 +84,9 @@ const newFileLoader = (serverless, options = {}) => async filename => {
     return {};
   }
   try {
-    return await serverless.yamlParser.parse(filename);
+    // console.log(fs.readFileSync(filename));
+    return YAML.load(fs.readFileSync(filename, 'utf8'));
+    // return await serverless.yamlParser.parse(filename);
   } catch (err) {
     // The following is a kludge to support allowing empty settings files.
     // serverless.yamlParser will throw an exception if the file is empty.
@@ -134,21 +140,34 @@ module.exports = {
     files,
     { missingFiles = true, emptyFiles = true, crossRegionCloudFormation, crossAccountCloudFormation } = {},
   ) => async serverless => {
-    const stage = serverless.variables.options.s || serverless.variables.options.stage || undefined;
+    const stage = (await serverless.resolveVariable('sls:stage')) || undefined;
     const loadFile = newFileLoader(serverless, { missingFiles, emptyFiles });
+    // console.log('After load file');
+    // console.log(loadFile);
+    // console.log({ stage });
     const expandVariables = newExpander({ stage });
+    // console.log(expandVariables);
     const resolvePath = filename => path.resolve(cwd, filename);
+    // console.log(files);
+    // const objects = await Promise.all(files.map(expandVariables));
+    // const objects1 = await Promise.all(objects.map(resolvePath));
+    // const objects2 = await Promise.all(objects1.map(loadFile));
     const objects = await Promise.all(
       files
         .map(expandVariables)
         .map(resolvePath)
         .map(loadFile),
     );
+    // console.log('After promise');
+    // console.log(objects);
+    // console.log(objects1);
+    // console.log(objects2);
     const merged = Object.assign({}, ...objects);
     const mergedSettingsObj =
       Object.keys(merged).length === 0
         ? { __suppressValidFileWarning: true } // prevents serverless from complaining about an empty object.
         : merged;
+    // console.log(mergedSettingsObj);
 
     const { globalDeployment } = mergedSettingsObj;
 

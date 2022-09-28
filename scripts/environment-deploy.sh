@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+echo "HERE2"
 pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 # shellcheck disable=SC1091
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
@@ -8,16 +9,21 @@ popd > /dev/null
 
 # Add the version information to the stage file
 ./scripts/get-release-info.sh "$STAGE"
+echo "HERE1"
 
 # Install
 install_dependencies "$@"
+
+echo "HERE3"
 
 function disableStats {
   COMPONENT_DIR=$1
   pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
   # Disable serverless stats (only strictly needs to be done one time)
-  $EXEC sls slstats --disable -s "$STAGE"
+  echo "HERE4"
+  $EXEC sls slstats --disable --stage "$STAGE"
   popd > /dev/null
+  echo "HERE"
 }
 
 function componentDeploy {
@@ -26,7 +32,7 @@ function componentDeploy {
 
   pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
   printf "\nDeploying component: %s ...\n\n" "$COMPONENT_NAME"
-  $EXEC sls deploy -s "$STAGE"
+  $EXEC sls deploy --stage "$STAGE"
   printf "\nDeployed component: %s successfully \n\n" "$COMPONENT_NAME"
   popd > /dev/null
 }
@@ -37,7 +43,7 @@ function goComponentDeploy() {
 
   pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
   printf "\nDeploying Go component: %s ...\n\n" "$COMPONENT_NAME"
-  $EXEC sls deploy-go -s "$STAGE"
+  $EXEC sls deploy-go --stage "$STAGE"
   printf "\nDeployed Go component: %s successfully \n\n" "$COMPONENT_NAME"
   popd > /dev/null
 }
@@ -50,7 +56,7 @@ componentDeploy "pre-deployment" "Pre-Deployment"
 #$EXEC sls invoke local -f preDeployment -s $STAGE
 printf "\nInvoking pre-deployment steps\n\n"
 pushd "$SOLUTION_DIR/pre-deployment" > /dev/null
-$EXEC sls invoke -f preDeployment -s "$STAGE"
+$EXEC sls invoke -f preDeployment --stage "$STAGE"
 popd > /dev/null
 
 # Check if AMI Sharing is enabled and call prep-devops-account
@@ -71,7 +77,7 @@ goComponentDeploy "environment-tools" "Environment-Tools"
 #$EXEC sls invoke local -f postDeployment -s $STAGE
 printf "\nInvoking post-deployment steps\n\n"
 pushd "$SOLUTION_DIR/post-deployment" > /dev/null
-$EXEC sls invoke -f postDeployment -l -s "$STAGE"
+$EXEC sls invoke -f postDeployment -l --stage "$STAGE"
 popd > /dev/null
 
 # Deploy UI
@@ -79,14 +85,14 @@ pushd "$SOLUTION_DIR/ui" > /dev/null
 
 # first we package locally (to populate .env.local only)
 printf "\nPackaging website UI\n\n"
-$EXEC sls package-ui --local=true -s "$STAGE"
+$EXEC sls package-ui --local=true --stage "$STAGE"
 # then we package for deployment
 # (to populate .env.production and create a build via "npm build")
-$EXEC sls package-ui -s "$STAGE"
+$EXEC sls package-ui --stage "$STAGE"
 
 printf "\nDeploying website UI\n\n"
 # Deploy it to S3, invalidate CloudFront cache
-$EXEC sls deploy-ui --invalidate-cache=true -s "$STAGE"
+$EXEC sls deploy-ui --invalidate-cache=true --stage "$STAGE"
 printf "\nDeployed website UI successfully\n\n"
 popd > /dev/null
 
