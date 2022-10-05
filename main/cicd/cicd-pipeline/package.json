@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@amzn/base-serverless-settings-helper": "workspace:*",
-    "serverless": "^2.72.3",
+    "serverless": "^3.22.0",
     "serverless-deployment-bucket": "^1.6.0",
     "serverless-hooks-plugin": "^1.1.0"
   },

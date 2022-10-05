@@ -1,7 +1,7 @@
 # For full config options, see docs.serverless.com
 # Note that most settings in here come from config/settings/*.yaml
 service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-ui
-variablesResolutionMode: 20210326
+# variablesResolutionMode: 20210326
 
 provider:
   name: aws

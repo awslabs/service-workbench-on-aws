@@ -7,10 +7,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@amzn/base-services-container": "workspace:*",
-    "@aws-sdk/service-error-classification": "^3.171.0",
     "ajv": "^6.12.6",
-    "aws-sdk": "^2.1217.0",
-    "aws-xray-sdk": "^3.3.7",
+    "aws-sdk": "^2.1228.0",
+    "aws-xray-sdk": "^3.3.8",
     "cycle": "^1.0.3",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",
@@ -18,7 +17,7 @@
     "lodash": "^4.17.21",
     "nanoid": "^3.3.4",
     "request": "^2.88.2",
-    "underscore": "^1.13.4",
+    "underscore": "^1.13.6",
     "uuid": "^3.4.0",
     "validatorjs": "^3.22.1"
   },

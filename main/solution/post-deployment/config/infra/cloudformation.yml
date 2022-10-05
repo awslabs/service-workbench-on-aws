@@ -62,6 +62,7 @@ Resources:
   RolePostDeploymentLambda:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: ${self:custom.settings.postDeploymentHandlerRoleName}
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

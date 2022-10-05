@@ -8,7 +8,7 @@
   "dependencies": {
     "@amzn/base-services": "workspace:*",
     "@amzn/base-services-container": "workspace:*",
-    "aws-sdk": "^2.1217.0",
+    "aws-sdk": "^2.1228.0",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

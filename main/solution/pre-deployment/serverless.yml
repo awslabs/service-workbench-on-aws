@@ -1,7 +1,7 @@
 # For full config options, see docs.serverless.com
 # Note that most settings in here come from config/settings/*.yaml
 service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-preDeployment
-variablesResolutionMode: 20210326
+# variablesResolutionMode: 20210326
 
 package:
   individually: true
@@ -47,14 +47,15 @@ custom:
       provider:
         APP_AWS_REGION: ${self:custom.settings.awsRegion} # this is needed for local development
         APP_AWS_PROFILE: ${self:custom.settings.awsProfile} # this is needed for local development
-        APP_USE_AWS_PROFILE: ${self:custom.settings.awsProfile} # why is this value needed?
+        APP_USE_AWS_PROFILE: ${self:custom.settings.useAwsProfile, ""}
         IS_OFFLINE: true
         APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: ${self:custom.settings.localRoleAutoAdjustTrust} # Auto adjust trust policy of the lambda execution role to allow assumeRole from local machine
       lambdas:
         preDeployment:
           environment:
             APP_LOCAL_ROLE_ARN:
-              'Fn::ImportValue': 'PreDeploymentRoleArn'
+              ${self:custom.settings.preDeploymentHandlerRoleArn}
+              # 'Fn::ImportValue': 'PreDeploymentRoleArn'
             # APP_LOCAL_ROLE_ARN: ${self:resources.Outputs.PreDeploymentRoleArn.Value}
             # APP_LOCAL_ROLE_ARN: ${cfnOutput('PreDeploymentRoleArn')} # When running locally, run under this role
 

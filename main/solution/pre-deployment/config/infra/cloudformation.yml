@@ -6,6 +6,7 @@ Resources:
   RolePreDeploymentLambda:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: ${self:custom.settings.preDeploymentHandlerRoleName}
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

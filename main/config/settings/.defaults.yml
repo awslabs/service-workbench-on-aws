@@ -144,6 +144,8 @@ hostedZoneId: ''
 # Equivalent role for launching/terminating environments in each on-boarded account with cross account trust is
 # created by "addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml"
 envMgmtRoleName: ${self:custom.settings.namespace}-EnvMgmt
+# The below is used for local deployment as a lambda env variable
+envMgmtRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.envMgmtRoleName}'
 
 # AWS Service Catalog launch-constraint role name pattern. When admins publish new products under AWS Service Catalog
 # portfolios, they are expected to specify a local role name as a launch constraint. The AWS Service Catalog will assume

@@ -6,7 +6,7 @@
   "author": "aws-ee",
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-sdk": "^2.1217.0",
+    "aws-sdk": "^2.1228.0",
     "toposort": "^2.0.2"
   },
   "peerDependencies": {

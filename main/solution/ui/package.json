@@ -20,7 +20,7 @@
     "@amzn/environment-type-mgmt-ui": "workspace:*",
     "@amzn/key-pair-mgmt-ui": "workspace:*",
     "animate.css": "3.7.0",
-    "aws-sdk": "^2.1217.0",
+    "aws-sdk": "^2.1228.0",
     "classnames": "^2.3.2",
     "lodash": "^4.17.21",
     "mobx": "^5.15.7",
@@ -31,7 +31,7 @@
     "react": "^16.14.0",
     "react-avatar": "^3.10.0",
     "react-dom": "^16.14.0",
-    "react-router-dom": "^5.3.3",
+    "react-router-dom": "^5.3.4",
     "react-table": "^6.11.5",
     "semantic-ui-react": "^0.88.2",
     "toastr": "^2.1.4",
@@ -58,7 +58,7 @@
     "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
     "react-scripts": "^3.4.4",
-    "serverless": "^2.72.3",
+    "serverless": "^3.22.0",
     "serverless-deployment-bucket": "^1.6.0"
   },
   "scripts": {

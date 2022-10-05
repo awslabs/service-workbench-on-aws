@@ -13,6 +13,6 @@
   "devDependencies": {
     "@amzn/serverless-packer": "workspace:*",
     "@amzn/base-serverless-settings-helper": "workspace:*",
-    "serverless": "^2.72.3"
+    "serverless": "^3.22.0"
   }
 }

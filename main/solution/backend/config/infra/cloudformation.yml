@@ -483,6 +483,7 @@ Resources:
   RoleAuthenticationLayerHandler:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: ${self:custom.settings.authenticationLayerHandlerRoleName}
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -916,6 +917,7 @@ Resources:
   RoleOpenDataScrapeHandler:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: ${self:custom.settings.openDataScrapeHandlerRoleName}
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -1002,6 +1004,7 @@ Resources:
   RoleDataSourceReachabilityHandler:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: ${self:custom.settings.dataSourceReachabilityHandlerRoleName}
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

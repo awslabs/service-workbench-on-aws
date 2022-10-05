@@ -35,6 +35,7 @@ class EnvBasedSettingsService extends Service {
       this.originals[key] = v;
     };
 
+    // console.log(vars);
     _.forEach(vars, (value, key) => {
       add(key, value);
     });
@@ -120,6 +121,7 @@ class EnvBasedSettingsService extends Service {
   optional(rawKey, defaultValue) {
     const key = rawKey.toLowerCase();
     const value = this.normalized[key];
+    // console.log(value);
     if (_.isEmpty(value)) return defaultValue;
 
     return value;

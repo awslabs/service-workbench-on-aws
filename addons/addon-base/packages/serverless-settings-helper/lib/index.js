@@ -140,7 +140,10 @@ module.exports = {
     files,
     { missingFiles = true, emptyFiles = true, crossRegionCloudFormation, crossAccountCloudFormation } = {},
   ) => async serverless => {
+    // console.log(serverless);
+    // console.log(await serverless.resolveVariable('sls:stage'));
     const stage = (await serverless.resolveVariable('sls:stage')) || undefined;
+    // console.log(stage);
     const loadFile = newFileLoader(serverless, { missingFiles, emptyFiles });
     // console.log('After load file');
     // console.log(loadFile);
