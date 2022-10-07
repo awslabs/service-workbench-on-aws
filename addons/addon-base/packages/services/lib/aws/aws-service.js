@@ -38,11 +38,11 @@ class AwsService extends Service {
     if (process.env.IS_OFFLINE || process.env.IS_LOCAL) {
       await this.prepareForLocal(this._sdk);
     } else {
-      // const AWSXRay = require('aws-xray-sdk');
-      // this._sdk = AWSXRay.captureAWS(this._sdk);
-      // this._sdk.config.update({
-      //   customUserAgent: this.settings.get('customUserAgent'),
-      // });
+      const AWSXRay = require('aws-xray-sdk');
+      this._sdk = AWSXRay.captureAWS(this._sdk);
+      this._sdk.config.update({
+        customUserAgent: this.settings.get('customUserAgent'),
+      });
     }
 
     // It's possible to get throttling errors during heavy load due to the rate limit of aws apis calls,

@@ -1448,7 +1448,7 @@ importers:
       ajv: ^6.12.6
       aws-sdk: ^2.1228.0
       aws-sdk-mock: ^5.7.0
-      aws-xray-sdk: ^3.3.8
+      aws-xray-sdk: ^3.2.0
       cycle: ^1.0.3
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.2.1
@@ -1475,7 +1475,7 @@ importers:
       '@amzn/base-services-container': link:../services-container
       ajv: 6.12.6
       aws-sdk: 2.1228.0
-      aws-xray-sdk: 3.3.8
+      aws-xray-sdk: 3.2.0
       cycle: 1.0.3
       jsonwebtoken: 8.5.1
       jwk-to-pem: 2.0.5
@@ -2422,7 +2422,6 @@ importers:
       pretty-quick: ^1.11.1
       serverless: ^3.22.0
       serverless-deployment-bucket: ^1.6.0
-      serverless-export-env: github:arabold/serverless-export-env
       serverless-offline: ^5.12.1
       serverless-s3-sync: ^1.17.3
       serverless-webpack: ^5.10.0
@@ -2461,7 +2460,6 @@ importers:
       jwt-decode: 2.2.0
       lodash: 4.17.21
       node-fetch: 2.6.7
-      serverless-export-env: github.com/arabold/serverless-export-env/97b1fec5c9879a2846283438c53731b1bd0da9e5_serverless@3.22.0
       services: link:../../packages/services
     optionalDependencies:
       fsevents: 2.3.2
@@ -2890,16 +2888,6 @@ packages:
       rimraf: 2.2.8
       streamsink: 1.2.0
     dev: true
-
-  /@aws-sdk/service-error-classification/3.183.0:
-    resolution: {integrity: sha512-WCQzfRgCHdSXT6spTpGNV2zjBWN1QMxwA3L7sdmXvGDYR1USZlyNRwvYOc7g6Px2ZmMI5DnzjIKu60eSyVsH+w==}
-    engines: {node: '>= 12.0.0'}
-    dev: false
-
-  /@aws-sdk/types/3.183.0:
-    resolution: {integrity: sha512-V5IU7q7Y2ADIFzvUxoGfpVahhVnGjCABTv9jZYUSyJW7/OwSB+eA2C1B8ZsKAYLWtc9xKxYpRl5FI5e7FBGUIQ==}
-    engines: {node: '>= 12.0.0'}
-    dev: false
 
   /@babel/cli/7.19.3_@babel+core@7.19.3:
     resolution: {integrity: sha512-643/TybmaCAe101m2tSVHi9UKpETXP9c/Ff4mD2tAwkdP6esKIfaauZFc67vGEM6r9fekbEGid+sZhbEnSe3dg==}
@@ -5378,6 +5366,7 @@ packages:
     resolution: {integrity: sha512-cTIudHnzuWLS56ik4DnRnqqNf8MkdUzV4iFFI1h7Jo9xvrpQROYaAnaSd2mHLQAzzZAPfATynX5ord6YlNYNMA==}
     dependencies:
       regenerator-runtime: 0.13.9
+    dev: true
 
   /@babel/template/7.18.10:
     resolution: {integrity: sha512-TI+rCtooWHr3QJ27kJxfjutghu44DLnasDMwpDqCXVTal9RLp3RSYNh4NdBrRP2cQAoG9A8juOQl6P6oZG4JxA==}
@@ -6988,7 +6977,7 @@ packages:
   /@types/yauzl/2.10.0:
     resolution: {integrity: sha512-Cn6WYCm0tXv8p6k+A8PvbDG763EDpBoTzHdA+Q/MF6H3sapGjCm9NzoaJncJS9tUKSuCoDs9XHxYYsQDgxR6kw==}
     dependencies:
-      '@types/node': 14.18.31
+      '@types/node': 18.8.2
     dev: true
     optional: true
 
@@ -7993,56 +7982,56 @@ packages:
   /aws-sign2/0.7.0:
     resolution: {integrity: sha512-08kcGqnYf/YmjoRhfxyu+CLxBjUtHLXLXX/vUfx9l2LYzG3c1m61nrpyFUZI6zeS+Li/wWMMidD9KgrqtGq3mA==}
 
-  /aws-xray-sdk-core/3.3.8:
-    resolution: {integrity: sha512-Vez/N8tyyOdQ/pf9l27qChptlHdi8zjs6lZrW31CfEYCYPXZXT0LkPiIjjIyOZz3/2s1b0Dv9WwWNiTDTPgn9w==}
-    engines: {node: '>= 12.x'}
+  /aws-xray-sdk-core/3.2.0:
+    resolution: {integrity: sha512-6mhqmRsQbDAISyKQuYguO38AhHgGSZsmYLVUYWUV9eJ+GiHZf08apwM7fSdiRw56qCulgSTV5JG2/cnPmtBhUA==}
+    engines: {node: '>= 10.x'}
     dependencies:
-      '@aws-sdk/service-error-classification': 3.183.0
-      '@aws-sdk/types': 3.183.0
       '@types/cls-hooked': 4.3.3
       atomic-batcher: 1.0.2
       cls-hooked: 4.2.2
+      pkginfo: 0.4.1
       semver: 5.7.1
     dev: false
 
-  /aws-xray-sdk-express/3.3.8_aws-xray-sdk-core@3.3.8:
-    resolution: {integrity: sha512-G2crGtD7wiMzOi4AZ3B0bIUj6niow6ThUUzYtxa/nvwyc0JtZfB80PXX7rU2G5LR9ZL9eGBAsAFgyB2oDvHgDQ==}
-    engines: {node: '>= 12.x'}
+  /aws-xray-sdk-express/3.2.0_aws-xray-sdk-core@3.2.0:
+    resolution: {integrity: sha512-r0XX/2JmIYES1vUYee6MgmXpAc2Ru86S8J8u5kwOvTGT1hKqJcdPF8GSKocPKqCw1KSRvDOWqwkwJu8/mDl9Ew==}
+    engines: {node: '>= 10.x'}
     peerDependencies:
-      aws-xray-sdk-core: ^3.3.8
+      aws-xray-sdk-core: ^3.2.0
     dependencies:
       '@types/express': 4.17.14
-      aws-xray-sdk-core: 3.3.8
+      aws-xray-sdk-core: 3.2.0
     dev: false
 
-  /aws-xray-sdk-mysql/3.3.8_aws-xray-sdk-core@3.3.8:
-    resolution: {integrity: sha512-AKa3bgakx9fZn4EHGDaMutIrzbUP0Su1Jm7ZjIRy39u53GGou1/i6DVg/9+Nq66srIxnJ0hiIoq6fXCk5297gw==}
-    engines: {node: '>= 12.x'}
+  /aws-xray-sdk-mysql/3.2.0_aws-xray-sdk-core@3.2.0:
+    resolution: {integrity: sha512-MlX5ngtQseoSCU04gJGqOh3hFDv8+J6qrgeuaTJqIrSy7X8Rsz4bXZessjLfyuuAWGXsDrwquj5lpBU8jvoHuw==}
+    engines: {node: '>= 10.x'}
     peerDependencies:
-      aws-xray-sdk-core: ^3.3.8
+      aws-xray-sdk-core: ^3.2.0
     dependencies:
       '@types/mysql': 2.15.21
-      aws-xray-sdk-core: 3.3.8
+      aws-xray-sdk-core: 3.2.0
     dev: false
 
-  /aws-xray-sdk-postgres/3.3.8_aws-xray-sdk-core@3.3.8:
-    resolution: {integrity: sha512-68BHS+sjhRc1+OYeUHJEACoO4bGSm3gq4/Fg3WNtE5SEJZ8Bi4UFj7ET85Yv27FpkQw4YDMpqQrTzMNASIQhNA==}
-    engines: {node: '>= 12.x'}
+  /aws-xray-sdk-postgres/3.2.0_aws-xray-sdk-core@3.2.0:
+    resolution: {integrity: sha512-Xg3X7Wi6TLEjfLXsPwep9sbTbCn1iqYAV6G4+5jQT4VOE+nn6xa7NntewtxWdvfn77awk4Rb8tQ11ftJOMfTrA==}
+    engines: {node: '>= 10.x'}
     peerDependencies:
-      aws-xray-sdk-core: ^3.3.8
+      aws-xray-sdk-core: ^3.2.0
     dependencies:
       '@types/pg': 8.6.5
-      aws-xray-sdk-core: 3.3.8
+      aws-xray-sdk-core: 3.2.0
     dev: false
 
-  /aws-xray-sdk/3.3.8:
-    resolution: {integrity: sha512-BQ4wooQioUccRlJvarwtknraMtPKh8kjO/0NwHmDaQf0ktXJ1RX02scbNoSGSJVl+AHFBqv1fUjRRVvQkDgzQA==}
-    engines: {node: '>= 12.x'}
+  /aws-xray-sdk/3.2.0:
+    resolution: {integrity: sha512-ARPagVVljHbad8lVsUVRCQrbPERIjb/itEZBgDyyGufHU/kLZ4XvhG0Vocixyrweo7PMCukGyPvSmKyBqbSxiQ==}
+    engines: {node: '>= 10.x'}
     dependencies:
-      aws-xray-sdk-core: 3.3.8
-      aws-xray-sdk-express: 3.3.8_aws-xray-sdk-core@3.3.8
-      aws-xray-sdk-mysql: 3.3.8_aws-xray-sdk-core@3.3.8
-      aws-xray-sdk-postgres: 3.3.8_aws-xray-sdk-core@3.3.8
+      aws-xray-sdk-core: 3.2.0
+      aws-xray-sdk-express: 3.2.0_aws-xray-sdk-core@3.2.0
+      aws-xray-sdk-mysql: 3.2.0_aws-xray-sdk-core@3.2.0
+      aws-xray-sdk-postgres: 3.2.0_aws-xray-sdk-core@3.2.0
+      pkginfo: 0.4.1
     dev: false
 
   /aws4/1.11.0:
@@ -8289,7 +8278,7 @@ packages:
   /babel-plugin-macros/2.8.0:
     resolution: {integrity: sha512-SEP5kJpfGYqYKpBrj5XU3ahw5p5GOHJ0U5ssOSQ/WBVdwkD2Dzlce95exQTs3jOVWPPKLBN2rlEWkCK7dSmLvg==}
     dependencies:
-      '@babel/runtime': 7.9.0
+      '@babel/runtime': 7.19.0
       cosmiconfig: 6.0.0
       resolve: 1.22.1
 
@@ -8783,7 +8772,7 @@ packages:
     resolution: {integrity: sha512-xq+q3SRMOxGivLhBNaUdC64hDTQwejJ+H0T/NB1XMtTVEwNTrfFF3gAxiyW0Bu/xWEGhjVKgUcMhCrUy2+uCWg==}
     dependencies:
       base64-js: 1.5.1
-      ieee754: 1.1.13
+      ieee754: 1.2.1
       isarray: 1.0.0
 
   /buffer/5.7.1:
@@ -8998,13 +8987,6 @@ packages:
     dependencies:
       nofilter: 3.1.0
     dev: true
-
-  /cfn-resolver-lib/1.1.8:
-    resolution: {integrity: sha512-kqR83Gt4avHE/3hNlYw9MtPxIRd+CWqLf1PHpcAnbv14dHdQc/oc0WfapMTZaxAzQ+w/EFh1ngw4qb4FlvTLSw==}
-    dependencies:
-      lodash: 4.17.21
-      traverse: 0.6.6
-    dev: false
 
   /chalk/1.1.3:
     resolution: {integrity: sha512-U3lRVLMSlsCfjqYPbLyVv11M9CPW4I728d6TCKMAOJueEeB9/8o+eSsMnxPJD+Q+K909sdESg7C+tIkoH6on1A==}
@@ -13382,7 +13364,6 @@ packages:
 
   /ieee754/1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
-    dev: true
 
   /iferr/0.1.5:
     resolution: {integrity: sha512-DUNFN5j7Tln0D+TxzloUjKB+CtVu6myn0JEFak6dG18mNt9YkQ6lzGCdafwofISZ1lLF3xRHJ98VKy9ynkcFaA==}
@@ -17366,6 +17347,11 @@ packages:
       find-up: 3.0.0
     dev: true
 
+  /pkginfo/0.4.1:
+    resolution: {integrity: sha512-8xCNE/aT/EXKenuMDZ+xTVwkT8gsoHN2z/Q29l80u0ppGEXVvsKRzNMbtKhg8LS8k1tJLAHHylf6p4VFmP6XUQ==}
+    engines: {node: '>= 0.4.0'}
+    dev: false
+
   /please-upgrade-node/3.2.0:
     resolution: {integrity: sha512-gQR3WpIgNIKwBMVLkpMUeR3e1/E1y42bqDQZfql+kDeXd8COYfM8PQA4X6y7a8u9Ua9FHmsrrmirW2vHs45hWg==}
     dependencies:
@@ -19505,7 +19491,6 @@ packages:
 
   /sax/1.2.4:
     resolution: {integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==}
-    dev: true
 
   /saxes/3.1.11:
     resolution: {integrity: sha512-Ydydq3zC+WYDJK1+gRxRapLIED9PWeSuuS41wqyoRmzvhhh9nc+QQrVMKJYzJFULazeGhzSV0QleN2wD3boh2g==}
@@ -20995,6 +20980,7 @@ packages:
 
   /traverse/0.6.6:
     resolution: {integrity: sha512-kdf4JKs8lbARxWdp7RKdNzoJBhGUcIalSYibuGyHJbmk40pOysQ0+QPvlkCOICOivDWU2IJo2rkrxyTK2AH4fw==}
+    dev: true
 
   /trim-newlines/3.0.1:
     resolution: {integrity: sha512-c1PTsA3tYrIsLGkJkzHF+w9F2EyxfXGo4UyJc4pFL++FMjnq0HJS69T3M7d//gKrFKwy429bouPescbjecU+Zw==}
@@ -22258,7 +22244,7 @@ packages:
   /xml2js/0.4.19:
     resolution: {integrity: sha512-esZnJZJOiJR9wWKMyuvSE1y6Dq5LCuJanqhxslH2bxM6duahNZ+HMpCLhBQGZkbX6xRf8x1Y2eJlgt2q3qo49Q==}
     dependencies:
-      sax: 1.2.1
+      sax: 1.2.4
       xmlbuilder: 9.0.7
 
   /xmlbuilder/9.0.7:
@@ -22418,18 +22404,3 @@ packages:
       compress-commons: 4.1.1
       readable-stream: 3.6.0
     dev: true
-
-  github.com/arabold/serverless-export-env/97b1fec5c9879a2846283438c53731b1bd0da9e5_serverless@3.22.0:
-    resolution: {tarball: https://codeload.github.com/arabold/serverless-export-env/tar.gz/97b1fec5c9879a2846283438c53731b1bd0da9e5}
-    id: github.com/arabold/serverless-export-env/97b1fec5c9879a2846283438c53731b1bd0da9e5
-    name: serverless-export-env
-    version: 2.2.0
-    engines: {node: '>=12.0.0'}
-    peerDependencies:
-      serverless: '>=2'
-    dependencies:
-      bluebird: 3.7.2
-      cfn-resolver-lib: 1.1.8
-      lodash: 4.17.21
-      serverless: 3.22.0
-    dev: false
