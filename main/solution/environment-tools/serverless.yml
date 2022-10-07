@@ -4,7 +4,6 @@
 # NOTE: most of the values here are coming from the appropriate settings.yaml file
 #       if you want to update the values then do so from the settings.yaml file instead
 service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-environment-tools
-# variablesResolutionMode: 20210326
 
 package:
   individually: true

@@ -1,7 +1,6 @@
 # For full config options, see docs.serverless.com
 # Note that most settings in here come from config/settings/*.yaml
 service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-infrastructure
-# variablesResolutionMode: 20210326
 
 provider:
   name: aws
@@ -16,7 +15,6 @@ provider:
   # All other ${* references will be resolved by CloudFormation
   # See https://forum.serverless.com/t/getting-handle-accountid-in-serverless-config/946/11 and
   # See https://github.com/serverless/serverless/issues/5011
-  # variableSyntax: '\$\{((((self|opt|deep|cf):)|file)((?!\$\{).)+?)}'
 
 custom:
   settings: ${file(./config/settings/.settings.js):merged}

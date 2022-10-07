@@ -153,7 +153,6 @@ class AwsService extends Service {
     // This is useful when testing code locally and running it under specific permissions provided by some role
     // For example, running Lambda code locally under the same Lambda execution role that the function would run in
     // deployed environment
-    // this.log.log(this.settings.optional(settingKeys.localRoleArn, ''));
     const localRoleArn = this.settings.optional(settingKeys.localRoleArn, '');
     if (!localRoleArn) return;
 

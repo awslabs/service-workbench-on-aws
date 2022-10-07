@@ -27,8 +27,6 @@ const _ = require('lodash');
 function extract(prefix = '') {
   const object = {};
   _.forEach(process.env, (value, keyRaw = '') => {
-    // console.log({ keyRaw, value });
-    // could convert to true and false boolean here
     if (!_.startsWith(keyRaw, prefix)) return;
     const sliced = keyRaw.slice(prefix.length);
     const key = _.camelCase(sliced);

@@ -61,7 +61,6 @@ async function registerSettingsService(container, plugins, pluginRegistry) {
         const staticSettings = _.reduce(
           plugins,
           (staticSettingsSoFar, plugin) => {
-            // console.log(staticSettingsSoFar);
             if (_.isFunction(plugin.getStaticSettings)) {
               return plugin.getStaticSettings(staticSettingsSoFar, settings, pluginRegistry);
             }

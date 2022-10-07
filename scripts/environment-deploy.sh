@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "HERE2"
 pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 # shellcheck disable=SC1091
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
@@ -9,22 +8,17 @@ popd > /dev/null
 
 # Add the version information to the stage file
 ./scripts/get-release-info.sh "$STAGE"
-echo "HERE1"
 
 # Install
 install_dependencies "$@"
 
-echo "HERE3"
-
 function disableStats {
   COMPONENT_DIR=$1
   pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
-  # Disable serverless stats (only strictly needs to be done one time)
-  # add a comment to see documentation on this command
-  echo "HERE4"
+  # Disable serverless stats globally (only strictly needs to be done one time)
+  # For more information: https://www.serverless.com/framework/docs/providers/aws/cli-reference/slstats#disable-statistics-and-usage-tracking
   $EXEC sls slstats --disable
   popd > /dev/null
-  echo "HERE"
 }
 
 function componentDeploy {
