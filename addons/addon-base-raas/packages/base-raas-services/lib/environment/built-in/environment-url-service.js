@@ -16,9 +16,13 @@
 const crypto = require('crypto');
 const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
-const request = require('request-promise-native');
 const Service = require('@amzn/base-services-container/lib/service');
+let fetch = require('node-fetch');
 
+// Webpack messes with the fetch function import and it breaks in lambda.
+if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'function') {
+  fetch = fetch.default;
+}
 class EnvironmentUrlService extends Service {
   constructor() {
     super();
@@ -46,7 +50,8 @@ class EnvironmentUrlService extends Service {
     const username = 'rstudio-user';
     const password = hash.update(`${instanceId}${jwtSecret}`).digest('hex');
     const credentials = `${username}\n${password}`;
-    const publicKey = await request(rstudioPublicKeyUrl);
+    const publicKeyData = await fetch(rstudioPublicKeyUrl);
+    const publicKey = await publicKeyData.json();
     const [exponent, modulus] = publicKey.split(':', 2);
     const exponentBuffer = Buffer.from(exponent, 'hex');
     const modulusBuffer = Buffer.from(modulus, 'hex');

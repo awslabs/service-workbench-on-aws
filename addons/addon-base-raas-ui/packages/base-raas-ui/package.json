@@ -37,7 +37,6 @@
     "react-syntax-highlighter": "^15.5.0",
     "react-table": "^6.11.5",
     "react-timeago": "^4.4.0",
-    "request": "^2.88.2",
     "semantic-ui-react": "^0.88.2",
     "showdown": "^1.9.1",
     "toastr": "^2.1.4",

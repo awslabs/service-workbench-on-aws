@@ -225,13 +225,26 @@ Pre-requisites: Before creating a workspace, you must setup Service Catalog. Ref
    **Note**: Service Workbench automatically provisions AWS resources according to your selection, so you can run your projects on AWS without having to worry about the setup.
 2. Choose the desired platform and then choose Next.
 3. Enter appropriate values for the field names (leave 'Restricted CIDR' as-is if you don't know what it is) and select a configuration.  
-   **Note**: Each configuration lists the details for its instance--On Demand instances are more expensive than Spot instances, but they're available whenever you need them. For more details on pricing and configurations, refer to the [Instance Purchasing Options](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-purchasing-options.html) and the [AWS Pricing](https://aws.amazon.com/pricing/) pages.
+    **Note**: Each configuration lists the details for its instance--On Demand instances are more expensive than Spot instances, but they're available whenever you need them. For more details on pricing and configurations, refer to the [Instance Purchasing Options](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-purchasing-options.html) and the [AWS Pricing](https://aws.amazon.com/pricing/) pages.
 4. Your workspace may take some time to launch. Once it is up and running, you can connect to it by choosing Connect. For more details, see the following documentation pages:
+
    - AWS SageMaker: Service Workbench takes care of provisioning the workspace for you, so you can jump straight to working with SageMaker Notebooks. For more information, see the [SageMaker Getting Started Guide](https://docs.aws.amazon.com/sagemaker/latest/dg/gs-console.html) (you can jump straight to Step 4).
-   - AWS ElasticMapReduce (EMR): Service Workbench takes care of setting up the EMR instance for you, so you can jump straight to working with EMR Notebooks. A password may be required to access the EMR Notebooks. By default, this password is `go-research-on-aws`. For more information on using EMR Notebooks, see [Using EMR Notebooks](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-notebooks.html).  
-     **Note:** EMR workspaces are not available if AppStream is enabled for the deployment.
-   - RStudio: You can connect to RStudio workspace type by using the template and AMI provided in AWS partner's [repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). For more information, refer to the [Create RStudio ALB workspace](/deployment/post_deployment/aws_accounts#creating-rstudio-alb-workspace) section of _Service Workbench Post Deployment Guide_.
-   - AWS Elastic Compute Cloud (EC2): EC2 instances are essentially Virtual Machines in the cloud. For more information, see the [EC2 Documentation](https://aws.amazon.com/ec2/).
+   - AWS ElasticMapReduce (EMR): Service Workbench takes care of setting up the EMR instance for you, so you can jump straight to working with EMR Notebooks. A password may be required to access the EMR Notebooks. By default, this password is `go-research-on-aws`. For more information on using EMR Notebooks, see [Using EMR Notebooks](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-notebooks.html).
+
+   To change the default password for Jupyter Notebook instances, contact your Solution Architect, raise an AWS support case, or follow these instructions:
+
+   1. Generate a SHA1 hash for your password choice.
+   2. Locate line 51 in `main/solution/machine-images/config/infra/provisioners/provision-hail.sh`:  
+       `s/sha1:<salt1>:<hash1>/sha1:<salt2>:<hash2>/`
+   3. Update `<salt2>` and `<hash2>` to match your password’s corresponding values.
+   4. On your local repo, navigate to `main/solution/machine-images`.
+   5. Run `pnpx sls build-image -s <stage>` to create a new AMI for EMR environment types.
+   6. Use the generated AMI ID in the environment type configuration key AmId. Your selected password becomes active.
+
+   **Note:** EMR workspaces are not available if AppStream is enabled for the deployment.
+
+- RStudio: You can connect to RStudio workspace type by using the template and AMI provided in AWS partner's [repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). For more information, refer to the [Create RStudio ALB workspace](/deployment/post_deployment/aws_accounts#creating-rstudio-alb-workspace) section of _Service Workbench Post Deployment Guide_.
+- AWS Elastic Compute Cloud (EC2): EC2 instances are essentially Virtual Machines in the cloud. For more information, see the [EC2 Documentation](https://aws.amazon.com/ec2/).
 
 ## Create a Study
 

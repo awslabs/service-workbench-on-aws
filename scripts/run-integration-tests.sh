@@ -11,7 +11,13 @@ popd > /dev/null
 PARAMETERS=$@
 PARAMETER_ARRAY=($PARAMETERS)
 ENV_NAME=${PARAMETER_ARRAY[0]}
-APPSTREAM_EGRESS_ENABLED=${PARAMETER_ARRAY[1]}
+REGION=${PARAMETER_ARRAY[1]}
+APPSTREAM_EGRESS_ENABLED=${PARAMETER_ARRAY[2]}
+
+if [ "$REGION" == "" ]; then
+  echo "Region not set; Setting Region to us-east-1"
+  REGION="us-east-1"
+fi
 
 if [ "$APPSTREAM_EGRESS_ENABLED" == "AppStreamEgress" ]; then
   echo "Testing with AppStream and Secure Egress Enabled"
@@ -26,11 +32,11 @@ if [ -e "${CONFIG_TARGET_PATH}" ]; then
   echo "Already present; not overwriting!"
 else
   echo "Not present; checking if present in S3"
-  aws s3api head-object --bucket $DEPLOYMENT_BUCKET --key "integration-test/$ENV_NAME.yml" --no-cli-pager || TEST_CONFIG_EXISTS=false
+  aws s3api head-object --bucket $DEPLOYMENT_BUCKET --key "integration-test/$ENV_NAME.yml" --no-cli-pager --region $REGION || TEST_CONFIG_EXISTS=false
 
   if [ "$TEST_CONFIG_EXISTS" == true ]; then
     echo "Test config found! Downloading from ${CONFIG_S3_PATH}"
-    aws s3 cp "${CONFIG_S3_PATH}" "${CONFIG_TARGET_PATH}"
+    aws s3 cp "${CONFIG_S3_PATH}" "${CONFIG_TARGET_PATH}" --region $REGION 
   else
     echo "Test config file does not exist. Integration tests will be skipped!"
   fi

@@ -27,7 +27,7 @@ phases:
 reports:
   integrationTests:
     files:
-      - 'main/integration-tests/.build/test/junit.xml'
+      - "main/integration-tests/.build/test/junit.xml"
     discard-paths: yes
     file-format: JunitXml
 
