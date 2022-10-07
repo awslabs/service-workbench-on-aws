@@ -41,6 +41,7 @@ class ServerlessPackerPlugin {
               '(e.g. "--files \'packer.json\'" or "-m \'packer.json\'")',
             required: false,
             shortcut: 'f',
+            type: 'string',
           },
         },
       },
