@@ -2,7 +2,7 @@
 
 #### Tools
 
-- Node 14.x
+- Node 14.x or later
 - AWS CLI
 
 #### Project variables
