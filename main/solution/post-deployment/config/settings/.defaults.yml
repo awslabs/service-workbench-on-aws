@@ -289,3 +289,9 @@ envMgmtRoleArn: ${cf:${self:custom.settings.backendStackName}.EnvMgmtRoleArn}
 # The S3 bucket name to be used to store egress store data
 egressStoreBucketName: ${self:custom.settings.globalNamespace}-egress-store
 # =========================================================================================================
+
+# The name of the IAM roles created for the Lambda Post Deployment handler
+postDeploymentHandlerRoleName: ${self:custom.settings.namespace}-postDeployment-RolePostDeploymentLambda
+
+# The IAM role arn for the Lambda Post Deployment handler, we need to define it in the settings because it is being passed to lambdas as an env var
+postDeploymentHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.postDeploymentHandlerRoleName}'

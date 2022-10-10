@@ -15,6 +15,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const YAML = require('js-yaml');
 
 const { getAwsAccountInfo } = require('./aws-acc-context');
 const { getCloudFormationCrossRegionValues } = require('./cloud-formation-cross-region-values');
@@ -80,7 +81,7 @@ const newFileLoader = (serverless, options = {}) => async filename => {
     return {};
   }
   try {
-    return await serverless.yamlParser.parse(filename);
+    return YAML.load(fs.readFileSync(filename, 'utf8'));
   } catch (err) {
     // The following is a kludge to support allowing empty settings files.
     // serverless.yamlParser will throw an exception if the file is empty.
@@ -134,7 +135,7 @@ module.exports = {
     files,
     { missingFiles = true, emptyFiles = true, crossRegionCloudFormation, crossAccountCloudFormation } = {},
   ) => async serverless => {
-    const stage = serverless.variables.options.s || serverless.variables.options.stage || undefined;
+    const stage = (await serverless.resolveVariable('sls:stage')) || undefined;
     const loadFile = newFileLoader(serverless, { missingFiles, emptyFiles });
     const expandVariables = newExpander({ stage });
     const resolvePath = filename => path.resolve(cwd, filename);

@@ -31,11 +31,11 @@ const LockServiceMock = require('@amzn/base-services/lib/lock/lock-service');
 jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 const PluginRegistryServiceMock = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 
-jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service.js');
-const EnvTypeConfigServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service.js');
+jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service');
+const EnvTypeConfigServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service');
 
-jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service.js');
-const EnvTypeServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service.js');
+jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service');
+const EnvTypeServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service');
 
 const CheckLaunchDependency = require('../check-launch-dependency/check-launch-dependency');
 
