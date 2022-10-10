@@ -17,8 +17,8 @@ const _ = require('lodash');
 const Service = require('@amzn/base-services-container/lib/service');
 const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 
-const createSchema = require('../schema/create-cost-api-cache');
-const updateSchema = require('../schema/update-cost-api-cache');
+const createSchema = require('../schema/create-cost-api-cache.json');
+const updateSchema = require('../schema/update-cost-api-cache.json');
 
 const settingKeys = {
   tableName: 'dbCostApiCaches',

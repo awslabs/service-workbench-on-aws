@@ -13,3 +13,9 @@ dbStudiesAccountIdIndex: AccountIdIndex
 
 # DynamoDB table name for Data source accounts
 dbDsAccounts: ${self:custom.settings.dbPrefix}-DsAccounts
+
+# The name of the IAM roles created for the Lambda Pre Deployment handler
+preDeploymentHandlerRoleName: ${self:custom.settings.namespace}-preDeployment-RolePreDeploymentLambda
+
+# The IAM role arn for the Lambda Pre Deployment handler, we need to define it in the settings because it is being passed to lambdas as an env var
+preDeploymentHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.preDeploymentHandlerRoleName}'

@@ -41,7 +41,7 @@ Resources:
     DeletionPolicy: Retain
     Properties:
       Description: Lambda@Edge function to set security headers in CloudFront responses
-      Runtime: nodejs12.x
+      Runtime: nodejs16.x
       Handler: index.handler
       Role: !GetAtt RoleCloudFrontInterceptor.Arn
       # Declaring Lambda Function Code inline because the code requires API Gateway URL for the backend APIs (to set "connect-src" part of the "content-security-policy" header)

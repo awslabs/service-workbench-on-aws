@@ -15,7 +15,7 @@
 
 const { inputManifestForCreate } = require('./create-cognito-user-pool-input-manifest');
 const { inputManifestForUpdate } = require('./update-cognito-user-pool-input-manifest');
-const inputSchema = require('./create-cognito-user-pool-schema');
+const inputSchema = require('./create-cognito-user-pool-schema.json');
 
 module.exports = {
   type: 'cognito_user_pool',

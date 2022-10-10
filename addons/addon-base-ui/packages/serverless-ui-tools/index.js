@@ -19,8 +19,8 @@ const _ = require('lodash');
 const aws = require('aws-sdk');
 const chalk = require('chalk');
 
-const { toLines } = require('./lib/utils/env.js');
-const { runCommand } = require('./lib/utils/command.js');
+const { toLines } = require('./lib/utils/env');
+const { runCommand } = require('./lib/utils/command');
 
 class ServerlessUIToolsPlugin {
   constructor(serverless, options) {
@@ -35,11 +35,13 @@ class ServerlessUIToolsPlugin {
           'build-dir': {
             usage: 'Specify the directory containing UI code to be deployed to S3.',
             default: 'build/',
+            type: 'string',
           },
           'invalidate-cache': {
             usage:
               'If enabled, invalidates the entire CloudFront distribution after deploying (only if the bucket was modified). Requires a `websiteCloudFrontId` setting to be specified.',
             default: false,
+            type: 'string',
           },
         },
       },
@@ -52,6 +54,7 @@ class ServerlessUIToolsPlugin {
           local: {
             usage: 'If enabled, "$ pnpm run build" is not executed.',
             default: false,
+            type: 'string',
           },
         },
       },

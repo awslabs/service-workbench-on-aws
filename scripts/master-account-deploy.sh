@@ -13,8 +13,9 @@ install_dependencies "$@"
 function disableStats {
   COMPONENT_DIR=$1
   pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
-  # Disable serverless stats (only strictly needs to be done one time)
-  $EXEC sls slstats --disable -s "$STAGE"
+    # Disable serverless stats globally (only strictly needs to be done one time)
+    # For more information: https://www.serverless.com/framework/docs/providers/aws/cli-reference/slstats#disable-statistics-and-usage-tracking
+    $EXEC sls slstats --disable
   popd > /dev/null
 }
 

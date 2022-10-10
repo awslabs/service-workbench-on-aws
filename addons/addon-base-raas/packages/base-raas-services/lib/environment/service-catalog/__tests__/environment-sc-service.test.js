@@ -16,12 +16,12 @@ const YAML = require('js-yaml');
 const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
 
-jest.mock('@amzn/base-services/lib/iam/iam-service.js');
+jest.mock('@amzn/base-services/lib/iam/iam-service');
 jest.mock('@amzn/base-services/lib/logger/logger-service');
 const Logger = require('@amzn/base-services/lib/logger/logger-service');
 const AWSMock = require('aws-sdk-mock');
 const AwsService = require('@amzn/base-services/lib/aws/aws-service');
-const IamService = require('@amzn/base-services/lib/iam/iam-service.js');
+const IamService = require('@amzn/base-services/lib/iam/iam-service');
 
 // Mocked dependencies
 jest.mock('@amzn/base-services/lib/db-service');
@@ -37,8 +37,8 @@ jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
 const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
 const environmentScStatus = require('../environent-sc-status-enum');
 
-jest.mock('../../environment-authz-service.js');
-const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');
+jest.mock('../../environment-authz-service');
+const EnvironmentAuthZServiceMock = require('../../environment-authz-service');
 
 jest.mock('../../../../../../../addon-base-workflow/packages/base-workflow-core/lib/workflow/workflow-trigger-service');
 const WorkflowTriggerServiceMock = require('../../../../../../../addon-base-workflow/packages/base-workflow-core/lib/workflow/workflow-trigger-service');
