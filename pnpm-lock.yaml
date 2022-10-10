@@ -1415,6 +1415,7 @@ importers:
       serverless: ^3.22.0
     dependencies:
       aws-sdk: 2.1228.0
+      js-yaml: 4.1.0
     devDependencies:
       eslint: 6.8.0
       eslint-config-airbnb: 18.2.1_4a6e69fe146b7e380ac87057818044cf
@@ -1430,7 +1431,6 @@ importers:
       husky: 3.1.0
       jest: 24.9.0
       jest-junit: 10.0.0
-      js-yaml: 4.1.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       serverless: 3.22.0
@@ -6809,7 +6809,7 @@ packages:
   /@types/istanbul-reports/3.0.1:
     resolution: {integrity: sha512-c3mAZEuK0lvBp8tmuL74XRKn1+y2dcwOUpH7x4WrF6gk1GIgiluDRgMYQtw2OFcBvAJWlt6ASU3tSqxp0Uu0Aw==}
     dependencies:
-      '@types/istanbul-lib-report',: 3.0.0
+      '@types/istanbul-lib-report': 3.0.0
     dev: true
 
   /@types/json-schema/7.0.11:

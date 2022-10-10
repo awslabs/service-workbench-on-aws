@@ -42,8 +42,8 @@ const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-ser
 jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 const PluginRegistryServiceMock = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 
-jest.mock('../../environment-dns-service.js');
-const EnvironmentDnsServiceMock = require('../../environment-dns-service.js');
+jest.mock('../../environment-dns-service');
+const EnvironmentDnsServiceMock = require('../../environment-dns-service');
 
 jest.mock('../environment-sc-service');
 const EnvironmentSCServiceMock = require('../environment-sc-service');

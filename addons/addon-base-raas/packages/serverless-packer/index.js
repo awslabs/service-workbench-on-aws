@@ -17,7 +17,7 @@ const execFileSync = require('child_process').execFileSync;
 
 const fs = require('fs');
 const _ = require('lodash');
-const { runCommand } = require('./lib/utils/command.js');
+const { runCommand } = require('./lib/utils/command');
 
 const PACKER_FILE_DIR = './config/infra';
 

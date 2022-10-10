@@ -18,7 +18,7 @@ const moment = require('moment');
 const Service = require('@amzn/base-services-container/lib/service');
 const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 const { isAdmin, isActive } = require('@amzn/base-services/lib/authorization/authorization-utils');
-const createSchema = require('../schema/create-budget');
+const createSchema = require('../schema/create-budget.json');
 
 class BudgetsService extends Service {
   constructor() {

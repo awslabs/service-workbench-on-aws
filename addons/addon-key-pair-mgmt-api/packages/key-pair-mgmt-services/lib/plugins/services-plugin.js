@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const KeyPairService = require('../key-pair/key-pair-service.js');
+const KeyPairService = require('../key-pair/key-pair-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',

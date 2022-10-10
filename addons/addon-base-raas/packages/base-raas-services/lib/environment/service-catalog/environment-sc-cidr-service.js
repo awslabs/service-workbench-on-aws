@@ -17,7 +17,7 @@ const _ = require('lodash');
 const IsCidr = require('is-cidr');
 const Service = require('@amzn/base-services-container/lib/service');
 
-const cidrUpdateSchema = require('../../schema/update-environment-sc-cidr');
+const cidrUpdateSchema = require('../../schema/update-environment-sc-cidr.json');
 
 const settingKeys = {
   isAppStreamEnabled: 'isAppStreamEnabled',

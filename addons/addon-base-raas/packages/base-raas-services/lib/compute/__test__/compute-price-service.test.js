@@ -29,7 +29,7 @@ const AwsService = require('@amzn/base-services/lib/aws/aws-service');
 const AWSMock = require('aws-sdk-mock');
 
 jest.mock('../compute-platform-service');
-const ComputePriceService = require('../compute-price-service.js');
+const ComputePriceService = require('../compute-price-service');
 const ComputePlatformService = require('../compute-platform-service');
 
 describe('ComputePlatformService', () => {

@@ -20,7 +20,7 @@ const Service = require('@amzn/base-services-container/lib/service');
 const { ensureAdmin } = require('@amzn/base-services/lib/authorization/assertions');
 const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 
-const inputSchema = require('../schema/workflow-template');
+const inputSchema = require('../schema/workflow-template.json');
 
 const settingKeys = {
   tableName: 'dbWorkflowTemplateDrafts',

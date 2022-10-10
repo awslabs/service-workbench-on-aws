@@ -19,8 +19,8 @@ const _ = require('lodash');
 const aws = require('aws-sdk');
 const chalk = require('chalk');
 
-const { toLines } = require('./lib/utils/env.js');
-const { runCommand } = require('./lib/utils/command.js');
+const { toLines } = require('./lib/utils/env');
+const { runCommand } = require('./lib/utils/command');
 
 class ServerlessUIToolsPlugin {
   constructor(serverless, options) {

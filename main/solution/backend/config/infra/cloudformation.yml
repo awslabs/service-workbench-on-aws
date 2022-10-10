@@ -2174,30 +2174,16 @@ Resources:
 Outputs:
   AuthenticationLayerHandlerRoleArn:
     Value: !GetAtt RoleAuthenticationLayerHandler.Arn
-    Export:
-      Name: AuthenticationLayerHandlerRoleArn
   ApiHandlerRoleArn:
     Value: !GetAtt RoleApiHandler.Arn
-    Export:
-      Name: ApiHandlerRoleArn
   WorkflowLoopRunnerRoleArn:
     Value: !GetAtt RoleWorkflowLoopRunner.Arn
-    Export:
-      Name: WorkflowLoopRunnerRoleArn
   OpenDataScrapeHandlerRoleArn:
     Value: !GetAtt RoleOpenDataScrapeHandler.Arn
-    Export:
-      Name: OpenDataScrapeHandlerRoleArn
   DataSourceReachabilityHandlerRoleArn:
     Value: !GetAtt RoleDataSourceReachabilityHandler.Arn
-    Export:
-      Name: DataSourceReachabilityHandlerRoleArn
   EnvMgmtRoleArn:
     Value: !GetAtt RoleEnvMgmt.Arn
-    Export:
-      Name: EnvMgmtRoleArn
   EgressNotificationTopicArn:
     Value: !Ref EgressNotificationTopic
     Condition: EnableEgressStore
-    Export:
-      Name: EgressNotificationTopicArn

@@ -585,8 +585,6 @@ Resources:
 Outputs:
   PostDeploymentRoleArn:
     Value: !GetAtt RolePostDeploymentLambda.Arn
-    Export:
-      Name: PostDeploymentRoleArn
   EgressStoreObjectsHandlerRoleArn:
     Value: !GetAtt RoleEgressStoreObjectsHandler.Arn
   PreSignUpLambdaArn:
