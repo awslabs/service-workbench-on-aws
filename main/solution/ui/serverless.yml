@@ -5,7 +5,7 @@ service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solut
 provider:
   name: aws
   region: ${self:custom.settings.awsRegion}
-  profile: ${self:custom.settings.awsProfile}
+  profile: ${self:custom.settings.awsProfile, "default"}
   stackName: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     name: ${self:custom.settings.deploymentBucketName}
