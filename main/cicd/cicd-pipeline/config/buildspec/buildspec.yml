@@ -22,7 +22,6 @@ phases:
       - ./scripts/download-env-config.sh "$DEPLOYMENT_BUCKET" "$ENV_NAME"
       - printf "\n\n"
       - echo "Creating ~/.aws/credentials"
-      - apt install jq -y
       - creds=$(aws sts get-session-token)
       - AWS_ACCESS_KEY_ID=$(echo $creds | jq '.Credentials.AccessKeyId')
       - AWS_SECRET_ACCESS_KEY=$(echo $creds | jq '.Credentials.SecretAccessKey')
