@@ -12,7 +12,7 @@ package:
 provider:
   name: aws
   region: ${self:custom.settings.awsRegion}
-  profile: ${self:custom.settings.awsProfile}
+  profile: ${self:custom.settings.awsProfile, "default"}
 
 custom:
   default.aws.profile: '' # Keep default profile to use as empty string to force people to specify profile or use env
