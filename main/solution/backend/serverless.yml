@@ -10,7 +10,7 @@ provider:
   name: aws
   runtime: nodejs16.x
   region: ${self:custom.settings.awsRegion}
-  profile: ${self:custom.settings.awsProfile, "default"}
+  profile: ${self:custom.settings.awsProfile, ""}
   stackName: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     name: ${self:custom.settings.deploymentBucketName}
@@ -54,7 +54,7 @@ custom:
     environmentOverrides: # when running locally
       provider:
         APP_AWS_REGION: ${self:custom.settings.awsRegion} # this is needed for local development
-        APP_AWS_PROFILE: ${self:custom.settings.awsProfile, "default"} # this is needed for local development
+        APP_AWS_PROFILE: ${self:custom.settings.awsProfile, ""} # this is needed for local development
         APP_USE_AWS_PROFILE: ${self:custom.settings.useAwsProfile, ""}
         IS_OFFLINE: true
         APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: ${self:custom.settings.localRoleAutoAdjustTrust} # Auto adjust trust policy of the lambda execution role to allow assumeRole from local machine
