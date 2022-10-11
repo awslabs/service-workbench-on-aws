@@ -19,9 +19,9 @@ jobs:
         with:
           fetch-depth: 2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - name: Cache Node.js dependencies
         uses: actions/cache@v2
         with:
