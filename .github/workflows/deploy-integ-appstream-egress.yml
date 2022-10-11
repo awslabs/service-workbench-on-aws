@@ -28,14 +28,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - uses: actions/setup-go@v2
         with:
           go-version: 1.13
       - name: Install pnpm
         run: npm install -g pnpm@5.18.9
+      - name: Add credentials to ~/.aws/credentials
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Install dependencies
         run: ./scripts/install.sh
       - name: Build all packages
@@ -60,9 +64,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - name: Install pnpm and system libraries
         run: npm install -g pnpm@5.18.9
       - name: Install dependencies
@@ -84,9 +88,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - name: Install pnpm and system libraries
         run: |
           npm install -g pnpm@5.18.9
@@ -111,9 +115,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - name: Install pnpm and system libraries
         run: |
           npm install -g pnpm@5.18.9

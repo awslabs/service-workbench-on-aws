@@ -21,6 +21,16 @@ phases:
       - echo "Downloading environment config"
       - ./scripts/download-env-config.sh "$DEPLOYMENT_BUCKET" "$ENV_NAME"
       - printf "\n\n"
+      - echo "Creating ~/.aws/credentials"
+      - apt install jq -y
+      - creds=$(aws sts get-session-token)
+      - AWS_ACCESS_KEY_ID=$(echo $creds | jq '.Credentials.AccessKeyId')
+      - AWS_SECRET_ACCESS_KEY=$(echo $creds | jq '.Credentials.SecretAccessKey')
+      - AWS_SESSION_TOKEN=$(echo $creds | jq '.Credentials.SessionToken')
+      - aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+      - aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+      - aws configure set aws_session_token "$AWS_SESSION_TOKEN"
+      - printf "\n\n"
   build:
     commands:
       - echo "Running static code analysis"
