@@ -26,7 +26,7 @@ service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solut
 provider:
   name: aws
   region: ${self:custom.settings.awsRegion}
-  profile: ${self:custom.settings.awsProfile, "default"}
+  profile: ${self:custom.settings.awsProfile, ""}
   stackName: ${self:custom.settings.envName}-${self:service}
 custom:
   settings: ${file(./settings.js):merged}
