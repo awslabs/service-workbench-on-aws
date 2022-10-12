@@ -359,6 +359,10 @@ Resources:
               - cloudformation:GetTemplate
               - cloudformation:ListStackResources
               - cloudformation:DescribeStackEvents
+              - cloudformation:ExecuteChangeSet
+              - cloudformation:DescribeChangeSet
+              - cloudformation:CreateChangeSet
+              - cloudformation:DeleteChangeSet
             Resource:
               - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.namespace}-*'
               - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*'
@@ -658,7 +662,7 @@ Resources:
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
-            Value: ${self:provider.deploymentBucket}
+            Value: ${self:provider.deploymentBucket.name}
           - Name: ENV_NAME
             Value: ${self:custom.settings.stgEnvName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
@@ -687,7 +691,7 @@ Resources:
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
-            Value: ${self:provider.deploymentBucket}
+            Value: ${self:provider.deploymentBucket.name}
           - Name: ENV_NAME
             Value: ${self:custom.settings.envName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
@@ -714,7 +718,7 @@ Resources:
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
-            Value: ${self:provider.deploymentBucket}
+            Value: ${self:provider.deploymentBucket.name}
           - Name: ENV_NAME
             Value: ${self:custom.settings.stgEnvName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
@@ -741,7 +745,7 @@ Resources:
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
-            Value: ${self:provider.deploymentBucket}
+            Value: ${self:provider.deploymentBucket.name}
           - Name: ENV_NAME
             Value: ${self:custom.settings.envName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
@@ -769,7 +773,7 @@ Resources:
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
-            Value: ${self:provider.deploymentBucket}
+            Value: ${self:provider.deploymentBucket.name}
           - Name: ENV_NAME
             Value: ${self:custom.settings.envName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
