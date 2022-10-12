@@ -70,6 +70,7 @@ describe('Create URL scenarios', () => {
             StorageClass: 'STANDARD',
             projectId: 'TRE-Project',
             workspaceId: 'ea8e5286-45ca-402a-8c98-7d4495f646e2',
+            ChecksumAlgorithm: [], // new attribute introduced in Feb 2022 https://aws.amazon.com/blogs/aws/new-additional-checksum-algorithms-for-amazon-s3/
           },
         ],
         isAbleToSubmitEgressRequest: false,
