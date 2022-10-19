@@ -8,6 +8,10 @@
     "researcherPassword": "<RESEARCHER ACCOUNT PASSWORD>",
     "adminEmail": "<EMAIL ACCOUNT OF PREMADE ADMIN>",
     "adminPassword": "<ADMIN ACCOUNT PASSWORD>",
+    "guestEmail": "<EMAIL ACCOUNT OF PREMADE GUEST>",
+    "guestPassword": "<GUEST PASSWORD>",
+    "internalGuestEmail": "<EMAIL ACCOUNT OF PREMADE INTERNAL GUEST>",
+    "internalGuestPassword": "<INTERNAL GUEST PASSWORD>",
     "cognitoUserPoolId": "<COGNITO USER POOL ID>",
     "cognitoClientId": "<COGNITO CLIENT ID>",
     "workspaces": {
