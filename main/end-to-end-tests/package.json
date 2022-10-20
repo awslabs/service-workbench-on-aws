@@ -8,7 +8,6 @@
   "scripts": {
     "cypress:open:local": "CYPRESS_BASE_URL=http://localhost:3000 cypress open -C cypress.dev.json",
     "cypress:open:dev": "cypress open -C cypress.dev.json",
-    "cypress:open:github": "cypress open -C cypress.github.json",
     "cypress:run-tests:local": "CYPRESS_BASE_URL=http://localhost:3000 cypress run -C cypress.dev.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
     "cypress:run-tests:dev": "cypress run -C cypress.dev.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
     "cypress:run-tests:github": "cypress run -C cypress.github.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",

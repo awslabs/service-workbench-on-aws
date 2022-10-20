@@ -132,3 +132,7 @@ jobs:
           CYPRESS_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD_APPSTREAM_EGRESS}}
           CYPRESS_adminEmail: ${{ secrets.CYPRESS_ADMIN_EMAIL_APPSTREAM_EGRESS}}
           CYPRESS_adminPassword: ${{ secrets.CYPRESS_ADMIN_PASSWORD_APPSTREAM_EGRESS}}
+          CYPRESS_guestEmail: ${{ secrets.CYPRESS_GUEST_EMAIL_APPSTREAM_EGRESS}}
+          CYPRESS_guestPassword: ${{ secrets.CYPRESS_GUEST_PASSWORD_APPSTREAM_EGRESS}}
+          CYPRESS_internalGuestEmail: ${{ secrets.CYPRESS_INTERNAL_GUEST_EMAIL_APPSTREAM_EGRESS}}
+          CYPRESS_internalGuestPassword: ${{ secrets.CYPRESS_INTERNAL_GUEST_PASSWORD_APPSTREAM_EGRESS}}
