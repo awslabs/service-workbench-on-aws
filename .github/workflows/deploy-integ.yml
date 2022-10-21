@@ -108,6 +108,10 @@ jobs:
           CYPRESS_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD}}
           CYPRESS_adminEmail: ${{ secrets.CYPRESS_ADMIN_EMAIL}}
           CYPRESS_adminPassword: ${{ secrets.CYPRESS_ADMIN_PASSWORD}}
+          CYPRESS_guestEmail: ${{ secrets.CYPRESS_GUEST_EMAIL}}
+          CYPRESS_guestPassword: ${{ secrets.CYPRESS_GUEST_PASSWORD}}
+          CYPRESS_internalGuestEmail: ${{ secrets.CYPRESS_INTERNAL_GUEST_EMAIL}}
+          CYPRESS_internalGuestPassword: ${{ secrets.CYPRESS_INTERNAL_GUEST_PASSWORD}}
   check-codepipeline-status:
     name: Check Github Status
     runs-on: ubuntu-20.04
