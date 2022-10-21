@@ -87,11 +87,6 @@ describe('Update user scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
-      // await expect(
-      //   nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, status: 'inactive' }),
-      // ).rejects.toMatchObject({
-      //   code: errorCode.http.code.forbidden,
-      // });
       await expect(
         nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, isExternalUser: a !== 'guest' }),
       ).rejects.toMatchObject({
