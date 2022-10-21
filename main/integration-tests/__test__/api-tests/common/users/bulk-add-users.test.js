@@ -82,7 +82,11 @@ describe('Bulk Create user scenarios', () => {
 
     it('should fail for adding root user as admin', async () => {
       const admin1Session = await setup.createAdminSession();
-      await expect(admin1Session.resources.users.bulkAddUsers([{ ...defaultUser, isAdmin: true, userRole: 'admin', userType: 'root' }])).rejects.toMatchObject({
+      await expect(
+        admin1Session.resources.users.bulkAddUsers([
+          { ...defaultUser, isAdmin: true, userRole: 'admin', userType: 'root' },
+        ]),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });

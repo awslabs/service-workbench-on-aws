@@ -88,7 +88,9 @@ describe('Update user scenarios', () => {
         code: errorCode.http.code.forbidden,
       });
       await expect(
-        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, isExternalUser: a !== 'guest' }),
+        nonAdminSession.resources.users
+          .user(nonAdminSession.user.uid)
+          .update({ rev: 1, isExternalUser: a !== 'guest' }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
@@ -98,21 +100,26 @@ describe('Update user scenarios', () => {
         code: errorCode.http.code.forbidden,
       });
       await expect(
-        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, identityProviderName: 'Cognito Native Pool 2' }),
+        nonAdminSession.resources.users
+          .user(nonAdminSession.user.uid)
+          .update({ rev: 1, identityProviderName: 'Cognito Native Pool 2' }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
       await expect(
-        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, authenticationProviderId: 'forbbiden change' }),
+        nonAdminSession.resources.users
+          .user(nonAdminSession.user.uid)
+          .update({ rev: 1, authenticationProviderId: 'forbbiden change' }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
       await expect(
-        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, isSamlAuthenticatedUser: true }),
+        nonAdminSession.resources.users
+          .user(nonAdminSession.user.uid)
+          .update({ rev: 1, isSamlAuthenticatedUser: true }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
-
     });
 
     it.each(['researcher', 'guest', 'internal-guest'])('should fail if %p updates other user', async a => {

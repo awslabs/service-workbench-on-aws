@@ -56,7 +56,6 @@ describe('Get user role scenarios', () => {
   };
 
   describe('Getting user roles', () => {
-
     it.each(['admin', 'researcher', 'guest', 'internal-guest'])('should fail for inactive %p', async role => {
       const currentSession = await setup.createUserSession({ userRole: role, projectId: [] });
       await adminSession.resources.users.deactivateUser(currentSession.user);
