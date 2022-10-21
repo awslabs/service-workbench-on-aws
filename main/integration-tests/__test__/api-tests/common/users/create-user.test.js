@@ -41,6 +41,21 @@ describe('Create user scenarios', () => {
       });
     });
 
+    it.each(['researcher', 'guest', 'internal-guest'])('should fail for inactive %p', async role => {
+      const nonAdminSession = await setup.createUserSession({ userRole: role, projectId: [] });
+      await adminSession.resources.users.deactivateUser(nonAdminSession.user);
+      await expect(nonAdminSession.resources.users.create(defaultUser)).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
+      });
+    });
+
+    it.each(['researcher', 'guest', 'internal-guest'])('should fail for %p', async role => {
+      const nonAdminSession = await setup.createUserSession({ userRole: role, projectId: [] });
+      await expect(nonAdminSession.resources.users.create(defaultUser)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
     it('should fail for inactive admin', async () => {
       const admin1Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin1Session.user);
@@ -49,21 +64,21 @@ describe('Create user scenarios', () => {
       );
     });
 
-    it('should fail for creating root user', async () => {
+    it('should fail for creating root user as admin', async () => {
       const admin1Session = await setup.createAdminSession();
       await expect(
         admin1Session.resources.users.create({ ...defaultUser, isAdmin: true, userRole: 'admin', userType: 'root' }),
       ).rejects.toEqual(expect.objectContaining({ code: errorCode.http.code.forbidden }));
     });
 
-    it('should create user successfully', async () => {
+    it('should create user successfully as admin', async () => {
       const admin1Session = await setup.createAdminSession();
       await expect(admin1Session.resources.users.create(defaultUser)).resolves.toMatchObject({
         username,
       });
     });
 
-    it('should fail for adding user that already exist', async () => {
+    it('should fail for adding user that already exist as admin´', async () => {
       const admin1Session = await setup.createAdminSession();
       const username1 = setup.gen.username();
       await admin1Session.resources.users.create({ ...defaultUser, username: username1, email: username1 });
