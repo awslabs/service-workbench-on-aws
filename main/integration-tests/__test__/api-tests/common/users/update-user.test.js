@@ -64,7 +64,7 @@ describe('Update user scenarios', () => {
       );
     });
 
-    it.each(['researcher', 'guest', 'internal-guest'])('should update self successfully for %a', async a => {
+    it.each(['researcher', 'guest', 'internal-guest'])('should update self successfully for %p', async a => {
       const nonAdminSession = await setup.createUserSession({ userRole: a, projectId: [] });
       await expect(
         nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, firstName: 'John' }),
@@ -74,7 +74,7 @@ describe('Update user scenarios', () => {
       });
     });
 
-    it.each(['researcher', 'guest', 'internal-guest'])('should fail if %a update restrictive fields', async a => {
+    it.each(['researcher', 'guest', 'internal-guest'])('should fail if %p updates restrictive fields', async a => {
       const nonAdminSession = await setup.createUserSession({ userRole: a, projectId: [] });
       await expect(
         nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, isAdmin: true }),
@@ -87,14 +87,65 @@ describe('Update user scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
+      // await expect(
+      //   nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, status: 'inactive' }),
+      // ).rejects.toMatchObject({
+      //   code: errorCode.http.code.forbidden,
+      // });
+      await expect(
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, isExternalUser: a !== 'guest' }),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+      await expect(
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, userRole: 'admin' }),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+      await expect(
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, identityProviderName: 'Cognito Native Pool 2' }),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
+      });
+      await expect(
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, authenticationProviderId: 'forbbiden change' }),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
+      });
+      await expect(
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, isSamlAuthenticatedUser: true }),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+
     });
 
-    it.each(['researcher', 'guest', 'internal-guest'])('should fail if %a update other user', async a => {
+    it.each(['researcher', 'guest', 'internal-guest'])('should fail if %p updates other user', async a => {
       const nonAdminSession = await setup.createUserSession({ userRole: a, projectId: [] });
       await expect(
         nonAdminSession.resources.users.user(uid).update({ rev: 1, firstName: 'John' }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it.each(['researcher', 'guest', 'internal-guest'])('should fail if inactive %p updates self', async a => {
+      const nonAdminSession = await setup.createUserSession({ userRole: a, projectId: [] });
+      await adminSession.resources.users.deactivateUser(nonAdminSession.user);
+      await expect(
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 1, firstName: 'John' }),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
+      });
+    });
+
+    it.each(['researcher', 'guest', 'internal-guest'])('should fail if inactive %p updates other user', async a => {
+      const nonAdminSession = await setup.createUserSession({ userRole: a, projectId: [] });
+      await adminSession.resources.users.deactivateUser(nonAdminSession.user);
+      await expect(
+        nonAdminSession.resources.users.user(uid).update({ rev: 1, firstName: 'John' }),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
       });
     });
   });

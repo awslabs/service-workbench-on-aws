@@ -17,7 +17,7 @@ const _ = require('lodash');
 const { runSetup } = require('../../../../support/setup');
 const errorCode = require('../../../../support/utils/error-code');
 
-describe('Create user scenarios', () => {
+describe('Get user scenarios', () => {
   let setup;
   let adminSession;
 
@@ -38,11 +38,18 @@ describe('Create user scenarios', () => {
       });
     });
 
-    it('should fail for inactive user', async () => {
-      const admin1Session = await setup.createAdminSession();
-      await adminSession.resources.users.deactivateUser(admin1Session.user);
-      await expect(admin1Session.resources.users.get()).rejects.toMatchObject({
+    it.each(['researcher', 'guest', 'internal-guest'])('should fail for inactive %p', async role => {
+      const nonAdminSession = await setup.createUserSession({ userRole: role, projectId: [] });
+      await adminSession.resources.users.deactivateUser(nonAdminSession.user);
+      await expect(nonAdminSession.resources.users.get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
+      });
+    });
+
+    it.each(['guest', 'internal-guest'])('should fail for %p', async role => {
+      const nonAdminSession = await setup.createUserSession({ userRole: role, projectId: [] });
+      await expect(nonAdminSession.resources.users.get()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
       });
     });
 
@@ -58,11 +65,18 @@ describe('Create user scenarios', () => {
     });
 
     it('should return full list for Admin', async () => {
-      const admin1Session = await setup.createAdminSession();
-      const result = await admin1Session.resources.users.get();
+      const testAdminSession = await setup.createAdminSession();
+      const result = await testAdminSession.resources.users.get();
       expect(result.length).toBeGreaterThan(0);
       const filteredResult = _.filter(result, user => _.has(user, 'isAdmin') && _.has(user, 'userRole'));
       expect(filteredResult.length).toEqual(result.length);
+    });
+    it('should fail if inactive admin attempts to get users', async () => {
+      const testAdminSession = await setup.createAdminSession();
+      await adminSession.resources.users.deactivateUser(testAdminSession.user);
+      await expect(testAdminSession.resources.users.get()).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
+      });
     });
   });
 });
