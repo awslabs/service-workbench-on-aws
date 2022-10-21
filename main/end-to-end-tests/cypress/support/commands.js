@@ -49,7 +49,7 @@ Cypress.Commands.add('login', role => {
       password: Cypress.env('researcherPassword'),
     };
   }
-  if (role === 'restrictedResearcher') {
+  else if (role === 'restrictedResearcher') {
     loginInfo = {
       email: Cypress.env('restrictedResearcherEmail'),
       password: Cypress.env('restrictedResearcherPassword'),
@@ -59,7 +59,18 @@ Cypress.Commands.add('login', role => {
       email: Cypress.env('adminEmail'),
       password: Cypress.env('adminPassword'),
     };
+  } else if (role === 'guest'){
+    loginInfo = {
+      email: Cypress.env('guestEmail'),
+      password: Cypress.env('guestPassword'),
+    };
+  } else if (role === 'internalGuest') {
+    loginInfo = {
+      email: Cypress.env('internalGuestEmail'),
+      password: Cypress.env('internalGuestPassword'),
+    };
   }
+
   const authenticationData = {
     Username: loginInfo.email,
     Password: loginInfo.password,

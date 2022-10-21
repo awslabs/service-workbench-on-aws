@@ -16,4 +16,17 @@ describe('Login', () => {
   it('should login as researcher successfully', () => {
     cy.login('researcher');
   });
+
+  it('should login as an admin successfully', () => {
+    cy.login('admin');
+  });
+
+  it('should login as a guest successfully', () => {
+    cy.login('guest');
+  });
+
+  it('should login as an internal-guest successfully', () => {
+    cy.login('internalGuest');
+  });
+
 });
