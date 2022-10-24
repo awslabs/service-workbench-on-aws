@@ -40,5 +40,8 @@
     "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
     "tcp-ping": "^0.1.1"
+  },
+  "resolutions": {
+    "minimatch": "^3.0.5"
   }
 }
