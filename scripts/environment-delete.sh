@@ -227,14 +227,19 @@ function emptyS3BucketsFromNames() {
         local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
         local aws_region_shortname=$(cat $CONFIG_DIR/settings/.defaults.yml | grep \'$aws_region\' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015' | tr -d "'")
         local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml $CONFIG_DIR/settings/.defaults.yml | grep 'solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
-        local account_number=$(aws sts get-caller-identity --query Account --output text --profile $aws_profile)
-        local bucket_prefix="$account_number-$STAGE-$aws_region_shortname-$solution_name"
 
-        for bucket_to_remove in "${buckets_to_remove[@]}"; do
-            local bucket="$bucket_prefix-$bucket_to_remove"
-            # Pass optional AWS Profile argument
-            emptyS3Bucket $bucket $aws_region $deleteBucket $aws_profile
-        done
+        if [ -z "${main_acct_aws_profile}" ]; then
+            printf "\n\nAWS Profile value was not passed for this stack. \nSkipping bucket cleanup for: [$buckets_to_remove].\n\n"
+        else
+            local account_number=$(aws sts get-caller-identity --query Account --output text --profile $aws_profile)
+            local bucket_prefix="$account_number-$STAGE-$aws_region_shortname-$solution_name"
+
+            for bucket_to_remove in "${buckets_to_remove[@]}"; do
+                local bucket="$bucket_prefix-$bucket_to_remove"
+                # Pass optional AWS Profile argument
+                emptyS3Bucket $bucket $aws_region $deleteBucket $aws_profile
+            done
+        fi
     fi
 
     set -e
@@ -373,11 +378,6 @@ org_aws_profile="$(cat $SOLUTION_DIR/prepare-master-acc/config/settings/$STAGE.y
 # The '-raas-master-artifacts' bucket is the deployment bucket and has to be removed after the stack deletion
 emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "DONT_ASK_CONFIRMATION" $org_aws_profile ${buckets[@]}
 
-# -- Machine images
-printf "\n\n\n--- Machine Images stack"
-buckets=()
-removeStack "Machine-Images" "$SOLUTION_DIR/machine-images" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
-
 # -- CICD
 printf "\n\n\n--- CICD"
 buckets=("cicd-appartifacts")
@@ -411,5 +411,7 @@ printf "\n     Navigate here on those accounts:"
 printf "\n       https://console.aws.amazon.com/ec2/v2/home,"
 printf "\n       https://console.aws.amazon.com/sagemaker/home"
 printf "\n       https://console.aws.amazon.com/cloudformation"
+printf "\n  -[Machine Images]: AMIs created for SWB environment types can be deleted by navigating here:"
+printf "\n       https://console.aws.amazon.com/ec2/v2/home?#Images:visibility=owned-by-me"
 printf "\n  -[Misc]: Resources that could not get deleted during this script's execution"
 printf "\n\n\n"
