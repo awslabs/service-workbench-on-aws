@@ -45,8 +45,8 @@ function removeStack() {
     local COMPONENT_NAME=$1
     local COMPONENT_DIR=$2
     local ASK_CONFIRMATION=$3
-    local bucket_names=("${@:4}")
-    local aws_profile=$5
+    local aws_profile=$4
+    local bucket_names=("${@:5}")
 
     local stackName
     local shouldBeRemoved
@@ -55,7 +55,7 @@ function removeStack() {
     shouldStackBeRemoved $ASK_CONFIRMATION stackName shouldBeRemoved
 
     if [[ "$shouldBeRemoved" == "TRUE" && "$stackName" != "NO_STACK" ]]; then
-        emptyS3BucketsFromNames "DO_NOT_DELETE" "DONT_ASK_CONFIRMATION" ${bucket_names[@]} $aws_profile
+        emptyS3BucketsFromNames "DO_NOT_DELETE" "DONT_ASK_CONFIRMATION" $aws_profile ${bucket_names[@]}
         printf "\n- Removing Stack $COMPONENT_NAME ...\n"
         set +e
         $EXEC sls remove -s "$STAGE"
@@ -163,11 +163,7 @@ function emptyS3Bucket() {
     local bucket=$1
     local region=$2
     local delete_option=$3
-
-    # Set AWS profile so cross account buckets can be deleted
-    if [ ! -z "$4" ]; then
-        export AWS_PROFILE=$4
-    fi
+    local aws_profile=$4
 
     blank="                                                                                                                        "
     message="\\r$blank\\r- Emptying bucket $bucket ... "
@@ -181,7 +177,7 @@ function emptyS3Bucket() {
             printf "$message Removing objects versions : $i/$count"
             key=$(echo $versions | jq .[$i].Key | sed -e 's/\"//g')
             versionId=$(echo $versions | jq .[$i].VersionId | sed -e 's/\"//g')
-            cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
+            cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId --profile $aws_profile)
         done
     fi
 
@@ -193,17 +189,17 @@ function emptyS3Bucket() {
             printf "$message Removing markers : $i/$count"
             key=$(echo $markers | jq .[$i].Key | sed -e 's/\"//g')
             versionId=$(echo $markers | jq .[$i].VersionId | sed -e 's/\"//g')
-            cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
+            cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId --profile $aws_profile)
         done
     fi
     printf "$message Done !"
 
     if [ $delete_option == "DELETE_AFTER_EMPTYING" ]; then
         printf "\n- Deleting bucket $bucket ... "
-        cmd=$(aws s3api delete-bucket --bucket $bucket --region $region)
+        cmd=$(aws s3api delete-bucket --bucket $bucket --region $region --profile $aws_profile)
         printf "Done !"
     fi
-    unset AWS_PROFILE
+    
     set -e
 }
 
@@ -213,7 +209,8 @@ function emptyS3BucketsFromNames() {
 
     local deleteBucket=$1
     local ASK_CONFIRMATION=$2
-    local buckets_to_remove=("${@:3}")
+    local aws_profile=$3
+    local buckets_to_remove=("${@:4}")
     local __shouldBeRemoved="FALSE"
 
     if [ "$ASK_CONFIRMATION" != "DONT_ASK_CONFIRMATION" ]; then
@@ -230,7 +227,6 @@ function emptyS3BucketsFromNames() {
         local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
         local aws_region_shortname=$(cat $CONFIG_DIR/settings/.defaults.yml | grep \'$aws_region\' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015' | tr -d "'")
         local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml $CONFIG_DIR/settings/.defaults.yml | grep 'solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
-        local aws_profile=$4
         local account_number=$(aws sts get-caller-identity --query Account --output text --profile $aws_profile)
         local bucket_prefix="$account_number-$STAGE-$aws_region_shortname-$solution_name"
 
@@ -253,7 +249,7 @@ function removeSsmParams() {
     local aws_profile=$1
 
     printf "\n\n\n---- SSM Parameters"
-    local paramNames=("/$STAGE/$solutionName/jwt/secret" "/$STAGE/$solutionName/user/root/password")
+    local paramNames=("/$STAGE/$solutionName/jwt/secret" "/$STAGE/$solutionName/user/native/admin/password")
 
     for param in "${paramNames[@]}"; do
         set +e
@@ -330,26 +326,29 @@ removeComponentWithNoStack "UI" "$SOLUTION_DIR/ui" "DONT_ASK_CONFIRMATION"
 
 # -- Post-Deployment stack
 printf "\n\n\n--- Post-Deployment stack\n"
-removeStack "Post-Deployment" "$SOLUTION_DIR/post-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
+buckets=()
+removeStack "Post-Deployment" "$SOLUTION_DIR/post-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
 
 # -- Edge-Lambda stack
 printf "\n\n\n--- Edge-Lambda stack"
-removeStack "Edge-Lambda" "$SOLUTION_DIR/edge-lambda" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
+buckets=()
+removeStack "Edge-Lambda" "$SOLUTION_DIR/edge-lambda" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
 
 # -- Backend stack
 printf "\n\n\n--- Backend stack"
 buckets=("studydata" "external-templates" "env-type-configs" "environments-bootstrap-scripts")
-removeStack "Backend" "$SOLUTION_DIR/backend" "DONT_ASK_CONFIRMATION" ${buckets[@]} $main_acct_aws_profile
+removeStack "Backend" "$SOLUTION_DIR/backend" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
 
 # -- Pre-Deployment stack
 printf "\n\n\n--- Pre-Deployment stack\n"
-removeStack "Pre-Deployment" "$SOLUTION_DIR/pre-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
+buckets=()
+removeStack "Pre-Deployment" "$SOLUTION_DIR/pre-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
 
 # -- Infrastructure stack
 printf "\n\n\n--- Infrastructure stack"
 edgeLambdaFunctionName=$(getCfLambdaAssociations)
 buckets=("website" "logging")
-removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION" ${buckets[@]} $main_acct_aws_profile
+removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
 
 # -- Prep-Devops stack (devops role)
 # Check if AMI Sharing is enabled and delete prep-devops-account
@@ -361,7 +360,7 @@ if [ "$amiSharingEnabled" = true ]; then
     buckets=("devops-artifact")
     removeStack "Prep-DevOps-Account" "$SOLUTION_DIR/prepare-devops-acc" "DONT_ASK_CONFIRMATION"
     # The '-raas-master-artifacts' bucket is the deployment bucket and has to be removed after the stack deletion
-    emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "DONT_ASK_CONFIRMATION" ${buckets[@]} $devopsProfile
+    emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "DONT_ASK_CONFIRMATION" $devopsProfile ${buckets[@]}
 else
     printf "AMI Sharing Disabled. Skip DevOps account stack"
 fi
@@ -372,24 +371,25 @@ buckets=("raas-master-artifacts")
 removeStack "Prep-Master-Account" "$SOLUTION_DIR/prepare-master-acc" "DONT_ASK_CONFIRMATION"
 org_aws_profile="$(cat $SOLUTION_DIR/prepare-master-acc/config/settings/$STAGE.yml | grep 'awsProfile:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
 # The '-raas-master-artifacts' bucket is the deployment bucket and has to be removed after the stack deletion
-emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "DONT_ASK_CONFIRMATION" ${buckets[@]} $org_aws_profile
+emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "DONT_ASK_CONFIRMATION" $org_aws_profile ${buckets[@]}
 
 # -- Machine images
 printf "\n\n\n--- Machine Images stack"
-removeStack "Machine-Images" "$SOLUTION_DIR/machine-images" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
+buckets=()
+removeStack "Machine-Images" "$SOLUTION_DIR/machine-images" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
 
 # -- CICD
 printf "\n\n\n--- CICD"
 buckets=("cicd-appartifacts")
 cicd_pipeline_aws_profile="$(cat $SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline/config/settings/$STAGE.yml | grep 'awsProfile:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
-removeStack "CICD-Pipeline" "$SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline" "ASK_CONFIRMATION" ${buckets[@]} $cicd_pipeline_aws_profile
+removeStack "CICD-Pipeline" "$SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline" "ASK_CONFIRMATION" $cicd_pipeline_aws_profile ${buckets[@]}
 cicd_source_aws_profile="$(cat $SOLUTION_ROOT_DIR/main/cicd/cicd-source/config/settings/$STAGE.yml | grep 'awsProfile:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
-removeStack "CICD-Source" "$SOLUTION_ROOT_DIR/main/cicd/cicd-source" "ASK_CONFIRMATION" ${buckets[@]} $cicd_source_aws_profile
+removeStack "CICD-Source" "$SOLUTION_ROOT_DIR/main/cicd/cicd-source" "ASK_CONFIRMATION" $cicd_source_aws_profile ${buckets[@]}
 
 # -- Deployment buckets
 printf "\n\n\n--- Deployment buckets"
 buckets=("artifacts")
-emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "ASK_CONFIRMATION" ${buckets[@]} $main_acct_aws_profile
+emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
 
 # -- SSM parameters
 removeSsmParams $main_acct_aws_profile
