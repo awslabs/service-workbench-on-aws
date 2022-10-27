@@ -170,6 +170,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
+                  - logs:TagLogGroup
                 Effect: Allow
                 Resource: '*'
               - Action:
@@ -272,6 +273,7 @@ Resources:
               - logs:CreateLogGroup
               - logs:DeleteLogGroup
               - logs:DeleteLogStream
+              - logs:TagLogGroup
             Resource:
               - !Sub 'arn:aws:logs:*:${AWS::AccountId}:log-group:/aws/*'
               - !Sub 'arn:aws:logs:*:${AWS::AccountId}:log-group:/aws/*:log-stream:*'
