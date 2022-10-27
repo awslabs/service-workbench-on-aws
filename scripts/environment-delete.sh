@@ -387,11 +387,11 @@ printf "\n\n\n--- Post-Deployment stack\n"
 removeStack "Post-Deployment" "$SOLUTION_DIR/post-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
 
 # -- Edge-Lambda stack
-printf "\n\n\n--- Edge-Lambda stack"
+printf "\n\n\n--- Edge-Lambda stack\n"
 removeStack "Edge-Lambda" "$SOLUTION_DIR/edge-lambda" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
 
 # -- Backend stack
-printf "\n\n\n--- Backend stack"
+printf "\n\n\n--- Backend stack\n"
 buckets=("studydata" "external-templates" "env-type-configs" "environments-bootstrap-scripts")
 removeStack "Backend" "$SOLUTION_DIR/backend" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
 
@@ -400,7 +400,7 @@ printf "\n\n\n--- Pre-Deployment stack\n"
 removeStack "Pre-Deployment" "$SOLUTION_DIR/pre-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
 
 # -- Infrastructure stack
-printf "\n\n\n--- Infrastructure stack"
+printf "\n\n\n--- Infrastructure stack\n"
 edgeLambdaFunctionName=$(getCfLambdaAssociations)
 buckets=("website" "logging")
 removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
@@ -421,15 +421,22 @@ else
 fi
 
 # -- Prep-Master stack (master role)
-printf "\n\n\n--- Master-Account-Role stack"
+printf "\n\n\n--- Master-Account-Role stack\n"
 buckets=("raas-master-artifacts")
 removeStack "Prep-Master-Account" "$SOLUTION_DIR/prepare-master-acc" "DONT_ASK_CONFIRMATION"
 org_aws_profile="$(cat $SOLUTION_DIR/prepare-master-acc/config/settings/$STAGE.yml | grep 'awsProfile:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+if [ -z "${org_aws_profile}" ]; then
+    printf "\n\nWARNING: M'awsProfile' value is missing in /main/solutions/prepare-master-acc/config/settings/<stage>.yml file.
+\nAssuming this script is being run with master account set as default CLI config, or in the master account container for CI/CD
+\nPLEASE STOP THIS SCRIPT IF THIS IS NOT TRUE\n\nWaiting 30 seconds for user interrupt"
+    org_aws_profile="NO_PROFILE"
+    sleep 30
+fi
 # The '-raas-master-artifacts' bucket is the deployment bucket and has to be removed after the stack deletion
 emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "DONT_ASK_CONFIRMATION" $org_aws_profile ${buckets[@]}
 
 # -- CICD
-printf "\n\n\n--- CICD"
+printf "\n\n\n--- CICD\n"
 buckets=("cicd-appartifacts")
 cicd_pipeline_aws_profile="$(cat $SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline/config/settings/$STAGE.yml | grep 'awsProfile:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
 removeStack "CICD-Pipeline" "$SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline" "ASK_CONFIRMATION" $cicd_pipeline_aws_profile ${buckets[@]}
@@ -437,7 +444,7 @@ cicd_source_aws_profile="$(cat $SOLUTION_ROOT_DIR/main/cicd/cicd-source/config/s
 removeStack "CICD-Source" "$SOLUTION_ROOT_DIR/main/cicd/cicd-source" "ASK_CONFIRMATION" $cicd_source_aws_profile ${buckets[@]}
 
 # -- Deployment buckets
-printf "\n\n\n--- Deployment buckets"
+printf "\n\n\n--- Deployment buckets\n"
 buckets=("artifacts")
 emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
 
