@@ -109,7 +109,7 @@ function removeCfLambdaAssociations() {
     local lambdaFunctionName=$1
     local aws_profile=$2
     if [[ "$functionName" != "" ]]; then
-        if [[ "$aws_profile" == "" ]]; then
+        if [[ "$aws_profile" == "NO_PROFILE" ]]; then
             aws lambda delete-function --function-name $lambdaFunctionName
         else
             aws lambda delete-function --function-name $lambdaFunctionName --profile $aws_profile
@@ -181,7 +181,7 @@ function emptyS3Bucket() {
             printf "$message Removing objects versions : $i/$count"
             key=$(echo $versions | jq .[$i].Key | sed -e 's/\"//g')
             versionId=$(echo $versions | jq .[$i].VersionId | sed -e 's/\"//g')
-            if [[ "$aws_profile" == "" ]]; then
+            if [[ "$aws_profile" == "NO_PROFILE" ]]; then
                 cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
             else
                 cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId --profile $aws_profile)
@@ -197,7 +197,7 @@ function emptyS3Bucket() {
             printf "$message Removing markers : $i/$count"
             key=$(echo $markers | jq .[$i].Key | sed -e 's/\"//g')
             versionId=$(echo $markers | jq .[$i].VersionId | sed -e 's/\"//g')
-            if [[ "$aws_profile" == "" ]]; then
+            if [[ "$aws_profile" == "NO_PROFILE" ]]; then
                 cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
             else
                 cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId --profile $aws_profile)
@@ -208,7 +208,7 @@ function emptyS3Bucket() {
 
     if [ $delete_option == "DELETE_AFTER_EMPTYING" ]; then
         printf "\n- Deleting bucket $bucket ... "
-        if [[ "$aws_profile" == "" ]]; then
+        if [[ "$aws_profile" == "NO_PROFILE" ]]; then
             cmd=$(aws s3api delete-bucket --bucket $bucket --region $region)
         else
             cmd=$(aws s3api delete-bucket --bucket $bucket --region $region --profile $aws_profile)
@@ -245,7 +245,7 @@ function emptyS3BucketsFromNames() {
         local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml $CONFIG_DIR/settings/.defaults.yml | grep 'solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
 
         local account_number=""
-        if [[ "$aws_profile" == "" ]]; then
+        if [[ "$aws_profile" == "NO_PROFILE" ]]; then
             printf "\nAWS Profile not provided for emptying these buckets. Assuming this is being run in the correct account's container"
             account_number=$(aws sts get-caller-identity --query Account --output text)
         else
@@ -278,7 +278,7 @@ function removeSsmParams() {
     for param in "${paramNames[@]}"; do
         set +e
         printf "\nDeleting param $param"
-        if [[ "$aws_profile" == "" ]]; then
+        if [[ "$aws_profile" == "NO_PROFILE" ]]; then
             aws ssm delete-parameter --region $regionName --name $param > /dev/null
         else
             aws ssm delete-parameter --region $regionName --profile $aws_profile --name $param > /dev/null
@@ -300,7 +300,7 @@ function removeServiceCatalogPortfolio() {
     if [[ "$portfolioId" != "" ]]; then
         
         
-        if [[ "$aws_profile" == "" ]]; then
+        if [[ "$aws_profile" == "NO_PROFILE" ]]; then
             local portfolioId=$(aws dynamodb get-item --region $aws_region --table-name "$STAGE-$aws_region_shortname-$solutionName-DeploymentStore" --key '{"type": {"S": "default-sc-portfolio"}, "id": {"S": "default-SC-portfolio-1"}}' --output text | grep -o 'port-[^"]*\b')
             local constraintIds=$(aws servicecatalog list-constraints-for-portfolio --region $aws_region --portfolio-id "$portfolioId" --query "ConstraintDetails[].ConstraintId" --output text)
             constraintIds=(`echo ${constraintIds}`)
@@ -368,7 +368,7 @@ if [ -z "${main_acct_aws_profile}" ]; then
     printf "\n\nWARNING: Main Account's 'awsProfile' value is missing in /main/config/settings/<stage>.yml file.
 \nAssuming this script is being run with main account set as default CLI config, or in a main account container for CI/CD
 \nPLEASE STOP THIS SCRIPT IF THIS IS NOT TRUE\n\nWaiting 30 seconds for user interrupt"
-    main_acct_aws_profile=""
+    main_acct_aws_profile="NO_PROFILE"
     sleep 30
 fi
 
@@ -384,13 +384,11 @@ removeComponentWithNoStack "UI" "$SOLUTION_DIR/ui" "DONT_ASK_CONFIRMATION"
 
 # -- Post-Deployment stack
 printf "\n\n\n--- Post-Deployment stack\n"
-buckets=()
-removeStack "Post-Deployment" "$SOLUTION_DIR/post-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
+removeStack "Post-Deployment" "$SOLUTION_DIR/post-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
 
 # -- Edge-Lambda stack
 printf "\n\n\n--- Edge-Lambda stack"
-buckets=()
-removeStack "Edge-Lambda" "$SOLUTION_DIR/edge-lambda" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
+removeStack "Edge-Lambda" "$SOLUTION_DIR/edge-lambda" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
 
 # -- Backend stack
 printf "\n\n\n--- Backend stack"
@@ -399,8 +397,7 @@ removeStack "Backend" "$SOLUTION_DIR/backend" "DONT_ASK_CONFIRMATION" $main_acct
 
 # -- Pre-Deployment stack
 printf "\n\n\n--- Pre-Deployment stack\n"
-buckets=()
-removeStack "Pre-Deployment" "$SOLUTION_DIR/pre-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile ${buckets[@]}
+removeStack "Pre-Deployment" "$SOLUTION_DIR/pre-deployment" "DONT_ASK_CONFIRMATION" $main_acct_aws_profile
 
 # -- Infrastructure stack
 printf "\n\n\n--- Infrastructure stack"
