@@ -109,7 +109,11 @@ function removeCfLambdaAssociations() {
     local lambdaFunctionName=$1
     local aws_profile=$2
     if [[ "$functionName" != "" ]]; then
-        aws lambda delete-function --function-name $lambdaFunctionName --profile $aws_profile
+        if [[ "$main_acct_aws_profile" == "" ]]; then
+            aws lambda delete-function --function-name $lambdaFunctionName
+        else
+            aws lambda delete-function --function-name $lambdaFunctionName --profile $aws_profile
+        fi
     fi
     set -e
 }
@@ -177,7 +181,11 @@ function emptyS3Bucket() {
             printf "$message Removing objects versions : $i/$count"
             key=$(echo $versions | jq .[$i].Key | sed -e 's/\"//g')
             versionId=$(echo $versions | jq .[$i].VersionId | sed -e 's/\"//g')
-            cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId --profile $aws_profile)
+            if [[ "$main_acct_aws_profile" == "" ]]; then
+                cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
+            else
+                cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId --profile $aws_profile)
+            fi
         done
     fi
 
@@ -189,14 +197,22 @@ function emptyS3Bucket() {
             printf "$message Removing markers : $i/$count"
             key=$(echo $markers | jq .[$i].Key | sed -e 's/\"//g')
             versionId=$(echo $markers | jq .[$i].VersionId | sed -e 's/\"//g')
-            cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId --profile $aws_profile)
+            if [[ "$main_acct_aws_profile" == "" ]]; then
+                cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
+            else
+                cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId --profile $aws_profile)
+            fi
         done
     fi
     printf "$message Done !"
 
     if [ $delete_option == "DELETE_AFTER_EMPTYING" ]; then
         printf "\n- Deleting bucket $bucket ... "
-        cmd=$(aws s3api delete-bucket --bucket $bucket --region $region --profile $aws_profile)
+        if [[ "$main_acct_aws_profile" == "" ]]; then
+            cmd=$(aws s3api delete-bucket --bucket $bucket --region $region)
+        else
+            cmd=$(aws s3api delete-bucket --bucket $bucket --region $region --profile $aws_profile)
+        fi
         printf "Done !"
     fi
     
@@ -228,18 +244,21 @@ function emptyS3BucketsFromNames() {
         local aws_region_shortname=$(cat $CONFIG_DIR/settings/.defaults.yml | grep \'$aws_region\' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015' | tr -d "'")
         local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml $CONFIG_DIR/settings/.defaults.yml | grep 'solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
 
-        if [ -z "${main_acct_aws_profile}" ]; then
-            printf "\n\nAWS Profile value was not passed for this stack. \nSkipping bucket cleanup for: [$buckets_to_remove].\n\n"
+        local account_number=""
+        if [[ "$main_acct_aws_profile" == "" ]]; then
+            printf "\nAssuming script being run in main account container"
+            account_number=$(aws sts get-caller-identity --query Account --output text)
         else
-            local account_number=$(aws sts get-caller-identity --query Account --output text --profile $aws_profile)
-            local bucket_prefix="$account_number-$STAGE-$aws_region_shortname-$solution_name"
-
-            for bucket_to_remove in "${buckets_to_remove[@]}"; do
-                local bucket="$bucket_prefix-$bucket_to_remove"
-                # Pass optional AWS Profile argument
-                emptyS3Bucket $bucket $aws_region $deleteBucket $aws_profile
-            done
+            account_number=$(aws sts get-caller-identity --query Account --output text --profile $aws_profile)
         fi
+
+        local bucket_prefix="$account_number-$STAGE-$aws_region_shortname-$solution_name"
+
+        for bucket_to_remove in "${buckets_to_remove[@]}"; do
+            local bucket="$bucket_prefix-$bucket_to_remove"
+            # Pass optional AWS Profile argument
+            emptyS3Bucket $bucket $aws_region $deleteBucket $aws_profile
+        done
     fi
 
     set -e
@@ -259,7 +278,11 @@ function removeSsmParams() {
     for param in "${paramNames[@]}"; do
         set +e
         printf "\nDeleting param $param"
-        aws ssm delete-parameter --region $regionName --profile $aws_profile --name $param > /dev/null
+        if [[ "$main_acct_aws_profile" == "" ]]; then
+            aws ssm delete-parameter --region $regionName --name $param > /dev/null
+        else
+            aws ssm delete-parameter --region $regionName --profile $aws_profile --name $param > /dev/null
+        fi
         set -e
     done
 
@@ -283,20 +306,37 @@ function removeServiceCatalogPortfolio() {
         local principals=$(aws servicecatalog list-principals-for-portfolio --region $aws_region --profile $aws_profile --portfolio-id "$portfolioId" --query "Principals[].PrincipalARN" --output text)
         principals=(`echo ${principals}`)
         
-        for constraint in "${constraintIds[@]}"; do
-            aws servicecatalog --region $aws_region --profile $aws_profile delete-constraint --id $constraint > /dev/null
-        done
+        if [[ "$main_acct_aws_profile" == "" ]]; then
+            for constraint in "${constraintIds[@]}"; do
+                aws servicecatalog --region $aws_region delete-constraint --id $constraint > /dev/null
+            done
 
-        for product in ${productIds[@]}; do
-            aws servicecatalog --region $aws_region --profile $aws_profile disassociate-product-from-portfolio --product-id $product --portfolio-id $portfolioId > /dev/null
-            aws servicecatalog --region $aws_region --profile $aws_profile delete-product --id $product > /dev/null
-        done
+            for product in ${productIds[@]}; do
+                aws servicecatalog --region $aws_region disassociate-product-from-portfolio --product-id $product --portfolio-id $portfolioId > /dev/null
+                aws servicecatalog --region $aws_region delete-product --id $product > /dev/null
+            done
 
-        for principal in ${principals[@]}; do
-            aws servicecatalog --region $aws_region --profile $aws_profile disassociate-principal-from-portfolio --portfolio-id $portfolioId --principal-arn $principal > /dev/null
-        done
+            for principal in ${principals[@]}; do
+                aws servicecatalog --region $aws_region disassociate-principal-from-portfolio --portfolio-id $portfolioId --principal-arn $principal > /dev/null
+            done
 
-        aws servicecatalog --region $aws_region --profile $aws_profile delete-portfolio --id $portfolioId > /dev/null
+            aws servicecatalog --region $aws_region delete-portfolio --id $portfolioId > /dev/null
+        else
+            for constraint in "${constraintIds[@]}"; do
+                aws servicecatalog --region $aws_region --profile $aws_profile delete-constraint --id $constraint > /dev/null
+            done
+
+            for product in ${productIds[@]}; do
+                aws servicecatalog --region $aws_region --profile $aws_profile disassociate-product-from-portfolio --product-id $product --portfolio-id $portfolioId > /dev/null
+                aws servicecatalog --region $aws_region --profile $aws_profile delete-product --id $product > /dev/null
+            done
+
+            for principal in ${principals[@]}; do
+                aws servicecatalog --region $aws_region --profile $aws_profile disassociate-principal-from-portfolio --portfolio-id $portfolioId --principal-arn $principal > /dev/null
+            done
+
+            aws servicecatalog --region $aws_region --profile $aws_profile delete-portfolio --id $portfolioId > /dev/null
+        fi
     fi
     
     set -e
@@ -305,6 +345,7 @@ function removeServiceCatalogPortfolio() {
 # Ask for confirmation to begin removal procedure
 printf "\n\n\n ****** WARNING ******"
 printf "\nTHIS COMMAND WILL HELP YOU CLEAN UP YOUR ENVIRONMENT STACKS AND LEAD TO DATA LOSS."
+printf "\nPre-Requisite: AWS CLI should be configured on your machine and credentials should be valid."
 printf "\nAre you sure you want to proceed to the deletion of the resources of the environment [$STAGE] ?"
 printf "\nType the environment name to confirm the removal : "
 read -r confirmation
@@ -315,11 +356,14 @@ fi
 
 main_acct_aws_profile="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsProfile:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
 if [ -z "${main_acct_aws_profile}" ]; then
-    printf "\n\n'awsProfile' value missing in /main/config/settings/<stage>.yml file. Exiting.\n\n"
-    exit 1
+    printf "\n\nWARNING: Main Account's 'awsProfile' value is missing in /main/config/settings/<stage>.yml file.\n
+    Assuming this script is being run with main account set as default CLI config, or in a main account container for CI/CD\n
+    PLEASE STOP THIS SCRIPT IF THIS IS NOT TRUE\n\nWaiting 30 seconds for user interrupt"
+    main_acct_aws_profile=""
+    sleep 30
 fi
 
-printf "\n\nStarting to clear the application for stage [$STAGE] using AWS Profile [$main_acct_aws_profile]...\n"
+printf "\n\nStarting to clear the application for stage [$STAGE] using main account AWS Profile [$main_acct_aws_profile]...\n"
 
 # -- Service Catalog portfolio
 printf "\n\n\n--- Removing associated Service Catalog portfolio\n"
