@@ -243,8 +243,8 @@ Resources:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
               - !If
                 - CreateStagingEnv
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
+                - - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'            
           - Action:
               - iam:PassRole
             Effect: Allow
@@ -253,8 +253,8 @@ Resources:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
               - !If
                 - CreateStagingEnv
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
+                - - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
           - Action:
               - iam:CreatePolicy
               - iam:GetPolicy
@@ -297,12 +297,12 @@ Resources:
               - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*'
               - !If
                 - CreateStagingEnv
-                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*:*'
-                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*'
-                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*:*'
-                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*'
-                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*:*'
-                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*'
+                - - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*:*'
+                  - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*'
+                  - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*:*'
+                  - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*'
+                  - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*:*'
+                  - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*'
           - Action:
               - 's3:*'
             Effect: Allow
@@ -313,10 +313,10 @@ Resources:
               - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*/*
               - !If
                 - CreateStagingEnv
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*/*
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*/*
+                - - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*
+                  - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*/*
+                  - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*
+                  - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*/*
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -395,8 +395,8 @@ Resources:
               - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*'
               - !If
                 - CreateStagingEnv
-                - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.stgNamespace}-*'
-                - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*'
+                - - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.stgNamespace}-*'
+                  - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*'
           - Effect: 'Allow'
             Action:
               - kms:DescribeKey
