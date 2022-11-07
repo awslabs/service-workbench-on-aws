@@ -3,7 +3,16 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 ## Beta
-[This release is in beta. Click here to see changes since 5.2.2.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.2...mainline)
+[This release is in beta. Click here to see changes since 5.2.3.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.3...mainline)
+
+### [5.2.3](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.2...v5.2.3) (2022-10-12)
+
+
+### Bug Fixes
+
+* upgrade lambda nodejs to 16x and Serverless Framework to v3([#1047](https://github.com/awslabs/service-workbench-on-aws/pull/1047))([a0c7eee](https://github.com/awslabs/service-workbench-on-aws/commit/a0c7eeed34eea02ec56f49411cf499d1c59f0d3a))
+* tre egress store data updated S3 return ([#1054](https://github.com/awslabs/service-workbench-on-aws/issues/1054)) ([a80aa7e](https://github.com/awslabs/service-workbench-on-aws/commit/a80aa7eac48ed4052e17627b8e369b38ffa9ae31))
+* use "" as default profile if no awsProfile ([#1050](https://github.com/awslabs/service-workbench-on-aws/issues/1050)) ([863cb06](https://github.com/awslabs/service-workbench-on-aws/commit/863cb06588084ea3026b0dd08dbf71ee3f4ffb80))
 
 ### [5.2.2](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.1...v5.2.2) (2022-09-02)
 

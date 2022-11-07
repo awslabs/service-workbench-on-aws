@@ -56,42 +56,17 @@ describe('Get user role scenarios', () => {
   };
 
   describe('Getting user roles', () => {
-    it('should fail if user is inactive', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      await adminSession.resources.users.deactivateUser(researcherSession.user);
-
-      await expect(researcherSession.resources.userRoles.get()).rejects.toMatchObject({
+    it.each(['admin', 'researcher', 'guest', 'internal-guest'])('should fail for inactive %p', async role => {
+      const currentSession = await setup.createUserSession({ userRole: role, projectId: [] });
+      await adminSession.resources.users.deactivateUser(currentSession.user);
+      await expect(currentSession.resources.userRoles.get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should pass if researcher attempts to get user roles', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      await expect(researcherSession.resources.userRoles.get()).resolves.toEqual(
-        expect.arrayContaining([
-          expect.objectContaining(adminRole),
-          expect.objectContaining(internalGuestRole),
-          expect.objectContaining(internalResearcherRole),
-          expect.objectContaining(externalGuestRole),
-        ]),
-      );
-    });
-
-    it('should pass if internal guest attempts to get user roles', async () => {
-      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.userRoles.get()).resolves.toEqual(
-        expect.arrayContaining([
-          expect.objectContaining(adminRole),
-          expect.objectContaining(internalGuestRole),
-          expect.objectContaining(internalResearcherRole),
-          expect.objectContaining(externalGuestRole),
-        ]),
-      );
-    });
-
-    it('should pass if external guest attempts to get user roles', async () => {
-      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.userRoles.get()).resolves.toEqual(
+    it.each(['admin', 'researcher', 'guest', 'internal-guest'])('should pass for %p', async role => {
+      const currentSession = await setup.createUserSession({ userRole: role, projectId: [] });
+      await expect(currentSession.resources.userRoles.get()).resolves.toEqual(
         expect.arrayContaining([
           expect.objectContaining(adminRole),
           expect.objectContaining(internalGuestRole),

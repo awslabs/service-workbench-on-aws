@@ -17,8 +17,8 @@ const _ = require('lodash');
 const Service = require('@amzn/base-services-container/lib/service');
 const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 
-const createSchema = require('../schema/create-wf-assignment');
-const updateSchema = require('../schema/update-wf-assignment');
+const createSchema = require('../schema/create-wf-assignment.json');
+const updateSchema = require('../schema/update-wf-assignment.json');
 
 const settingKeys = {
   tableName: 'dbWfAssignments',

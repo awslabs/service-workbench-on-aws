@@ -15,7 +15,7 @@
 
 const Service = require('@amzn/base-services-container/lib/service');
 
-const inputSchema = require('./schema/username-password-credentials');
+const inputSchema = require('./schema/username-password-credentials.json');
 
 class DbAuthenticationService extends Service {
   constructor() {

@@ -124,3 +124,7 @@ The pipeline stops upon failure of any stage and notifies user via configured SN
   
     pnpx sls deploy --stage <env-name>
   ```
+
+  Note: Delete the `awsProfile` line from `/main/config/settings/<stage>.yml` file while deploying the CI/CD stack to avoid the following error in CodePipeline:
+  
+  `CredentialsError: Missing credentials in config, if using AWS_CONFIG_FILE, set AWS_SDK_LOAD_CONFIG=1`

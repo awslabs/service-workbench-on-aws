@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const Service = require('@amzn/base-services-container/lib/service');
 
-const metaSchema = require('../schema/trigger-workflow');
+const metaSchema = require('../schema/trigger-workflow.json');
 
 const settingKeys = {
   stateMachineArn: 'smWorkflow',

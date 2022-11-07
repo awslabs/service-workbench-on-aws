@@ -12,7 +12,7 @@ package:
 provider:
   name: aws
   region: ${self:custom.settings.awsRegion}
-  profile: ${self:custom.settings.awsProfile}
+  profile: ${self:custom.settings.awsProfile, ""}
 
 custom:
   settings: ${file(./config/settings/.settings.js):merged}

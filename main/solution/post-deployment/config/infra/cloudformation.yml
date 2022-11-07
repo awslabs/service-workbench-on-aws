@@ -62,6 +62,7 @@ Resources:
   RolePostDeploymentLambda:
     Type: 'AWS::IAM::Role'
     Properties:
+      RoleName: ${self:custom.settings.postDeploymentHandlerRoleName}
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -515,7 +516,7 @@ Resources:
     Type: 'AWS::Lambda::Function'
     Properties:
       Description: PreSignUp lambda to auto-confirm newly signed up users in Cognito
-      Runtime: nodejs14.x
+      Runtime: nodejs16.x
       Handler: index.handler
       FunctionName: !Sub '${self:custom.settings.namespace}-Cognito-PreSignUp'
       Role: !GetAtt PreSignUpLambdaRole.Arn

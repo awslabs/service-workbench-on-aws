@@ -20,9 +20,9 @@ const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 const { isExternalGuest, isExternalResearcher, isInternalGuest, isInternalResearcher } = require('../helpers/is-role');
-const createSchema = require('../schema/create-aws-accounts');
-const ensureExternalSchema = require('../schema/ensure-external-aws-accounts');
-const updateSchema = require('../schema/update-aws-accounts');
+const createSchema = require('../schema/create-aws-accounts.json');
+const ensureExternalSchema = require('../schema/ensure-external-aws-accounts.json');
+const updateSchema = require('../schema/update-aws-accounts.json');
 
 const settingKeys = {
   tableName: 'dbAwsAccounts',

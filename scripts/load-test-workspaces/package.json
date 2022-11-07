@@ -31,6 +31,7 @@
     "yargs": "^15.3.1"
   },
   "resolutions": {
+    "minimatch": "^3.0.5",
     "path-parse": "^1.0.7",
     "ansi-regex": "^6.0.1"
   }

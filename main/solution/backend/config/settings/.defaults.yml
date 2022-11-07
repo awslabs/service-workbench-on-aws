@@ -48,11 +48,29 @@ studyDataKmsKeyAliasArn: arn:aws:kms:${self:custom.settings.awsRegion}:${self:cu
 #   can decrypt data in the study data bucket
 studyDataKmsPolicyWorkspaceSid: Allow workspace environments to retrieve S3 objects
 
+# The name of the IAM roles created for the Lambda Authentication Layer handler
+authenticationLayerHandlerRoleName: ${self:custom.settings.namespace}-backend-RoleAuthenticationLayerHandle
+
+# The IAM role arn for the Lambda Authentication Layer handler, we need to define it in the settings because it is being passed to lambdas as an env var
+authenticationLayerHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.authenticationLayerHandlerRoleName}'
+
 # The name of the IAM role created for the Lambda API handler
 apiHandlerRoleName: ${self:custom.settings.namespace}-ApiHandler
 
 # The IAM role arn for the Lambda API handler, we need to define it in the settings because it is being passed to lambdas as an env var
 apiHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.apiHandlerRoleName}'
+
+# The name of the IAM roles created for the Lambda Open Data Scrape handler
+openDataScrapeHandlerRoleName: ${self:custom.settings.namespace}-backend-RoleOpenDataScrapeHandler
+
+# The IAM role arn for the Lambda Open Data Scrape handler, we need to define it in the settings because it is being passed to lambdas as an env var
+openDataScrapeHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.openDataScrapeHandlerRoleName}'
+
+# The name of the IAM roles created for the Lambda Data Source Reachability handler
+dataSourceReachabilityHandlerRoleName: ${self:custom.settings.namespace}-backend-RoleDataSourceReachabilityHandler
+
+# The IAM role arn for the Lambda Data Source Reachability handler, we need to define it in the settings because it is being passed to lambdas as an env var
+dataSourceReachabilityHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.dataSourceReachabilityHandlerRoleName}'
 
 # S3 bucket used to store environment type configurations (the config objects that define small, medium, large etc.
 # env launch options)

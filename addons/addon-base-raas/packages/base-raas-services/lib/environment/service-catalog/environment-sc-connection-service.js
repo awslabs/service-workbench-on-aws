@@ -20,7 +20,7 @@ const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
 const Service = require('@amzn/base-services-container/lib/service');
 const { retry, linearInterval } = require('@amzn/base-services/lib/helpers/utils');
-const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc');
+const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc.json');
 const { connectionScheme } = require('./environment-sc-connection-enum');
 const { cfnOutputsToConnections } = require('./helpers/connections-util');
 

@@ -18,8 +18,8 @@ const Service = require('@amzn/base-services-container/lib/service');
 
 const { runAndCatch, generateId } = require('../helpers/utils');
 const { toUserNamespace } = require('./helpers/user-namespace');
-const createUserJsonSchema = require('../schema/create-user');
-const updateUserJsonSchema = require('../schema/update-user');
+const createUserJsonSchema = require('../schema/create-user.json');
+const updateUserJsonSchema = require('../schema/update-user.json');
 
 const settingKeys = {
   tableName: 'dbUsers',

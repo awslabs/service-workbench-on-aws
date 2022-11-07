@@ -8,9 +8,9 @@ package:
 
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs16.x
   region: ${self:custom.settings.awsRegion}
-  profile: ${self:custom.settings.awsProfile}
+  profile: ${self:custom.settings.awsProfile, ""}
   stackName: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     name: ${self:custom.settings.deploymentBucketName}
@@ -21,7 +21,6 @@ provider:
   # All other ${* references will be resolved by CloudFormation
   # See https://forum.serverless.com/t/getting-handle-accountid-in-serverless-config/946/11 and
   # See https://github.com/serverless/serverless/issues/5011
-  variableSyntax: '\$\{((((self|opt|deep|cf):)|file)((?!\$\{).)+?)}'
   logs:
     restApi:
       format: '{"authorizer.principalId":"$context.authorizer.principalId","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'
@@ -55,34 +54,34 @@ custom:
     environmentOverrides: # when running locally
       provider:
         APP_AWS_REGION: ${self:custom.settings.awsRegion} # this is needed for local development
-        APP_AWS_PROFILE: ${self:custom.settings.awsProfile} # this is needed for local development
-        APP_USE_AWS_PROFILE: ${self:custom.settings.useAwsProfile}
+        APP_AWS_PROFILE: ${self:custom.settings.awsProfile, ""} # this is needed for local development
+        APP_USE_AWS_PROFILE: ${self:custom.settings.useAwsProfile, ""}
         IS_OFFLINE: true
         APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: ${self:custom.settings.localRoleAutoAdjustTrust} # Auto adjust trust policy of the lambda execution role to allow assumeRole from local machine
       lambdas:
         authenticationLayerHandler:
           environment:
-            APP_LOCAL_ROLE_ARN: ${cfnOutput('AuthenticationLayerHandlerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_ARN: ${self:custom.settings.authenticationLayerHandlerRoleArn}
         apiHandler:
           environment:
-            APP_LOCAL_ROLE_ARN: ${cfnOutput('ApiHandlerRoleArn')} # When running locally, run under this role
-            APP_ENV_MGMT_ROLE_ARN: ${cfnOutput('EnvMgmtRoleArn')}
+            APP_LOCAL_ROLE_ARN: ${self:custom.settings.apiHandlerRoleArn}
+            APP_ENV_MGMT_ROLE_ARN: ${self:custom.settings.envMgmtRoleArn}
         workflowLoopRunner:
           environment:
-            APP_LOCAL_ROLE_ARN: ${cfnOutput('WorkflowLoopRunnerRoleArn')} # When running locally, run under this role
-            APP_ENV_MGMT_ROLE_ARN: ${cfnOutput('EnvMgmtRoleArn')}
+            APP_LOCAL_ROLE_ARN: ${self:custom.settings.workflowLoopRunnerRoleArn}
+            APP_ENV_MGMT_ROLE_ARN: ${self:custom.settings.envMgmtRoleArn}
         openDataScrapeHandler:
           environment:
-            APP_LOCAL_ROLE_ARN: ${cfnOutput('OpenDataScrapeHandlerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_ARN: ${self:custom.settings.openDataScrapeHandlerRoleArn}
         envStatusPollHandler:
           environment:
-            APP_LOCAL_ROLE_ARN: ${cfnOutput('ApiHandlerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_ARN: ${self:custom.settings.apiHandlerRoleArn}
         dataSourceReachabilityHandler:
           environment:
-            APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_ARN: ${self:custom.settings.dataSourceReachabilityHandlerRoleArn}
         dataSourceReachabilityDailyHandler:
           environment:
-            APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # Use same role arn as the one above (used for more frequent cron lambda)
+            APP_LOCAL_ROLE_ARN: ${self:custom.settings.dataSourceReachabilityHandlerRoleArn}
   s3Sync:
     - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required
       localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/external

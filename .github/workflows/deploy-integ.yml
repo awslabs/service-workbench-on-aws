@@ -28,9 +28,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - uses: actions/setup-go@v2
         with:
           go-version: 1.13
@@ -60,9 +60,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - name: Install pnpm and system libraries
         run: |
           npm install -g pnpm@5.18.9
@@ -87,9 +87,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - name: Install pnpm and system libraries
         run: |
           npm install -g pnpm@5.18.9
@@ -108,6 +108,10 @@ jobs:
           CYPRESS_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD}}
           CYPRESS_adminEmail: ${{ secrets.CYPRESS_ADMIN_EMAIL}}
           CYPRESS_adminPassword: ${{ secrets.CYPRESS_ADMIN_PASSWORD}}
+          CYPRESS_guestEmail: ${{ secrets.CYPRESS_GUEST_EMAIL}}
+          CYPRESS_guestPassword: ${{ secrets.CYPRESS_GUEST_PASSWORD}}
+          CYPRESS_internalGuestEmail: ${{ secrets.CYPRESS_INTERNAL_GUEST_EMAIL}}
+          CYPRESS_internalGuestPassword: ${{ secrets.CYPRESS_INTERNAL_GUEST_PASSWORD}}
   check-codepipeline-status:
     name: Check Github Status
     runs-on: ubuntu-20.04
@@ -116,9 +120,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 12
+          node-version: 16
       - name: Wait until CodePipeline status is shown
         run: |
           npm install
