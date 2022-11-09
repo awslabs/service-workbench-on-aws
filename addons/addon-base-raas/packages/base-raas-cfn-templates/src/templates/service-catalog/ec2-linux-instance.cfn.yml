@@ -190,6 +190,7 @@ Resources:
             VolumeSize: 8
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
+      PropagateTagsToVolumeOnCreation: true
       NetworkInterfaces:
         - AssociatePublicIpAddress: !If [ AppStreamEnabled, 'false', 'true' ]
           DeviceIndex: '0'
