@@ -159,7 +159,7 @@ case "$(env_type)" in
         sudo yum --disablerepo=* localinstall -y *.rpm
         echo "Finish installing fuse"
         update_jupyter_config "/home/ec2-user/.jupyter/jupyter_notebook_config.py"
-        initctl restart jupyter-server --no-wait
+        systemctl restart jupyter-server
         ;;
     "ec2-linux") # Add mount script to bash profile
         echo "Installing fuse"
