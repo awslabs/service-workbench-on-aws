@@ -2,19 +2,21 @@ Parameters:
   GitHubOAuthToken:
     Description: OAuth token used by AWS CodePipeline to connect to GitHub
     Type: String
-    Default: 'to-be-specified'
+    Default: "to-be-specified"
     NoEcho: true
 
 Conditions:
   UseCodeCommit: !Not
-    - !Equals ['${self:custom.settings.sourceAccountId}', '']
-  CreateStagingEnv: !Equals ['${self:custom.settings.createStagingEnv}', true]
-  RunTestsAgainstTargetEnv: !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
-  DeleteTargetEnv: !Equals ['${self:custom.settings.deleteAfterInstall}', true]
-  PreventCollision: !Equals ['${self:custom.settings.preventCollision}', true]
-  AddManualApproval: !Equals ['${self:custom.settings.requireManualApproval}', true]
+    - !Equals ["${self:custom.settings.sourceAccountId}", ""]
+  CreateStagingEnv: !Equals ["${self:custom.settings.createStagingEnv}", true]
+  RunTestsAgainstTargetEnv:
+    !Equals ["${self:custom.settings.runTestsAgainstTargetEnv}", true]
+  DeleteTargetEnv: !Equals ["${self:custom.settings.deleteAfterInstall}", true]
+  PreventCollision: !Equals ["${self:custom.settings.preventCollision}", true]
+  AddManualApproval:
+    !Equals ["${self:custom.settings.requireManualApproval}", true]
   SubscribeNotificationEmail: !Not
-    - !Equals ['${self:custom.settings.emailForNotifications}', '']
+    - !Equals ["${self:custom.settings.emailForNotifications}", ""]
 
 Resources:
   # SNS Topic to receive various notifications from the pipeline
@@ -34,7 +36,7 @@ Resources:
     Properties:
       PolicyDocument:
         Id: !Ref AWS::StackName
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           Effect: Allow
           Principal:
@@ -54,7 +56,7 @@ Resources:
       Description: Code & Deployment Artifact Key
       EnableKeyRotation: true
       KeyPolicy:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Id: !Ref AWS::StackName
         Statement:
           - Sid: Allows adminstration of the key to the account root user
@@ -76,7 +78,7 @@ Resources:
               - kms:UntagResource
               - kms:ScheduleKeyDeletion
               - kms:CancelKeyDeletion
-            Resource: '*'
+            Resource: "*"
           - Sid: Allow use of the key in the source account for upload and CodeBuild in pipeline account to download the code
             Effect: Allow
             Principal:
@@ -93,7 +95,7 @@ Resources:
               - kms:ReEncrypt*
               - kms:GenerateDataKey*
               - kms:DescribeKey
-            Resource: '*'
+            Resource: "*"
 
   # The artifacts S3 bucket to hold pipeline artifacts
   AppArtifactBucket:
@@ -148,7 +150,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -158,21 +160,21 @@ Resources:
       Policies:
         - PolicyName: PipelineOperationalPermissions
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Action:
                   - codecommit:GetBranch
                   - codecommit:GetCommit
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${self:custom.settings.sourceAccountId}:${self:custom.settings.repoName}'
+                  - !Sub "arn:${AWS::Partition}:codecommit:${AWS::Region}:${self:custom.settings.sourceAccountId}:${self:custom.settings.repoName}"
               - Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                   - logs:TagLogGroup
                 Effect: Allow
-                Resource: '*'
+                Resource: "*"
               - Action:
                   - s3:GetObject
                   - s3:PutObject
@@ -224,7 +226,7 @@ Resources:
     Properties:
       Description: Allows CodePipeline to create resources required for deploying SWB
       PolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Action:
               - iam:GetRole
@@ -239,32 +241,32 @@ Resources:
               - iam:*TagRole*
             Effect: Allow
             Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*"
           - Action:
               - iam:PassRole
             Effect: Allow
             Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*"
           - Action:
               - iam:CreatePolicy
               - iam:GetPolicy
               - iam:DeletePolicy
               - iam:*PolicyVersion*
             Effect: Allow
-            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-*'
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-*"
           - Action:
               - events:*
               - states:*
               - cloudfront:*
               - apigateway:*
             Effect: Allow
-            Resource: '*'
+            Resource: "*"
           - Action:
               - dynamodb:*
             Effect: Allow
-            Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.namespace}-*'
+            Resource: !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.namespace}-*"
           - Effect: Allow
             Action:
               - logs:CreateLogStream
@@ -275,20 +277,20 @@ Resources:
               - logs:DeleteLogStream
               - logs:TagLogGroup
             Resource:
-              - !Sub 'arn:aws:logs:*:${AWS::AccountId}:log-group:/aws/*'
-              - !Sub 'arn:aws:logs:*:${AWS::AccountId}:log-group:/aws/*:log-stream:*'
+              - !Sub "arn:aws:logs:*:${AWS::AccountId}:log-group:/aws/*"
+              - !Sub "arn:aws:logs:*:${AWS::AccountId}:log-group:/aws/*:log-stream:*"
           - Effect: Allow
             Action:
               - lambda:*
             Resource:
-              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*:*'
-              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*'
-              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*:*'
-              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*'
-              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*:*'
-              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*'
+              - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*:*"
+              - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*"
+              - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*:*"
+              - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*"
+              - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*:*"
+              - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*"
           - Action:
-              - 's3:*'
+              - "s3:*"
             Effect: Allow
             Resource:
               - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*
@@ -300,7 +302,7 @@ Resources:
               - ssm:GetParameter
               - ssm:DeleteParameter
             Resource:
-              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.envName}/*'
+              - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.envName}/*"
           - Effect: Allow
             Action:
               - iam:ListRoles
@@ -314,7 +316,7 @@ Resources:
               - kms:GenerateRandom
               - s3:ListBucket
             Resource:
-              - '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+              - "*" # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:
               - iam:CreateServiceLinkedRole
@@ -322,7 +324,7 @@ Resources:
               - iam:GetServiceLinkedRoleDeletionStatus
               - iam:UpdateRoleDescription
             Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/*'
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/aws-service-role/*"
           - Effect: Allow
             Action:
               - codebuild:CreateReportGroup
@@ -330,7 +332,7 @@ Resources:
               - codebuild:BatchPutTestCases
               - codebuild:UpdateReport
             Resource:
-              - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
+              - !Sub "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*"
           - !If
             - DeleteTargetEnv
             - Effect: Allow
@@ -340,8 +342,8 @@ Resources:
                 - servicecatalog:DeletePortfolio
                 - servicecatalog:DisassociatePrincipalFromPortfolio
               Resource:
-                - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*'
-                - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:product/*'
+                - !Sub "arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*"
+                - !Sub "arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:product/*"
             - !Ref AWS::NoValue
           - !If
             - DeleteTargetEnv
@@ -350,7 +352,7 @@ Resources:
                 - servicecatalog:ListConstraintsForPortfolio
                 - servicecatalog:DeleteConstraint
                 - servicecatalog:DisassociateProductFromPortfolio
-              Resource: '*'
+              Resource: "*"
             - !Ref AWS::NoValue
           - Effect: Allow
             Action:
@@ -366,9 +368,9 @@ Resources:
               - cloudformation:CreateChangeSet
               - cloudformation:DeleteChangeSet
             Resource:
-              - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.namespace}-*'
-              - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*'
-          - Effect: 'Allow'
+              - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.namespace}-*"
+              - !Sub "arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*"
+          - Effect: "Allow"
             Action:
               - kms:DescribeKey
               - kms:EnableKey
@@ -389,13 +391,13 @@ Resources:
               - kms:GetKeyPolicy
               - kms:EnableKeyRotation
             Resource:
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*'
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*"
+              - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*"
           - Action:
               - iam:PutRolePermissionsBoundary
               - iam:DeleteRolePermissionsBoundary
             Effect: Allow
-            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
           - Action:
               - iam:PutRolePermissionsBoundary
               - iam:DeleteRolePermissionsBoundary
@@ -406,11 +408,11 @@ Resources:
               - iam:DetachRolePolicy
             Effect: Deny
             Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-cicd-pipeline-PolicyAppDeployer-*'
+              - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*"
+              - !Sub "arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-cicd-pipeline-PolicyAppDeployer-*"
           - !If
             - RunTestsAgainstTargetEnv
-            - Effect: 'Allow'
+            - Effect: "Allow"
               Action:
                 - servicecatalog:CreateProduct
                 - servicecatalog:AssociateProductWithPortfolio
@@ -419,28 +421,183 @@ Resources:
                 - servicecatalog:DeleteConstraint
                 - servicecatalog:DeleteProduct
               Resource:
-                - !Sub 'arn:aws:servicecatalog:${AWS::Region}:${AWS::AccountId}:*'
-                - !Sub 'arn:aws:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*'
-                - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*'
-                - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:product/*'
+                - !Sub "arn:aws:servicecatalog:${AWS::Region}:${AWS::AccountId}:*"
+                - !Sub "arn:aws:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*"
+                - !Sub "arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*"
+                - !Sub "arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:product/*"
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:*
             - !Ref AWS::NoValue
           - !If
             - RunTestsAgainstTargetEnv
-            - Effect: 'Allow'
+            - Effect: "Allow"
               Action:
                 - cognito-idp:AdminInitiateAuth
                 - cognito-idp:AdminDeleteUser
                 - cognito-idp:SignUp
               Resource:
-                - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+                - !Sub "arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*"
+            - !Ref AWS::NoValue
+
+  PolicyAppDeployerStaging:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows CodePipeline to create resources required for deploying SWB with staging env
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - iam:GetRole
+                - iam:GetRolePolicy
+                - iam:CreateRole
+                - iam:PutRolePolicy
+                - iam:AttachRolePolicy
+                - iam:DeleteRole
+                - iam:DeleteRolePolicy
+                - iam:DetachRolePolicy
+                - iam:UpdateRoleDescription
+                - iam:*TagRole*
+              Effect: Allow
+              Resource:
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*"
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - iam:PassRole
+              Effect: Allow
+              Resource:
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*"
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: Allow
+              Action:
+                - iam:CreatePolicy
+                - iam:GetPolicy
+                - iam:DeletePolicy
+                - iam:*PolicyVersion*
+              Resource:
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - dynamodb:*
+              Effect: Allow
+              Resource:
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: Allow
+              Action:
+                - lambda:*
+              Resource:
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*:*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*:*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*:*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*"
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - "s3:*"
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*/*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*/*
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:DeleteParameter
+              Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.envName}/*"
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: Allow
+              Action:
+                - cloudformation:CreateStack
+                - cloudformation:DeleteStack
+                - cloudformation:DescribeStacks
+                - cloudformation:UpdateStack
+                - cloudformation:GetTemplate
+                - cloudformation:ListStackResources
+                - cloudformation:DescribeStackEvents
+                - cloudformation:ExecuteChangeSet
+                - cloudformation:DescribeChangeSet
+                - cloudformation:CreateChangeSet
+                - cloudformation:DeleteChangeSet
+              Resource:
+                - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.namespace}-*"
+                - !Sub "arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*"
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: "Allow"
+              Action:
+                - kms:DescribeKey
+                - kms:EnableKey
+                - kms:Encrypt
+                - kms:Decrypt
+                - kms:CreateAlias
+                - kms:DeleteAlias
+                - kms:ScheduleKeyDeletion
+                - kms:ListKeyPolicies
+                - kms:ReEncrypt*
+                - kms:GenerateDataKey
+                - kms:ListGrants
+                - kms:GenerateDataKeyWithoutPlaintext
+                - kms:CreateGrant
+                - kms:RevokeGrant
+                - kms:TagResource
+                - kms:UntagResource
+                - kms:GetKeyPolicy
+                - kms:EnableKeyRotation
+              Resource:
+                - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*"
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - iam:PutRolePermissionsBoundary
+                - iam:DeleteRolePermissionsBoundary
+              Effect: Allow
+              Resource:
+                - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*"
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - iam:PutRolePermissionsBoundary
+                - iam:DeleteRolePermissionsBoundary
+                - iam:CreateRole
+                - iam:PutRolePolicy
+                - iam:AttachRolePolicy
+                - iam:DeleteRolePolicy
+                - iam:DetachRolePolicy
+              Effect: Deny
+              Resource:
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-cicd-pipeline-PolicyAppDeployer-*"
             - !Ref AWS::NoValue
 
   AppDeployerRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -452,6 +609,7 @@ Resources:
         # The permissions required by stacks are very fluid and dependent on which resources are declared in those
         # stacks
         - !Ref PolicyAppDeployer
+        - !Ref PolicyAppDeployerStaging
       PermissionsBoundary: !Ref PolicyAppDeployer
 
   # Role that allows triggering the CodePipeline. This role is assumed by CloudWatch Events from the Source AWS Account
@@ -462,7 +620,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -471,11 +629,11 @@ Resources:
       Policies:
         - PolicyName: cwe-pipeline-execution
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: codepipeline:StartPipelineExecution
-                Resource: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}'
+                Resource: !Sub "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}"
 
   AppPipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -503,11 +661,11 @@ Resources:
                   Category: Source
                   Owner: AWS
                   Provider: CodeCommit
-                  Version: '1'
+                  Version: "1"
                 Configuration:
                   RepositoryName: ${self:custom.settings.repoName}
                   BranchName: ${self:custom.settings.repoBranch}
-                  PollForSourceChanges: 'false'
+                  PollForSourceChanges: "false"
                 OutputArtifacts:
                   - Name: SourceArtifact
                 Region: ${self:custom.settings.sourceAwsRegion}
@@ -519,7 +677,7 @@ Resources:
                   Category: Source
                   Owner: ThirdParty
                   Provider: GitHub
-                  Version: '1'
+                  Version: "1"
                 Configuration:
                   OAuthToken: !Ref GitHubOAuthToken
                   Owner: ${self:custom.settings.githubOwner}
@@ -540,7 +698,7 @@ Resources:
                   Category: Build
                   Owner: AWS
                   Provider: CodeBuild
-                  Version: '1'
+                  Version: "1"
                 Configuration:
                   ProjectName: !Ref StgEnvDeployProject
                 InputArtifacts:
@@ -557,7 +715,7 @@ Resources:
                   Category: Build
                   Owner: AWS
                   Provider: CodeBuild
-                  Version: '1'
+                  Version: "1"
                 Configuration:
                   ProjectName: !Ref TestStgEnvProject
                 InputArtifacts:
@@ -574,7 +732,7 @@ Resources:
                   Category: Approval
                   Owner: AWS
                   Provider: Manual
-                  Version: '1'
+                  Version: "1"
                 Configuration:
                   NotificationArn: !Ref PipelineNotificationsTopic
           - !Ref AWS::NoValue
@@ -591,7 +749,7 @@ Resources:
                     Category: Build
                     Owner: AWS
                     Provider: CodeBuild
-                    Version: '1'
+                    Version: "1"
                   Configuration:
                     ProjectName: !Ref PreventCollisionProject
                   InputArtifacts:
@@ -607,7 +765,7 @@ Resources:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
-                Version: '1'
+                Version: "1"
               Configuration:
                 ProjectName: !Ref TargetEnvDeployProject
               InputArtifacts:
@@ -623,7 +781,7 @@ Resources:
                   Category: Build
                   Owner: AWS
                   Provider: CodeBuild
-                  Version: '1'
+                  Version: "1"
                 Configuration:
                   ProjectName: !Ref TestTargetEnvProject
                 InputArtifacts:
@@ -640,7 +798,7 @@ Resources:
                   Category: Build
                   Owner: AWS
                   Provider: CodeBuild
-                  Version: '1'
+                  Version: "1"
                 Configuration:
                   ProjectName: !Ref DeleteTargetEnvProject
                 InputArtifacts:
@@ -817,7 +975,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -826,11 +984,11 @@ Resources:
       Policies:
         - PolicyName: PipelineOperationalPermissions
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action: codepipeline:StartPipelineExecution
-                Resource: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}'
+                Resource: !Sub "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}"
 
   # CloudWatch event rule to trigger the CodePipeline
   PipelineTriggerRule:
@@ -842,7 +1000,7 @@ Resources:
         source: [aws.codecommit]
         detail-type: [CodeCommit Repository State Change]
         resources:
-          - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${self:custom.settings.sourceAccountId}:${self:custom.settings.repoName}'
+          - !Sub "arn:${AWS::Partition}:codecommit:${AWS::Region}:${self:custom.settings.sourceAccountId}:${self:custom.settings.repoName}"
         detail:
           event: [referenceCreated, referenceUpdated]
           referenceType: [branch]
@@ -851,7 +1009,7 @@ Resources:
       State: ENABLED
       Targets:
         - Id: !Ref AppPipeline
-          Arn: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}'
+          Arn: !Sub "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}"
           RoleArn: !GetAtt CodeCommitSourceEventRole.Arn
 
   # CloudWatch event rule to notify SNS topic whenever there is a failure in AWS CodePipeline
@@ -875,7 +1033,7 @@ Resources:
           Arn: !Ref PipelineNotificationsTopic
           InputTransformer:
             InputPathsMap:
-              pipeline: '$.detail.pipeline'
+              pipeline: "$.detail.pipeline"
             InputTemplate: '{"The Pipeline has failed.":<pipeline>}'
 
   # A resource level policy for the default event bus in the target account (target account = the AWS account where code need to be deployed)
@@ -893,5 +1051,8 @@ Outputs:
   AppArtifactBucketArn: { Value: !GetAtt AppArtifactBucket.Arn }
   ArtifactBucketKeyArn: { Value: !GetAtt ArtifactBucketKey.Arn }
   AppPipelineName: { Value: !Ref AppPipeline }
-  AppPipelineArn: { Value: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}' }
+  AppPipelineArn:
+    {
+      Value: !Sub "arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}",
+    }
   PipelineNotificationsTopic: { Value: !Ref PipelineNotificationsTopic }
