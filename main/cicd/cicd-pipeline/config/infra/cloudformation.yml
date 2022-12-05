@@ -460,8 +460,8 @@ Resources:
                 - iam:*TagRole*
               Effect: Allow
               Resource:
-                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
-                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*"
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -469,8 +469,8 @@ Resources:
                 - iam:PassRole
               Effect: Allow
               Resource:
-                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
-                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*"
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -481,7 +481,7 @@ Resources:
                 - iam:DeletePolicy
                 - iam:*PolicyVersion*
               Resource:
-                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*"
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -489,7 +489,7 @@ Resources:
                 - dynamodb:*
               Effect: Allow
               Resource:
-                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*"
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -497,12 +497,12 @@ Resources:
               Action:
                 - lambda:*
               Resource:
-                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*:*"
-                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*"
-                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*:*"
-                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*"
-                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*:*"
-                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*:*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*:*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*:*"
+                - !Sub "arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*"
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -510,10 +510,10 @@ Resources:
                 - "s3:*"
               Effect: Allow
               Resource:
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*/*
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*/*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*/*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*/*
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -522,7 +522,7 @@ Resources:
                 - ssm:GetParameter
                 - ssm:DeleteParameter
               Resource:
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.envName}/*"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.stgEnvName}/*"
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -540,8 +540,8 @@ Resources:
                 - cloudformation:CreateChangeSet
                 - cloudformation:DeleteChangeSet
               Resource:
-                - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.namespace}-*"
-                - !Sub "arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*"
+                - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.stgNamespace}-*"
+                - !Sub "arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*"
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -566,7 +566,7 @@ Resources:
                 - kms:GetKeyPolicy
                 - kms:EnableKeyRotation
               Resource:
-                - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*"
+                - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.stgNamespace}*"
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -575,7 +575,7 @@ Resources:
                 - iam:DeleteRolePermissionsBoundary
               Effect: Allow
               Resource:
-                - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*"
+                - !Sub "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.stgNamespace}*"
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -589,8 +589,8 @@ Resources:
                 - iam:DetachRolePolicy
               Effect: Deny
               Resource:
-                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*"
-                - !Sub "arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-cicd-pipeline-PolicyAppDeployer-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-cicd-pipeline-AppDeployerRole-*"
+                - !Sub "arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.stgNamespace}-cicd-pipeline-PolicyAppDeployer-*"
             - !Ref AWS::NoValue
 
   AppDeployerRole:
