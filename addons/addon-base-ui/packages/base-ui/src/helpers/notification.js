@@ -17,18 +17,21 @@ import _ from 'lodash';
 import toastr from 'toastr';
 
 function displayError(msg, error, timeOut = '20000') {
+  toastr.options.escapeHtml = true;
   toastr.error(toMessage(msg, error), 'We have a problem!', { ...toasterErrorOptions, timeOut });
   if (error) console.error(msg, error);
   if (_.isError(msg)) console.error(msg);
 }
 
 function displayWarning(msg, error, timeOut = '20000') {
+  toastr.options.escapeHtml = true;
   toastr.warning(toMessage(msg, error), 'Warning!', { ...toasterWarningOptions, timeOut });
   if (error) console.error(msg, error);
   if (_.isError(msg)) console.error(msg);
 }
 
 function displaySuccess(msg, title = 'Submitted!') {
+  toastr.options.escapeHtml = true;
   toastr.success(toMessage(msg), title, toasterSuccessOptions);
 }
 
@@ -47,11 +50,11 @@ function displayFormErrors(form) {
 
 function toMessage(msg, error) {
   if (_.isError(msg)) {
-    return `${msg.message || msg.friendly} <br/>&nbsp;`;
+    return `${msg.message || msg.friendly} \n;`;
   }
 
   if (_.isError(error)) {
-    return `${msg} - ${error.message} <br/>&nbsp;`;
+    return `${msg} - ${error.message} \n;`;
   }
 
   if (_.isArray(msg)) {
@@ -59,25 +62,22 @@ function toMessage(msg, error) {
     const size = _.size(messages);
 
     if (size === 0) {
-      return 'Unknown error <br/>&nbsp;';
+      return 'Unknown error \n;';
     }
     if (size === 1) {
-      return `${messages[0]}<br/>&nbsp;`;
+      return `${messages[0]}\n;`;
     }
     const result = [];
-    result.push('<br/>');
-    result.push('<ul>');
     _.forEach(messages, message => {
-      result.push(`<li style="margin-left: -20px;">${message}</li>`);
+      result.push(`${message}\n`);
     });
-    result.push('</ul><br/>&nbsp;');
 
     return result.join('');
   }
 
-  if (_.isEmpty(msg)) return 'Unknown error <br/>&nbsp;';
+  if (_.isEmpty(msg)) return 'Unknown error \n;';
 
-  return `${msg} <br/>&nbsp;`;
+  return `${msg} \n;`;
 }
 
 // For details of options, see https://github.com/CodeSeven/toastr

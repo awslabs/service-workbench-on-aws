@@ -31,7 +31,7 @@ const schema = {
       type: 'string',
       maxLength: 100,
       minLength: 2,
-      pattern: '^[a-zA-Z0-9_\\-]*',
+      pattern: '^[A-Za-z0-9-_ ]+$',
     },
     // Description for this key-pair
     desc: {

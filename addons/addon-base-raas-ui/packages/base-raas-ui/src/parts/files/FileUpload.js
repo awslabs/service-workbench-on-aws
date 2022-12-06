@@ -22,7 +22,6 @@ import { Button, Grid, Header, Segment } from 'semantic-ui-react';
 
 import { displayError, displaySuccess, displayWarning } from '@amzn/base-ui/dist/helpers/notification';
 
-import toastr from 'toastr';
 import StudyFileDropZone from './FileDropZone';
 import FileUploadTable from './FileUploadTable';
 
@@ -69,7 +68,7 @@ const FileUpload = observer(
                       color="blue"
                       onClick={() => {
                         if (files.length > maximumUploadFilesLimit) {
-                          toastr.warning(
+                          displayWarning(
                             `There are currently ${files.length} files selected. Please select less than ${maximumUploadFilesLimit} files.`,
                           );
                         } else {
