@@ -17,18 +17,21 @@ import _ from 'lodash';
 import toastr from 'toastr';
 
 function displayError(msg, error, timeOut = '20000') {
+  toastr.options.escapeHtml = true;
   toastr.error(toMessage(msg, error), 'We have a problem!', { ...toasterErrorOptions, timeOut });
   if (error) console.error(msg, error);
   if (_.isError(msg)) console.error(msg);
 }
 
 function displayWarning(msg, error, timeOut = '20000') {
+  toastr.options.escapeHtml = true;
   toastr.warning(toMessage(msg, error), 'Warning!', { ...toasterWarningOptions, timeOut });
   if (error) console.error(msg, error);
   if (_.isError(msg)) console.error(msg);
 }
 
 function displaySuccess(msg, title = 'Submitted!') {
+  toastr.options.escapeHtml = true;
   toastr.success(toMessage(msg), title, toasterSuccessOptions);
 }
 
