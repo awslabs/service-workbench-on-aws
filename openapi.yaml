@@ -2469,6 +2469,9 @@ components:
       properties:
         name:
           type: string
+          maxLength: 100
+          minLength: 2
+          pattern: '^[A-Za-z0-9-_ ]+$'
         desc:
           type: string
       example: {"name": "foo2-key", "desc": "Example key being created"}
@@ -2479,6 +2482,9 @@ components:
           type: number
         name:
           type: string
+          maxLength: 100
+          minLength: 2
+          pattern: '^[A-Za-z0-9-_ ]+$'
         desc:
           type: string
       example: { "rev": 0, "name": "foo2-key", "desc": "Example key being created" }
