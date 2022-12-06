@@ -24,10 +24,14 @@ const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-ser
 jest.mock('@amzn/base-services/lib/authorization/authorization-service');
 const AuthServiceMock = require('@amzn/base-services/lib/authorization/authorization-service');
 
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
+
 const KeyPairService = require('../key-pair-service');
 
 describe('keyPairService', () => {
   let service = null;
+  let dbService = null;
   beforeEach(async () => {
     // initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -35,16 +39,19 @@ describe('keyPairService', () => {
     container.register('dbService', new DbServiceMock());
     container.register('authorizationService', new AuthServiceMock());
     container.register('auditWriterService', new AuditServiceMock());
+    container.register('settings', new SettingsServiceMock());
     container.register('keyPairService', new KeyPairService());
     await container.initServices();
 
     // Get instance of the service we are testing
     service = await container.find('keyPairService');
+    dbService = await container.find('dbService');
 
     // skip authorization
     service.assertAuthorized = jest.fn();
     service.isAuthorized = jest.fn();
   });
+
   describe('create', () => {
     const requestContext = {
       principalIdentifier: {
@@ -69,38 +76,83 @@ describe('keyPairService', () => {
         );
       });
     });
+
+    describe('if the name is valid', () => {
+      const keyPair = {
+        name: 'valid-key-name',
+      };
+
+      it('should pass', async () => {
+        // BUILD
+        service.audit = jest.fn();
+
+        // OPERATE
+        await service.create(requestContext, keyPair);
+
+        // CHECK
+        // expect(dbService.table.key).toHaveBeenCalledWith({ id: keyPair.id });
+        expect(dbService.table.update).toHaveBeenCalled();
+        expect(service.audit).toHaveBeenCalledWith(
+          requestContext,
+          expect.objectContaining({ action: 'create-key-pair' }),
+        );
+      });
+    });
   });
 
-  //   it('should fail name incorrect', async () => {
-  //     // BUILD
-  //     const envType = {
-  //       id: 'theverybest',
-  //       rev: 1,
-  //       name: '<stuff>',
-  //       desc: 'stuff',
-  //       status: 'approved',
-  //     };
+  describe('update', () => {
+    const requestContext = {
+      principalIdentifier: {
+        uid: 'UID',
+      },
+    };
 
-  //     service.audit = jest.fn();
+    describe('if the name is invalid', () => {
+      const keyPair = {
+        id: 'id',
+        name: '<script>console.log("**hacker voice** I\'m in")</script>',
+      };
 
-  //     // This function mainly just wraps some aws functions on a ServiceCatalogClient instance
-  //     service.getProvisioningArtifactParams = jest.fn();
+      it('should fail', async () => {
+        // OPERATE and CHECK
+        await expect(service.update(requestContext, keyPair)).rejects.toThrow(
+          expect.objectContaining({
+            boom: true,
+            code: 'badRequest',
+            safe: true,
+            message: 'Input has validation errors',
+          }),
+        );
+      });
+    });
 
-  //     const requestContext = {
-  //       principalIdentifier: {
-  //         id: 'aheartsotrue',
-  //         ns: 'ourcouragewillpullusthrough',
-  //       },
-  //     };
+    describe('if the name is valid', () => {
+      const keyPair = {
+        id: 'valid-id',
+        name: 'valid-key-name',
+        rev: 0,
+      };
 
-  //     // OPERATE and CHECK
-  //     await expect(service.update(requestContext, envType)).rejects.toThrow(
-  //       expect.objectContaining({
-  //         boom: true,
-  //         code: 'badRequest',
-  //         safe: true,
-  //         message: 'Input has validation errors',
-  //       }),
-  //     );
-  //   });
+      const existingKeyPair = {
+        principalIdentifier: requestContext.principalIdentifier,
+      };
+
+      it('should pass', async () => {
+        // BUILD
+        service.audit = jest.fn();
+        service.mustFind = jest.fn().mockReturnValue(existingKeyPair);
+
+        // OPERATE
+        await service.update(requestContext, keyPair);
+
+        // CHECK
+        expect(dbService.table.key).toHaveBeenCalledWith({ id: keyPair.id });
+        expect(dbService.table.update).toHaveBeenCalled();
+        expect(service.audit).toHaveBeenCalledWith(
+          requestContext,
+          expect.objectContaining({ action: 'update-key-pair' }),
+        );
+      });
+    });
+  });
 });
