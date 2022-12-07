@@ -190,19 +190,24 @@ class KeyPairService extends Service {
   }
 
   async update(requestContext, keyPair) {
-    const existingKeyPair = await this.mustFind(requestContext, { id: keyPair.id });
+    // Validate input
+    const [validationService] = await this.service(['jsonSchemaValidationService']);
+    await validationService.ensureValid(keyPair, updateKeyPairSchema);
+
+    const existingKeyPair = await this.mustFind(requestContext, {
+      id: keyPair.id,
+    });
 
     // Make sure the user has permissions to update the key-pair
     // By default, allow only active admin users or self
     await this.assertAuthorized(
       requestContext,
-      { action: 'update', conditions: [allowIfActive, allowIfCurrentUserOrAdmin] },
+      {
+        action: 'update',
+        conditions: [allowIfActive, allowIfCurrentUserOrAdmin],
+      },
       { ...existingKeyPair, ...keyPair, ...existingKeyPair.principalIdentifier },
     );
-
-    // Validate input
-    const [validationService] = await this.service(['jsonSchemaValidationService']);
-    await validationService.ensureValid(keyPair, updateKeyPairSchema);
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = keyPair;
@@ -225,7 +230,10 @@ class KeyPairService extends Service {
         // 1 - The keyPair does not exist
         // 2 - The "rev" does not match
         // We will display the appropriate error message accordingly
-        const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
+        const existing = await this.find(requestContext, {
+          id,
+          fields: ['id', 'updatedBy'],
+        });
         if (existing) {
           throw this.boom.badRequest(
             `key-pair information changed just before your request is processed, please try again`,
