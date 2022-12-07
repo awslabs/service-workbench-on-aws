@@ -50,7 +50,9 @@ append_role_to_credentials() {
 
 # Use STS regional endpoint instead of global one. This allows external studies to connect with local interface endpoint
 # if it exists. Refer https://docs.aws.amazon.com/sdkref/latest/guide/setting-global-sts_regional_endpoints.html
-region=`curl http://169.254.169.254/latest/meta-data/placement/availability-zone/ | sed 's/.$//'`
+token=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` 
+region=`curl http://169.254.169.254/latest/meta-data/placement/availability-zone/ -H "X-aws-ec2-metadata-token: $token" | sed 's/.$//'`
+# region=`curl http://169.254.169.254/latest/meta-data/placement/availability-zone/ | sed 's/.$//'`
 export AWS_STS_REGIONAL_ENDPOINTS=regional
 export AWS_DEFAULT_REGION=$region
 export AWS_SDK_LOAD_CONFIG=1
