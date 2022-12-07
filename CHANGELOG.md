@@ -2,8 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.3.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.3...mainline)
+### [5.2.4](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.3...v5.2.4) (2022-12-07)
+
+
+### Features
+
+* Add integration tests for users and user-roles controllers ([#1057](https://github.com/awslabs/service-workbench-on-aws/issues/1057)) ([5e9e813](https://github.com/awslabs/service-workbench-on-aws/commit/5e9e81306db7c2da220b2f04007b884e0dbdcde3))
+
+
+### Bug Fixes
+
+* fix input validation and escape html on popups ([#1075](https://github.com/awslabs/service-workbench-on-aws/issues/1075)) ([bbe1e20](https://github.com/awslabs/service-workbench-on-aws/commit/bbe1e2067c9297dc5f288307bd48ec8170fe8304))
+* minimatch alert ([#1058](https://github.com/awslabs/service-workbench-on-aws/issues/1058)) ([3eb90c9](https://github.com/awslabs/service-workbench-on-aws/commit/3eb90c950be3521c5c4ca5b3f82e8a40ac1c7edf))
 
 ### [5.2.3](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.2...v5.2.3) (2022-10-12)
 
