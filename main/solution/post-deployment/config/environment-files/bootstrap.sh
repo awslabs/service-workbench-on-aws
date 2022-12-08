@@ -156,17 +156,22 @@ case "$(env_type)" in
         sudo -u hadoop PATH=$PATH:/usr/local/bin /opt/hail-on-AWS-spot-instances/src/jupyter_run.sh
         ;;
     "sagemaker") # Update config and restart Jupyter
-        echo "Installing fuse"
-        # TODO: figure out how to check os is AL2 or AL1
         if [ $OS_VERSION = '2' ]
         then
-            # TODO: grab boto3 rpm
+            echo "Installing fuse for AL2"
             cd "${FILES_DIR}/offline-packages/sagemaker/fuse-2.9.4_AL2"
+            sudo yum --disablerepo=* localinstall -y *.rpm
+            echo "Finish installing fuse"
+            echo "Installing boto3 for AL2"
+            cd "${FILES_DIR}/offline-packages/sagemaker/boto3"
+            sudo yum --disablerepo=* localinstall -y python2-boto3-1.4.4-1.amzn2.noarch.rpm
+            echo "Finish installing boto3"
         else
+            echo "Installing fuse for AL1"
             cd "${FILES_DIR}/offline-packages/sagemaker/fuse-2.9.4"
+            sudo yum --disablerepo=* localinstall -y *.rpm
+            echo "Finish installing fuse"
         fi
-        sudo yum --disablerepo=* localinstall -y *.rpm
-        echo "Finish installing fuse"
         update_jupyter_config "/home/ec2-user/.jupyter/jupyter_notebook_config.py"
         if [ $OS_VERSION = '2' ]
         then
