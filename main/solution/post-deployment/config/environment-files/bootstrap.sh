@@ -146,7 +146,7 @@ ln -s "${FILES_DIR}/bin/mount_s3.sh" "/usr/local/bin/mount_s3.sh"
 printf "%s" "$S3_MOUNTS" > "/usr/local/etc/s3-mounts.json"
 echo "Finish mounting S3"
 
-os=`cat /etc/os-release`
+OS_VERSION=`cat /etc/os-release | grep VERSION= | sed 's/VERSION="//' | sed 's/"//'`
 
 # Apply updates to environments based on environment type
 case "$(env_type)" in
@@ -158,16 +158,22 @@ case "$(env_type)" in
     "sagemaker") # Update config and restart Jupyter
         echo "Installing fuse"
         # TODO: figure out how to check os is AL2 or AL1
-        if [ os = 'AL2' ]
+        if [ $OS_VERSION = '2' ]
         then
             # TODO: grab boto3 rpm
             cd "${FILES_DIR}/offline-packages/sagemaker/fuse-2.9.4_AL2"
         else
             cd "${FILES_DIR}/offline-packages/sagemaker/fuse-2.9.4"
+        fi
         sudo yum --disablerepo=* localinstall -y *.rpm
         echo "Finish installing fuse"
         update_jupyter_config "/home/ec2-user/.jupyter/jupyter_notebook_config.py"
-        systemctl restart jupyter-server
+        if [ $OS_VERSION = '2' ]
+        then
+            systemctl restart jupyter-server
+        else
+            initctl restart jupyter-server --no-wait
+        fi
         ;;
     "ec2-linux") # Add mount script to bash profile
         echo "Installing fuse"
