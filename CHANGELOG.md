@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## Beta
+[This release is in beta. Click here to see changes since 5.2.4.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.4...mainline)
+
 ### [5.2.4](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.3...v5.2.4) (2022-12-07)
 
 
