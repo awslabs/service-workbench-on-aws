@@ -577,21 +577,18 @@ Resources:
               Resource:
                 - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.stgNamespace}*'
             - !Ref AWS::NoValue
-          - !If
-            - CreateStagingEnv
-            - Action:
-                - iam:PutRolePermissionsBoundary
-                - iam:DeleteRolePermissionsBoundary
-                - iam:CreateRole
-                - iam:PutRolePolicy
-                - iam:AttachRolePolicy
-                - iam:DeleteRolePolicy
-                - iam:DetachRolePolicy
-              Effect: Deny
-              Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-cicd-pipeline-AppDeployerRole-*'
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.stgNamespace}-cicd-pipeline-PolicyAppDeployer-*'
-            - !Ref AWS::NoValue
+
+          - Action:
+              - iam:PutRolePermissionsBoundary
+              - iam:DeleteRolePermissionsBoundary
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:AttachRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:DetachRolePolicy
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.stgNamespace}-cicd-pipeline-PolicyAppDeployerStaging-*'
 
   AppDeployerRole:
     Type: AWS::IAM::Role
@@ -604,6 +601,7 @@ Resources:
               Service:
                 - codebuild.amazonaws.com
             Action: sts:AssumeRole
+
       ManagedPolicyArns:
         # The deployer role needs permissions to deploy CFN stacks and all actions those stacks are performing
         # The permissions required by stacks are very fluid and dependent on which resources are declared in those
@@ -1034,7 +1032,7 @@ Resources:
           InputTransformer:
             InputPathsMap:
               pipeline: '$.detail.pipeline'
-            InputTemplate: '{'The Pipeline has failed.':<pipeline>}'
+            InputTemplate: '{"The Pipeline has failed."":<pipeline>}'
 
   # A resource level policy for the default event bus in the target account (target account = the AWS account where code need to be deployed)
   # to allow CodeCommit events to be published from the source account (source account = the AWS account containing the AWS CodeCommit repo with the source code)

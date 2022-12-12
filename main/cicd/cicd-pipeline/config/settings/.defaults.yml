@@ -29,6 +29,7 @@ sourceRoleArn: ""
 # For example, if createStagingEnv=true and if the stgEnvName=t"prodstg" then make sure you have
 # "prodstg.yml" file in top level "config/settings" directory
 createStagingEnv: false
+
 # Flag indicating whether to require manual approval before deploying to target environment
 requireManualApproval: false
 
