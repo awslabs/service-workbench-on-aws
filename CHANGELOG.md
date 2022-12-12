@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [5.2.5](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.4...v5.2.5) (2022-12-09)
+
+
+### Bug Fixes
+
+* Sagemaker compatability fix with AL2. Fix issue in which Sagemaker instances running on AL2 could not mount dataset and autostop ([#1079](https://github.com/awslabs/service-workbench-on-aws/issues/1079)) ([dea1c89](https://github.com/awslabs/service-workbench-on-aws/commit/dea1c8963860829a5a637756626af901b926b72a))
+
 ### [5.2.4](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.3...v5.2.4) (2022-12-07)
 
 

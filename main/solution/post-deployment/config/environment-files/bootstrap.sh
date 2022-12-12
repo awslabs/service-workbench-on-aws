@@ -146,6 +146,8 @@ ln -s "${FILES_DIR}/bin/mount_s3.sh" "/usr/local/bin/mount_s3.sh"
 printf "%s" "$S3_MOUNTS" > "/usr/local/etc/s3-mounts.json"
 echo "Finish mounting S3"
 
+OS_VERSION=`cat /etc/os-release | grep VERSION= | sed 's/VERSION="//' | sed 's/"//'`
+
 # Apply updates to environments based on environment type
 case "$(env_type)" in
     "emr") # Update config and restart Jupyter
@@ -154,12 +156,29 @@ case "$(env_type)" in
         sudo -u hadoop PATH=$PATH:/usr/local/bin /opt/hail-on-AWS-spot-instances/src/jupyter_run.sh
         ;;
     "sagemaker") # Update config and restart Jupyter
-        echo "Installing fuse"
-        cd "${FILES_DIR}/offline-packages/sagemaker/fuse-2.9.4"
-        sudo yum --disablerepo=* localinstall -y *.rpm
-        echo "Finish installing fuse"
+        if [ $OS_VERSION = '2' ]
+        then
+            echo "Installing fuse for AL2"
+            cd "${FILES_DIR}/offline-packages/sagemaker/fuse-2.9.4_AL2"
+            sudo yum --disablerepo=* localinstall -y *.rpm
+            echo "Finish installing fuse"
+            echo "Installing boto3 for AL2"
+            cd "${FILES_DIR}/offline-packages/sagemaker/boto3"
+            sudo yum --disablerepo=* localinstall -y python2-boto3-1.4.4-1.amzn2.noarch.rpm
+            echo "Finish installing boto3"
+        else
+            echo "Installing fuse for AL1"
+            cd "${FILES_DIR}/offline-packages/sagemaker/fuse-2.9.4"
+            sudo yum --disablerepo=* localinstall -y *.rpm
+            echo "Finish installing fuse"
+        fi
         update_jupyter_config "/home/ec2-user/.jupyter/jupyter_notebook_config.py"
-        initctl restart jupyter-server --no-wait
+        if [ $OS_VERSION = '2' ]
+        then
+            systemctl restart jupyter-server
+        else
+            initctl restart jupyter-server --no-wait
+        fi
         ;;
     "ec2-linux") # Add mount script to bash profile
         echo "Installing fuse"
