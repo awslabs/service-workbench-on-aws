@@ -15,9 +15,9 @@ pipelineName: ${self:custom.settings.namespace}-${self:custom.settings.repoBranc
 cicdAppArtifactBucketName: ${self:custom.settings.globalNamespace}-cicd-appartifacts
 
 # Either specify a Github owner (and an OAuth Token in CloudFormation) or source account and role (for CodeCommit)
-githubOwner: "awslabs"
-sourceAccountId: ""
-sourceRoleArn: ""
+githubOwner: 'awslabs'
+sourceAccountId: ''
+sourceRoleArn: ''
 
 # Flag indicating whether to create a staging environment.
 # If this flag is set to true the pipeline will first deploy the solution to a staging environment before deploying the
