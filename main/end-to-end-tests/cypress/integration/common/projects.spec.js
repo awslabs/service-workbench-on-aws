@@ -13,6 +13,8 @@
  *  permissions and limitations under the License.
  */
 describe('projects', () => {
+  const NUMBER_OF_COLUMNS = 5;
+
   const navigateToAccounts = () => {
     cy.get('.left.menu')
       .contains('Accounts')
@@ -27,13 +29,13 @@ describe('projects', () => {
         cy.wrap($el)
           .invoke('text')
           .then(text => {
-            if ($index % 5 == 0) {
+            if ($index % NUMBER_OF_COLUMNS == 0) {
               project['id'] = text;
-            } else if ($index % 5 == 1) {
+            } else if ($index % NUMBER_OF_COLUMNS == 1) {
               project['index'] = text;
-            } else if ($index % 5 == 2) {
+            } else if ($index % NUMBER_OF_COLUMNS == 2) {
               project['description'] = text;
-            } else if ($index % 5 == 4) {
+            } else if ($index % NUMBER_OF_COLUMNS == 4) {
               cy.get(`Button[data-testid='${project.id}-detail-button']`).click();
               cy.get('tbody')
                 .find('td')
