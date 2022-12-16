@@ -122,8 +122,9 @@ class ProjectConfigure extends React.Component {
   }
 
   renderTrigger() {
+    const testid = `${this.props.project.id}-detail-button`;
     return (
-      <Button size="mini" compact color="blue" onClick={this.handleModalOpen} data-testid={`${this.props.project.id}-detail-button`}>
+      <Button size="mini" compact color="blue" onClick={this.handleModalOpen} data-testid={testid}>
         Detail
       </Button>
     );
