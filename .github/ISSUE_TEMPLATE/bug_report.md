@@ -25,6 +25,7 @@ If applicable, add screenshots to help explain your problem.
 
 **Versions (please complete the following information):**
  - Release Version installed [e.g. v1.0.3]
+ - Is the deployment from a forked version of the repository?
 
 **Additional context**
 Add any other context about the problem here.
