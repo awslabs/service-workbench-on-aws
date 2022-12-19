@@ -71,6 +71,7 @@ describe('projects', () => {
 
   it('should allow admin to see and sort projects', () => {
     cy.login('admin');
+
     navigateToAccounts();
 
     verifyProjectDetails();
