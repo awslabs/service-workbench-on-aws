@@ -69,8 +69,9 @@ describe('projects', () => {
       .click();
   };
 
-  it('should allow researcher to see and sort projects', () => {
-    cy.login('researcher');
+  it('should allow admin to see and sort projects', () => {
+    cy.login('admin');
+
     navigateToAccounts();
 
     verifyProjectDetails();
