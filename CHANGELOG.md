@@ -2,8 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.5.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.5...mainline)
+### [5.2.6](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.5...v5.2.6) (2022-12-19)
+
+
+### Bug Fixes
+
+* add permissions for stgEnvname and stgNamespace to IAM roles ([#1074](https://github.com/awslabs/service-workbench-on-aws/issues/1074)) ([62d35f4](https://github.com/awslabs/service-workbench-on-aws/commit/62d35f4e58a2a2d92a74a427548a721bc1c22114))
+* projects test was using the wrong role ([#1087](https://github.com/awslabs/service-workbench-on-aws/issues/1087)) ([9c283b6](https://github.com/awslabs/service-workbench-on-aws/commit/9c283b6ab3b19ab9b339fb4ffc310b4602b2892d))
+* UI properly sorts Projects with Detail button ([#1085](https://github.com/awslabs/service-workbench-on-aws/issues/1085)) ([a267305](https://github.com/awslabs/service-workbench-on-aws/commit/a2673055347818d5518de628d76f8603702ca759))
 
 ### [5.2.5](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.4...v5.2.5) (2022-12-09)
 
