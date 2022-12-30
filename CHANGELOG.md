@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Bug Fixes
 
-* Sagemaker compatability fix with AL2. Fix issue in which Sagemaker instances running on AL2 could not mount dataset. ([#1089](https://github.com/awslabs/service-workbench-on-aws/issues/1089)) ([bdf978b](https://github.com/awslabs/service-workbench-on-aws/commit/bdf978b1c909c37207902f1b29b0fd05b5b24208))
+* Sagemaker compatibility fix with AL2. Fix issue in which Sagemaker instances running on AL2 could not mount dataset. ([#1089](https://github.com/awslabs/service-workbench-on-aws/issues/1089)) ([bdf978b](https://github.com/awslabs/service-workbench-on-aws/commit/bdf978b1c909c37207902f1b29b0fd05b5b24208))
 
 ### [5.2.6](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.5...v5.2.6) (2022-12-19)
 
