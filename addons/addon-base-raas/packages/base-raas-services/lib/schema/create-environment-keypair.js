@@ -13,18 +13,18 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     name: {
-      type: "string",
-      maxLength: 200
+      type: 'string',
+      maxLength: 200,
     },
     environmentId: {
-      type: "string"
-    }
+      type: 'string',
+    },
   },
-  required: ["name", "environmentId"]
-}
+  required: ['name', 'environmentId'],
+};
 module.exports = schema;

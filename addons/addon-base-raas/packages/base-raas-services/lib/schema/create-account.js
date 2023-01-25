@@ -12,49 +12,48 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const schema =
-{
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+const schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     accountName: {
-      type: "string"
+      type: 'string',
     },
     accountEmail: {
-      type: "string"
+      type: 'string',
     },
     masterRoleArn: {
-      type: "string"
+      type: 'string',
     },
     externalId: {
-      type: "string"
+      type: 'string',
     },
     description: {
-      type: "string"
+      type: 'string',
     },
     appStreamFleetDesiredInstances: {
-      type: "string"
+      type: 'string',
     },
     appStreamIdleDisconnectTimeoutSeconds: {
-      type: "string"
+      type: 'string',
     },
     appStreamDisconnectTimeoutSeconds: {
-      type: "string"
+      type: 'string',
     },
     appStreamMaxUserDurationSeconds: {
-      type: "string"
+      type: 'string',
     },
     appStreamImageName: {
-      type: "string"
+      type: 'string',
     },
     appStreamInstanceType: {
-      type: "string"
+      type: 'string',
     },
     appStreamFleetType: {
-      type: "string"
-    }
+      type: 'string',
+    },
   },
-  required: ["accountName", "accountEmail", "masterRoleArn", "externalId"]
-}
+  required: ['accountName', 'accountEmail', 'masterRoleArn', 'externalId'],
+};
 module.exports = schema;

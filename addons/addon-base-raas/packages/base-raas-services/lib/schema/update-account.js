@@ -13,59 +13,59 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     id: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_]+$"
+      pattern: '^[A-Za-z0-9-_]+$',
     },
     stackId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 255
+      maxLength: 255,
     },
     cfnInfo: {
-      type: "object",
+      type: 'object',
       additionalProperties: false,
       properties: {
         vpcId: {
-          type: "string",
-          pattern: "^vpc-[a-f0-9]{8,17}$"
+          type: 'string',
+          pattern: '^vpc-[a-f0-9]{8,17}$',
         },
         subnetId: {
-          type: "string",
-          pattern: "^subnet-[a-f0-9]{8,17}$"
+          type: 'string',
+          pattern: '^subnet-[a-f0-9]{8,17}$',
         },
         crossAccountExecutionRoleArn: {
-          type: "string",
-          pattern: "^arn:aws:iam::.*$"
+          type: 'string',
+          pattern: '^arn:aws:iam::.*$',
         },
         crossAccountEnvMgmtRoleArn: {
-          type: "string",
-          pattern: "^arn:aws:iam::.*$"
+          type: 'string',
+          pattern: '^arn:aws:iam::.*$',
         },
         stackId: {
-          type: "string"
+          type: 'string',
         },
         encryptionKeyArn: {
-          type: "string",
-          pattern: "^arn:aws:kms:.*$"
-        }
-      }
+          type: 'string',
+          pattern: '^arn:aws:kms:.*$',
+        },
+      },
     },
     status: {
-      type: "string",
-      maxLength: 2048
+      type: 'string',
+      maxLength: 2048,
     },
     name: {
-      type: "string",
-      maxLength: 2048
-    }
+      type: 'string',
+      maxLength: 2048,
+    },
   },
-  required: ["id"]
-}
+  required: ['id'],
+};
 module.exports = schema;

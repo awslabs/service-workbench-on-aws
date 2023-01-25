@@ -13,49 +13,49 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     vpcId: {
-      type: "string",
-      pattern: "^vpc-[a-f0-9]{8,17}$"
+      type: 'string',
+      pattern: '^vpc-[a-f0-9]{8,17}$',
     },
     subnetId: {
-      type: "string",
-      pattern: "^subnet-[a-f0-9]{8,17}$"
+      type: 'string',
+      pattern: '^subnet-[a-f0-9]{8,17}$',
     },
     ec2Instance: {
-      type: "string"
+      type: 'string',
     },
     elasticIP: {
-      type: "string",
-      pattern: "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+      type: 'string',
+      pattern: '^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$',
     },
     securityGroup: {
-      type: "string"
+      type: 'string',
     },
     ec2RoleARN: {
-      type: "string",
-      minLength: 10
+      type: 'string',
+      minLength: 10,
     },
     volumeIds: {
-      type: "array",
+      type: 'array',
       items: [
         {
-          type: "string",
-          minLength: 1
-        }
-      ]
+          type: 'string',
+          minLength: 1,
+        },
+      ],
     },
     cfnStackId: {
-      type: "string",
-      description: "Cloudformation StackId for bringing up Network Infrastructure for this Storage Gateway instance"
+      type: 'string',
+      description: 'Cloudformation StackId for bringing up Network Infrastructure for this Storage Gateway instance',
     },
     fileShares: {
-      type: "object",
-      description: "File shares under this storage gateway, key is S3 location Arn, value is file share Arn"
-    }
-  }
-}
+      type: 'object',
+      description: 'File shares under this storage gateway, key is S3 location Arn, value is file share Arn',
+    },
+  },
+};
 module.exports = schema;

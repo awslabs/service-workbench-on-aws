@@ -13,47 +13,47 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     id: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_ ]+$"
+      pattern: '^[A-Za-z0-9-_ ]+$',
     },
     status: {
-      type: "string",
-      maxLength: 2048
+      type: 'string',
+      maxLength: 2048,
     },
     stackId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 255
+      maxLength: 255,
     },
     instanceInfo: {
-      type: "object"
+      type: 'object',
     },
     sharedWithUsers: {
-      type: "array",
+      type: 'array',
       items: [
         {
-          type: "array",
+          type: 'array',
           items: [
             {
-              type: "string"
-            }
-          ]
-        }
+              type: 'string',
+            },
+          ],
+        },
       ],
-      default: []
+      default: [],
     },
     error: {
-      type: "string",
-      maxLength: 2048
-    }
+      type: 'string',
+      maxLength: 2048,
+    },
   },
-  required: ["id"]
-}
+  required: ['id'],
+};
 module.exports = schema;

@@ -12,39 +12,38 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const schema =
-{
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+const schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   definitions: {
     s3Info: {
-      type: "object",
+      type: 'object',
       additionalProperties: false,
       properties: {
         bucket: {
-          type: "string",
+          type: 'string',
           minLength: 1,
-          maxLength: 1024
+          maxLength: 1024,
         },
         key: {
-          type: "string",
+          type: 'string',
           minLength: 1,
-          maxLength: 1024
-        }
+          maxLength: 1024,
+        },
       },
-      required: ["bucket", "key"]
-    }
+      required: ['bucket', 'key'],
+    },
   },
 
   properties: {
     from: {
-      "$ref": "#/definitions/s3Info"
+      $ref: '#/definitions/s3Info',
     },
     to: {
-      "$ref": "#/definitions/s3Info"
-    }
+      $ref: '#/definitions/s3Info',
+    },
   },
-  required: ["from", "to"]
-}
+  required: ['from', 'to'],
+};
 module.exports = schema;

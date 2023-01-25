@@ -538,10 +538,10 @@ class EnvironmentScService extends Service {
     const studyService = await this.service('studyService');
     const studies = environment.studyIds
       ? await Promise.all(
-        environment.studyIds.map(studyId => {
-          return studyService.mustFind(requestContext, studyId);
-        }),
-      )
+          environment.studyIds.map(studyId => {
+            return studyService.mustFind(requestContext, studyId);
+          }),
+        )
       : [];
     const openDataStudies = studies.filter(study => {
       return study.category === 'Open Data';

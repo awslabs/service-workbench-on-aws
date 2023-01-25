@@ -13,119 +13,119 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     projectId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_]+$"
+      pattern: '^[A-Za-z0-9-_]+$',
     },
     rev: {
-      type: "number",
-      minimum: 0
+      type: 'number',
+      minimum: 0,
     },
     inWorkflow: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 2048,
-      description: "Mark true for environment in workflow to exclude it from status poll and sync"
+      description: 'Mark true for environment in workflow to exclude it from status poll and sync',
     },
     status: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 2048
+      maxLength: 2048,
     },
     cidr: {
-      type: "string",
-      pattern: "^(?:([0-9]{1,3}\\.){3}[0-9]{1,3}(\\/([0-9]|[1-2][0-9]|3[0-2]))?)?$"
+      type: 'string',
+      pattern: '^(?:([0-9]{1,3}\\.){3}[0-9]{1,3}(\\/([0-9]|[1-2][0-9]|3[0-2]))?)?$',
     },
     createdAt: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 2048
+      maxLength: 2048,
     },
     updatedBy: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 2048
+      maxLength: 2048,
     },
     createdBy: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 2048
+      maxLength: 2048,
     },
     name: {
-      type: "string",
-      minLength: 1,
-      maxLength: 200
-    },
-    studyIds: {
-      type: "array",
-      items: [
-        {
-          type: "string",
-          minLength: 1
-        }
-      ]
-    },
-    updatedAt: {
-      type: "string",
-      minLength: 1,
-      maxLength: 2048
-    },
-    indexId: {
-      type: "string",
-      minLength: 1,
-      maxLength: 2048
-    },
-    description: {
-      type: "string",
-      minLength: 1,
-      maxLength: 2048
-    },
-    id: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 200,
-      pattern: "^[A-Za-z0-9-_ ]+$"
+    },
+    studyIds: {
+      type: 'array',
+      items: [
+        {
+          type: 'string',
+          minLength: 1,
+        },
+      ],
+    },
+    updatedAt: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 2048,
+    },
+    indexId: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 2048,
+    },
+    description: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 2048,
+    },
+    id: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 200,
+      pattern: '^[A-Za-z0-9-_ ]+$',
     },
     envTypeConfigId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 2048
+      maxLength: 2048,
     },
     envTypeId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 2048
+      maxLength: 2048,
     },
-    hasConnections: { "type": "boolean" },
+    hasConnections: { type: 'boolean' },
     studyRoles: {
-      type: "object",
+      type: 'object',
       properties: {},
-      additionalProperties: true
-    }
+      additionalProperties: true,
+    },
   },
   required: [
-    "projectId",
-    "rev",
-    "inWorkflow",
-    "status",
-    "createdAt",
-    "updatedBy",
-    "createdBy",
-    "name",
-    "studyIds",
-    "updatedAt",
-    "indexId",
-    "description",
-    "id",
-    "envTypeConfigId",
-    "envTypeId",
-    "hasConnections"
-  ]
-}
+    'projectId',
+    'rev',
+    'inWorkflow',
+    'status',
+    'createdAt',
+    'updatedBy',
+    'createdBy',
+    'name',
+    'studyIds',
+    'updatedAt',
+    'indexId',
+    'description',
+    'id',
+    'envTypeConfigId',
+    'envTypeId',
+    'hasConnections',
+  ],
+};
 module.exports = schema;

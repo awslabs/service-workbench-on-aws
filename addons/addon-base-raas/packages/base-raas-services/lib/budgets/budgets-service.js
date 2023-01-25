@@ -92,7 +92,7 @@ class BudgetsService extends Service {
       if (e.code === 'AccessDeniedException') {
         throw this.boom.forbidden(
           `AWS member account ${accountId} does not have Budget permission set up, ` +
-          `please add permissions budgets:ModifyBudget and budgets:ViewBudget to the system role.`,
+            `please add permissions budgets:ModifyBudget and budgets:ViewBudget to the system role.`,
           true,
         );
       }

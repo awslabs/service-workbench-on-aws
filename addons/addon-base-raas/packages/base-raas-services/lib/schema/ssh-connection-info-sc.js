@@ -13,21 +13,21 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     keyPairId: {
-      type: "string",
+      type: 'string',
       maxLength: 1024,
-      pattern: "^([^<>{}]*)$"
+      pattern: '^([^<>{}]*)$',
     },
     instanceOsUser: {
-      type: "string",
+      type: 'string',
       maxLength: 1024,
-      pattern: "^([^<>{}]*)$"
-    }
+      pattern: '^([^<>{}]*)$',
+    },
   },
-  required: ["keyPairId"]
-}
+  required: ['keyPairId'],
+};
 module.exports = schema;

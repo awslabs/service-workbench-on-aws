@@ -13,47 +13,47 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     name: {
-      type: "string",
+      type: 'string',
       maxLength: 128,
       minLength: 3,
-      pattern: "^[A-Za-z][A-Za-z0-9-]+$"
+      pattern: '^[A-Za-z][A-Za-z0-9-]+$',
     },
     description: {
-      type: "string",
-      maxLength: 2048
+      type: 'string',
+      maxLength: 2048,
     },
     envTypeId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 100
+      maxLength: 100,
     },
     envTypeConfigId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 300
+      maxLength: 300,
     },
     projectId: {
-      type: "string"
+      type: 'string',
     },
     cidr: {
-      type: "string",
-      pattern: "^(?:([0-9]{1,3}\\.){3}[0-9]{1,3}(\\/([0-9]|[1-2][0-9]|3[0-2]))?)?$"
+      type: 'string',
+      pattern: '^(?:([0-9]{1,3}\\.){3}[0-9]{1,3}(\\/([0-9]|[1-2][0-9]|3[0-2]))?)?$',
     },
     studyIds: {
-      type: "array",
+      type: 'array',
       items: [
         {
-          type: "string",
-          minLength: 1
-        }
-      ]
-    }
+          type: 'string',
+          minLength: 1,
+        },
+      ],
+    },
   },
-  required: ["name", "envTypeId", "envTypeConfigId"]
-}
+  required: ['name', 'envTypeId', 'envTypeConfigId'],
+};
 module.exports = schema;

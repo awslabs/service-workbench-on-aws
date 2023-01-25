@@ -13,63 +13,63 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     id: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_ ]+$"
+      pattern: '^[A-Za-z0-9-_ ]+$',
     },
     rev: {
-      type: "number",
-      minimum: 0
+      type: 'number',
+      minimum: 0,
     },
     name: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 300,
-      pattern: "^([^<>{}]*)$"
+      pattern: '^([^<>{}]*)$',
     },
     description: {
-      type: "string",
-      description: "Leaving length and pattern blank to accommodate open data"
+      type: 'string',
+      description: 'Leaving length and pattern blank to accommodate open data',
     },
     sha: {
-      type: "string",
+      type: 'string',
       maxLength: 64,
-      pattern: "^([A-Fa-f0-9]{40})$",
-      description: "A unique identifier for Open Data in MD5 hash, hexadecimal"
+      pattern: '^([A-Fa-f0-9]{40})$',
+      description: 'A unique identifier for Open Data in MD5 hash, hexadecimal',
     },
     appRoleArn: {
-      type: "string",
+      type: 'string',
       maxLength: 2048,
-      pattern: "^(arn:aws[a-zA-Z-]*:iam::[0-9]{12}:role[/]{1}[a-zA-Z0-9-]+)$"
+      pattern: '^(arn:aws[a-zA-Z-]*:iam::[0-9]{12}:role[/]{1}[a-zA-Z0-9-]+)$',
     },
     resources: {
-      type: "array",
+      type: 'array',
       items: [
         {
-          type: "object",
+          type: 'object',
           additionalProperties: false,
           properties: {
             arn: {
-              type: "string",
+              type: 'string',
               maxLength: 2048,
-              pattern: "^(arn:aws[a-zA-Z-]*:[a-zA-Z0-9-/.:_?*]+)$"
+              pattern: '^(arn:aws[a-zA-Z-]*:[a-zA-Z0-9-/.:_?*]+)$',
             },
             fileShareArn: {
-              type: "string",
+              type: 'string',
               maxLength: 2048,
-              pattern: "^(arn:aws[a-zA-Z-]*:[a-zA-Z0-9-/.:_?*]+)$"
-            }
-          }
-        }
-      ]
-    }
+              pattern: '^(arn:aws[a-zA-Z-]*:[a-zA-Z0-9-/.:_?*]+)$',
+            },
+          },
+        },
+      ],
+    },
   },
-  required: ["id"]
-}
+  required: ['id'],
+};
 module.exports = schema;

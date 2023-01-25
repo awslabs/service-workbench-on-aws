@@ -12,17 +12,16 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const schema =
-{
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+const schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     writeToken: {
-      type: "string",
-      minLength: 1
-    }
+      type: 'string',
+      minLength: 1,
+    },
   },
-  required: ["writeToken"]
-}
+  required: ['writeToken'],
+};
 module.exports = schema;

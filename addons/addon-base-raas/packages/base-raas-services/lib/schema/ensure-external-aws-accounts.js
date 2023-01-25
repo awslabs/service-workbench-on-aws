@@ -13,15 +13,15 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     accountId: {
-      type: "string",
-      pattern: "^[0-9]{12}$"
-    }
+      type: 'string',
+      pattern: '^[0-9]{12}$',
+    },
   },
-  required: ["accountId"]
-}
+  required: ['accountId'],
+};
 module.exports = schema;

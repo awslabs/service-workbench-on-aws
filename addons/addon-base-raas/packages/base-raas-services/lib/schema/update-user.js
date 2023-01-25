@@ -13,68 +13,69 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     uid: {
-      type: "string"
+      type: 'string',
     },
     email: {
-      type: "string",
-      pattern: "^([^.%+!$&*=^|~#%{}]+)[a-zA-Z0-9\\._%+!$&*=^|~#%{}/\\-]+([^.!]+)@([^-.!](([a-zA-Z0-9\\-]+\\.){1,}([a-zA-Z]{2,63})))"
+      type: 'string',
+      pattern:
+        '^([^.%+!$&*=^|~#%{}]+)[a-zA-Z0-9\\._%+!$&*=^|~#%{}/\\-]+([^.!]+)@([^-.!](([a-zA-Z0-9\\-]+\\.){1,}([a-zA-Z]{2,63})))',
     },
     usernameInIdp: {
-      type: "string",
+      type: 'string',
       minLength: 3,
-      maxLength: 300
+      maxLength: 300,
     },
     firstName: {
-      type: "string",
-      maxLength: 500
+      type: 'string',
+      maxLength: 500,
     },
     lastName: {
-      type: "string",
-      maxLength: 500
+      type: 'string',
+      maxLength: 500,
     },
     userType: {
-      type: "string",
-      enum: ["root"]
+      type: 'string',
+      enum: ['root'],
     },
     isSamlAuthenticatedUser: {
-      type: "boolean"
+      type: 'boolean',
     },
     isNativePoolUser: {
-      type: "boolean",
-      default: false
+      type: 'boolean',
+      default: false,
     },
     isAdmin: {
-      type: "boolean"
+      type: 'boolean',
     },
     status: {
-      type: "string",
-      enum: ["active", "inactive", "pending"]
+      type: 'string',
+      enum: ['active', 'inactive', 'pending'],
     },
     rev: {
-      type: "number",
-      minimum: 0
+      type: 'number',
+      minimum: 0,
     },
     userRole: {
-      type: "string"
+      type: 'string',
     },
     projectId: {
-      type: "array"
+      type: 'array',
     },
     isExternalUser: {
-      type: "boolean"
+      type: 'boolean',
     },
     encryptedCreds: {
-      type: "string"
+      type: 'string',
     },
     applyReason: {
-      type: "string"
-    }
+      type: 'string',
+    },
   },
-  required: ["uid", "rev"]
-}
+  required: ['uid', 'rev'],
+};
 module.exports = schema;

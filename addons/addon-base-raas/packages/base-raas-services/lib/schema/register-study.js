@@ -13,61 +13,61 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     id: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_ ]+$"
+      pattern: '^[A-Za-z0-9-_ ]+$',
     },
     name: {
-      type: "string",
+      type: 'string',
       maxLength: 300,
-      pattern: "^([^<>{}]*)$"
+      pattern: '^([^<>{}]*)$',
     },
     category: {
-      type: "string",
-      enum: ["My Studies", "Organization"]
+      type: 'string',
+      enum: ['My Studies', 'Organization'],
     },
     description: {
-      type: "string",
+      type: 'string',
       maxLength: 2048,
-      pattern: "^([^<>{}]*)$"
+      pattern: '^([^<>{}]*)$',
     },
     projectId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_]+$"
+      pattern: '^[A-Za-z0-9-_]+$',
     },
     folder: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 1000,
-      pattern: "^([^<>{}*?]+)$"
+      pattern: '^([^<>{}*?]+)$',
     },
     kmsArn: {
-      type: "string",
+      type: 'string',
       maxLength: 90,
-      pattern: "arn:aws[a-zA-Z-]*:kms:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-[0-9]{1}:[0-9]{12}:key[/]{1}[a-zA-Z0-9-]+"
+      pattern: 'arn:aws[a-zA-Z-]*:kms:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-[0-9]{1}:[0-9]{12}:key[/]{1}[a-zA-Z0-9-]+',
     },
     kmsScope: {
-      enum: ["bucket", "study", "none"]
+      enum: ['bucket', 'study', 'none'],
     },
     adminUsers: {
-      type: "array",
+      type: 'array',
       items: {
-        type: "string"
-      }
+        type: 'string',
+      },
     },
     accessType: {
-      type: "string",
-      enum: ["readonly", "readwrite"]
-    }
+      type: 'string',
+      enum: ['readonly', 'readwrite'],
+    },
   },
-  required: ["id", "category", "folder", "accessType", "adminUsers"]
-}
+  required: ['id', 'category', 'folder', 'accessType', 'adminUsers'],
+};
 module.exports = schema;

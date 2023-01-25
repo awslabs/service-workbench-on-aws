@@ -13,43 +13,38 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "array",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'array',
   items: [
     {
-      type: "object",
+      type: 'object',
       properties: {
         fromPort: {
-          type: "integer",
+          type: 'integer',
           minimum: 0,
-          maximum: 65535
+          maximum: 65535,
         },
         toPort: {
-          type: "integer",
+          type: 'integer',
           minimum: 0,
-          maximum: 65535
+          maximum: 65535,
         },
         protocol: {
-          type: "string"
+          type: 'string',
         },
         cidrBlocks: {
-          type: "array",
+          type: 'array',
           items: [
             {
-              type: "string"
-            }
-          ]
-        }
+              type: 'string',
+            },
+          ],
+        },
       },
-      required: [
-        "fromPort",
-        "toPort",
-        "protocol",
-        "cidrBlocks"
-      ],
-      additionalProperties: false
-    }
+      required: ['fromPort', 'toPort', 'protocol', 'cidrBlocks'],
+      additionalProperties: false,
+    },
   ],
-  minItems: 1
-}
+  minItems: 1,
+};
 module.exports = schema;

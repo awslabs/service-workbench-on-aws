@@ -13,66 +13,66 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     id: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_ ]+$"
+      pattern: '^[A-Za-z0-9-_ ]+$',
     },
     name: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 300,
-      pattern: "^([^<>{}]*)$"
+      pattern: '^([^<>{}]*)$',
     },
     category: {
-      type: "string",
-      enum: ["My Studies", "Organization", "Open Data"]
+      type: 'string',
+      enum: ['My Studies', 'Organization', 'Open Data'],
     },
     description: {
-      type: "string",
-      description: "Leaving length and pattern blank to accommodate open data"
+      type: 'string',
+      description: 'Leaving length and pattern blank to accommodate open data',
     },
     projectId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_]+$"
+      pattern: '^[A-Za-z0-9-_]+$',
     },
     uploadLocationEnabled: {
-      type: "boolean"
+      type: 'boolean',
     },
     sha: {
-      type: "string",
+      type: 'string',
       maxLength: 64,
-      pattern: "^([A-Fa-f0-9]{40})$",
-      description: "A unique identifier for Open Data in MD5 hash, hexadecimal"
+      pattern: '^([A-Fa-f0-9]{40})$',
+      description: 'A unique identifier for Open Data in MD5 hash, hexadecimal',
     },
     resources: {
-      type: "array",
+      type: 'array',
       items: [
         {
-          type: "object",
+          type: 'object',
           additionalProperties: false,
           properties: {
             arn: {
-              type: "string",
+              type: 'string',
               maxLength: 2048,
-              pattern: "^(arn:aws[a-zA-Z-]*:[a-zA-Z0-9-/.:_?*]+)$"
-            }
-          }
-        }
-      ]
+              pattern: '^(arn:aws[a-zA-Z-]*:[a-zA-Z0-9-/.:_?*]+)$',
+            },
+          },
+        },
+      ],
     },
     accessType: {
-      type: "string",
-      enum: ["readonly", "readwrite"]
-    }
+      type: 'string',
+      enum: ['readonly', 'readwrite'],
+    },
   },
-  required: ["id", "category"]
-}
+  required: ['id', 'category'],
+};
 module.exports = schema;

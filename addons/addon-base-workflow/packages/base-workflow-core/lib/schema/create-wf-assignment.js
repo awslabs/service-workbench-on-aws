@@ -12,28 +12,27 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const schema =
-{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "id": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 200,
-      "pattern": "^[A-Za-z0-9-_ ]+$"
+const schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    id: {
+      type: 'string',
+      minLength: 1,
+      maxLength: 200,
+      pattern: '^[A-Za-z0-9-_ ]+$',
     },
-    "triggerType": {
-      "type": "string"
+    triggerType: {
+      type: 'string',
     },
-    "triggerTypeData": {
-      "type": "string"
+    triggerTypeData: {
+      type: 'string',
     },
-    "wf": {
-      "type": "string"
-    }
+    wf: {
+      type: 'string',
+    },
   },
-  "required": ["id", "triggerType", "triggerTypeData", "wf"]
-}
+  required: ['id', 'triggerType', 'triggerTypeData', 'wf'],
+};
 module.exports = schema;

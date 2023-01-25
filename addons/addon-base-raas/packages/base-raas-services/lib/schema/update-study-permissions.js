@@ -13,32 +13,32 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   definitions: {
     permissionLevel: {
-      type: "string",
-      enum: ["admin", "readonly", "writeonly", "readwrite"]
+      type: 'string',
+      enum: ['admin', 'readonly', 'writeonly', 'readwrite'],
     },
     userEntry: {
-      type: "object",
+      type: 'object',
       properties: {
-        uid: { "type": "string" },
-        permissionLevel: { "$ref": "#/definitions/permissionLevel" }
+        uid: { type: 'string' },
+        permissionLevel: { $ref: '#/definitions/permissionLevel' },
       },
-      required: ["uid"]
-    }
+      required: ['uid'],
+    },
   },
   properties: {
     usersToAdd: {
-      type: "array",
-      items: { "$ref": "#/definitions/userEntry" }
+      type: 'array',
+      items: { $ref: '#/definitions/userEntry' },
     },
     usersToRemove: {
-      type: "array",
-      items: { "$ref": "#/definitions/userEntry" }
-    }
-  }
-}
+      type: 'array',
+      items: { $ref: '#/definitions/userEntry' },
+    },
+  },
+};
 module.exports = schema;

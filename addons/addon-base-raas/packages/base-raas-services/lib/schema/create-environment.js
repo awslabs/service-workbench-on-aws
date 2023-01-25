@@ -13,71 +13,71 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     name: {
-      type: "string",
+      type: 'string',
       maxLength: 128,
       minLength: 3,
-      pattern: "^[A-Za-z][A-Za-z0-9-]+$"
+      pattern: '^[A-Za-z][A-Za-z0-9-]+$',
     },
     platformId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 100
+      maxLength: 100,
     },
     configurationId: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 300
+      maxLength: 300,
     },
     description: {
-      type: "string",
-      maxLength: 2048
+      type: 'string',
+      maxLength: 2048,
     },
     accountId: {
-      type: "string",
-      minLength: 12
+      type: 'string',
+      minLength: 12,
     },
     projectId: {
-      type: "string"
+      type: 'string',
     },
     params: {
-      type: "object",
-      additionalProperties: true
+      type: 'object',
+      additionalProperties: true,
     },
     studyIds: {
-      type: "array",
+      type: 'array',
       items: [
         {
-          type: "string",
-          minLength: 1
-        }
-      ]
+          type: 'string',
+          minLength: 1,
+        },
+      ],
     },
     sharedWithUsers: {
-      type: "array",
+      type: 'array',
       items: [
         {
-          type: "object",
+          type: 'object',
           additionalProperties: false,
           properties: {
             username: {
-              type: "string",
-              minLength: 3
+              type: 'string',
+              minLength: 3,
             },
             ns: {
-              type: "string",
-              minLength: 3
-            }
-          }
-        }
+              type: 'string',
+              minLength: 3,
+            },
+          },
+        },
       ],
-      default: []
-    }
+      default: [],
+    },
   },
-  required: ["name", "platformId", "configurationId"]
-}
+  required: ['name', 'platformId', 'configurationId'],
+};
 module.exports = schema;

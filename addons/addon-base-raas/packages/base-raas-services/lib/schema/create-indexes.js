@@ -13,24 +13,24 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     id: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_]+$"
+      pattern: '^[A-Za-z0-9-_]+$',
     },
     awsAccountId: {
-      type: "string",
-      minLength: 1
+      type: 'string',
+      minLength: 1,
     },
     description: {
-      type: "string"
-    }
+      type: 'string',
+    },
   },
-  required: ["id", "awsAccountId"]
-}
+  required: ['id', 'awsAccountId'],
+};
 module.exports = schema;

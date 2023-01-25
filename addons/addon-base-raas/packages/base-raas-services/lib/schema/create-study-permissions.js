@@ -13,35 +13,35 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     adminUsers: {
-      type: "array",
+      type: 'array',
       items: {
-        type: "string"
-      }
+        type: 'string',
+      },
     },
     readonlyUsers: {
-      type: "array",
+      type: 'array',
       items: {
-        type: "string"
-      }
+        type: 'string',
+      },
     },
     readwriteUsers: {
-      type: "array",
+      type: 'array',
       items: {
-        type: "string"
-      }
+        type: 'string',
+      },
     },
     writeonlyUsers: {
-      type: "array",
+      type: 'array',
       items: {
-        type: "string"
-      }
-    }
+        type: 'string',
+      },
+    },
   },
-  required: []
-}
+  required: [],
+};
 module.exports = schema;

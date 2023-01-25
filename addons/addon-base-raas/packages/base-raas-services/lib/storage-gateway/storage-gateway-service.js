@@ -261,7 +261,7 @@ class StorageGatewayService extends Service {
   }
 
   async fetchIP() {
-    const ipAddressResult = await fetch('http://httpbin.org/get').then(function (res) {
+    const ipAddressResult = await fetch('http://httpbin.org/get').then(function(res) {
       return res.json();
     });
     return ipAddressResult.origin;

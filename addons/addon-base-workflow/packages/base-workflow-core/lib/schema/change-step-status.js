@@ -12,21 +12,17 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const schema =
-{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "http://basedl/root.json",
-  "type": "object",
-  "required": [
-    "instanceId",
-    "stepIndex"
-  ],
-  "properties": {
-    "instanceId": { "type": "string" },
-    "stepIndex": { "type": "integer" },
-    "status": { "type": "string", "enum": ["not_started", "in_progress", "paused", "error", "done", "skipped"] },
-    "clearMessage": { "type": "boolean" },
-    "message": { "type": "string" }
-  }
-}
+const schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  $id: 'http://basedl/root.json',
+  type: 'object',
+  required: ['instanceId', 'stepIndex'],
+  properties: {
+    instanceId: { type: 'string' },
+    stepIndex: { type: 'integer' },
+    status: { type: 'string', enum: ['not_started', 'in_progress', 'paused', 'error', 'done', 'skipped'] },
+    clearMessage: { type: 'boolean' },
+    message: { type: 'string' },
+  },
+};
 module.exports = schema;

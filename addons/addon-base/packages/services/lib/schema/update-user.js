@@ -12,59 +12,59 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const schema =
-{
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+const schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     uid: {
-      type: "string"
+      type: 'string',
     },
     usernameInIdp: {
-      type: "string",
+      type: 'string',
       minLength: 3,
-      maxLength: 300
+      maxLength: 300,
     },
     email: {
-      type: "string",
-      pattern: "^([^.%+!$&*=^|~#%{}]+)[a-zA-Z0-9\\._%+!$&*=^|~#%{}/\\-]+([^.!]+)@([^-.!](([a-zA-Z0-9\\-]+\\.){1,}([a-zA-Z]{2,63})))"
+      type: 'string',
+      pattern:
+        '^([^.%+!$&*=^|~#%{}]+)[a-zA-Z0-9\\._%+!$&*=^|~#%{}/\\-]+([^.!]+)@([^-.!](([a-zA-Z0-9\\-]+\\.){1,}([a-zA-Z]{2,63})))',
     },
     firstName: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 500,
-      pattern: "^[A-Za-z0-9 .-]+$"
+      pattern: '^[A-Za-z0-9 .-]+$',
     },
     lastName: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 500,
-      pattern: "^[A-Za-z0-9 .-]+$"
+      pattern: '^[A-Za-z0-9 .-]+$',
     },
     userType: {
-      type: "string",
-      enum: ["root"]
+      type: 'string',
+      enum: ['root'],
     },
     isSamlAuthenticatedUser: {
-      type: "boolean"
+      type: 'boolean',
     },
     isNativePoolUser: {
-      type: "boolean",
-      default: false
+      type: 'boolean',
+      default: false,
     },
     isAdmin: {
-      type: "boolean"
+      type: 'boolean',
     },
     status: {
-      type: "string",
-      enum: ["active", "inactive"]
+      type: 'string',
+      enum: ['active', 'inactive'],
     },
     rev: {
-      type: "number",
-      minimum: 0
-    }
+      type: 'number',
+      minimum: 0,
+    },
   },
-  required: ["uid", "rev"]
-}
+  required: ['uid', 'rev'],
+};
 module.exports = schema;

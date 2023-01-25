@@ -12,21 +12,20 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const schema =
-{
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+const schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     id: {
-      type: "string",
-      minLength: 1
+      type: 'string',
+      minLength: 1,
     },
     expiresIn: {
-      type: "integer",
-      minimum: 1
-    }
+      type: 'integer',
+      minimum: 1,
+    },
   },
-  required: ["id", "expiresIn"]
-}
+  required: ['id', 'expiresIn'],
+};
 module.exports = schema;

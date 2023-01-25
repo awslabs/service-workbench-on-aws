@@ -13,25 +13,25 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     stackId: {
-      type: "string",
-      maxLength: 400
+      type: 'string',
+      maxLength: 400,
     },
     templateIdExpected: {
-      type: "string",
-      maxLength: 400
+      type: 'string',
+      maxLength: 400,
     },
     templateIdFound: {
-      type: "string",
-      maxLength: 400
+      type: 'string',
+      maxLength: 400,
     },
     stackCreated: {
-      type: "boolean"
-    }
-  }
-}
+      type: 'boolean',
+    },
+  },
+};
 module.exports = schema;

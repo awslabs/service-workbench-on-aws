@@ -12,60 +12,59 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const schema =
-{
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
-  required: ["id", "budgetConfiguration"],
+const schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  required: ['id', 'budgetConfiguration'],
   properties: {
     id: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_]+$"
+      pattern: '^[A-Za-z0-9-_]+$',
     },
     budgetConfiguration: {
-      type: "object",
-      required: ["budgetLimit", "startDate", "endDate"],
+      type: 'object',
+      required: ['budgetLimit', 'startDate', 'endDate'],
       properties: {
         budgetLimit: {
-          type: "string",
+          type: 'string',
           maxLength: 512,
-          pattern: "^([0-9.]+)$"
+          pattern: '^([0-9.]+)$',
         },
         startDate: {
-          type: "integer",
-          minimum: 0
+          type: 'integer',
+          minimum: 0,
         },
         endDate: {
-          type: "integer",
-          minimum: 0
+          type: 'integer',
+          minimum: 0,
         },
         thresholds: {
-          type: "array",
+          type: 'array',
           items: {
-            type: "number",
-            enum: [50, 70, 80, 90, 100]
-          }
+            type: 'number',
+            enum: [50, 70, 80, 90, 100],
+          },
         },
         notificationEmail: {
-          type: "string",
+          type: 'string',
           maxLength: 512,
-          format: "email"
-        }
+          format: 'email',
+        },
       },
       dependencies: {
-        thresholds: ["notificationEmail"],
-        notificationEmail: ["thresholds"]
+        thresholds: ['notificationEmail'],
+        notificationEmail: ['thresholds'],
       },
-      additionalProperties: false
+      additionalProperties: false,
     },
     description: {
-      type: "string",
+      type: 'string',
       maxLength: 2048,
-      pattern: "^([^<>{}]*)$"
-    }
+      pattern: '^([^<>{}]*)$',
+    },
   },
-  additionalProperties: false
-}
+  additionalProperties: false,
+};
 module.exports = schema;

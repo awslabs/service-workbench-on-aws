@@ -13,61 +13,61 @@
  *  permissions and limitations under the License.
  */
 const schema = {
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     name: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 300,
-      pattern: "^([^<>{}]*)$"
+      pattern: '^([^<>{}]*)$',
     },
     description: {
-      type: "string",
+      type: 'string',
       maxLength: 2048,
-      pattern: "^([^<>{}]*)$"
+      pattern: '^([^<>{}]*)$',
     },
     contactInfo: {
-      type: "string",
+      type: 'string',
       maxLength: 2048,
-      pattern: "^([^<>{}]*)$"
+      pattern: '^([^<>{}]*)$',
     },
     id: {
-      type: "string",
-      pattern: "^[0-9]{12}$"
+      type: 'string',
+      pattern: '^[0-9]{12}$',
     },
     mainRegion: {
-      type: "string",
+      type: 'string',
       enum: [
-        "us-west-1",
-        "us-west-2",
-        "us-east-1",
-        "us-east-2",
-        "af-south-1",
-        "ap-east-1",
-        "ap-south-1",
-        "ap-northeast-1",
-        "ap-northeast-2",
-        "ap-northeast-3",
-        "ap-southeast-1",
-        "ap-southeast-2",
-        "ca-central-1",
-        "cn-north-1",
-        "cn-northwest-1",
-        "eu-central-1",
-        "eu-north-1",
-        "eu-south-1",
-        "eu-west-1",
-        "eu-west-2",
-        "eu-west-3",
-        "me-south-1",
-        "sa-east-1",
-        "us-gov-east-1",
-        "us-gov-west-1"
-      ]
-    }
+        'us-west-1',
+        'us-west-2',
+        'us-east-1',
+        'us-east-2',
+        'af-south-1',
+        'ap-east-1',
+        'ap-south-1',
+        'ap-northeast-1',
+        'ap-northeast-2',
+        'ap-northeast-3',
+        'ap-southeast-1',
+        'ap-southeast-2',
+        'ca-central-1',
+        'cn-north-1',
+        'cn-northwest-1',
+        'eu-central-1',
+        'eu-north-1',
+        'eu-south-1',
+        'eu-west-1',
+        'eu-west-2',
+        'eu-west-3',
+        'me-south-1',
+        'sa-east-1',
+        'us-gov-east-1',
+        'us-gov-west-1',
+      ],
+    },
   },
-  required: ["name", "id", "mainRegion"]
-}
+  required: ['name', 'id', 'mainRegion'],
+};
 module.exports = schema;

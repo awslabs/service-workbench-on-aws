@@ -465,7 +465,7 @@ class EnvironmentScConnectionService extends Service {
 
   async updateRoleToIncludeCurrentIP(iam, connection, currentPolicyResponse) {
     // Construct new statement which will allow the caller IP address permission to generate the presigned URL
-    const currentIpAddress = await fetch('http://checkip.amazonaws.com/').then(function (res) {
+    const currentIpAddress = await fetch('http://checkip.amazonaws.com/').then(function(res) {
       return res.text();
     });
     const newStatement = {

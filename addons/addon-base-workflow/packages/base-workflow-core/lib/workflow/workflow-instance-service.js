@@ -139,7 +139,7 @@ class WorkflowInstanceService extends Service {
     if (stepIndex < 0) {
       throw this.boom.badRequest(
         'Invalid stepIndex specified. It must be non-zero index corresponding to ' +
-        'the step in the workflow for which you want to save attributes',
+          'the step in the workflow for which you want to save attributes',
         true,
       );
     }
@@ -157,8 +157,8 @@ class WorkflowInstanceService extends Service {
     if (stepIndex > workflow.selectedSteps.length) {
       throw this.boom.badRequest(
         'Invalid stepIndex specified. It must be non-zero index corresponding to ' +
-        'the step in the workflow for which you want to save attributes. ' +
-        'There is no step in the workflow at the specified step index',
+          'the step in the workflow for which you want to save attributes. ' +
+          'There is no step in the workflow at the specified step index',
         true,
       );
     }

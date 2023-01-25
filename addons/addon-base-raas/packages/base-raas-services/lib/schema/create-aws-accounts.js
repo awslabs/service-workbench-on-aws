@@ -12,119 +12,115 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const schema =
-{
-  $schema: "http://json-schema.org/draft-07/schema#",
-  type: "object",
+const schema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
   additionalProperties: false,
   properties: {
     id: {
-      type: "string",
+      type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: "^[A-Za-z0-9-_ ]+$"
+      pattern: '^[A-Za-z0-9-_ ]+$',
     },
     rev: {
-      type: "number",
-      minimum: 0
+      type: 'number',
+      minimum: 0,
     },
     name: {
-      type: "string",
+      type: 'string',
       minLength: 1,
-      maxLength: 100
+      maxLength: 100,
     },
     description: {
-      type: "string",
-      maxLength: 2048
+      type: 'string',
+      maxLength: 2048,
     },
     accountId: {
-      type: "string",
-      pattern: "^[0-9]{12}$"
+      type: 'string',
+      pattern: '^[0-9]{12}$',
     },
     roleArn: {
-      type: "string",
-      minLength: 10
+      type: 'string',
+      minLength: 10,
     },
     xAccEnvMgmtRoleArn: {
-      type: "string",
-      minLength: 10
+      type: 'string',
+      minLength: 10,
     },
     externalId: {
-      type: "string",
-      minLength: 1
+      type: 'string',
+      minLength: 1,
     },
     vpcId: {
-      type: "string",
-      pattern: "^vpc-[a-f0-9]{8,17}$"
+      type: 'string',
+      pattern: '^vpc-[a-f0-9]{8,17}$',
     },
     subnetId: {
-      type: "string",
-      pattern: "^subnet-[a-f0-9]{8,17}$"
+      type: 'string',
+      pattern: '^subnet-[a-f0-9]{8,17}$',
     },
     publicRouteTableId: {
-      type: "string"
+      type: 'string',
     },
     encryptionKeyArn: {
-      type: "string",
-      pattern: "^arn:aws:kms:.*$"
+      type: 'string',
+      pattern: '^arn:aws:kms:.*$',
     },
     appStreamStackName: {
-      type: "string",
-      minLength: 10
+      type: 'string',
+      minLength: 10,
     },
     appStreamFleetName: {
-      type: "string",
-      minLength: 10
+      type: 'string',
+      minLength: 10,
     },
     appStreamSecurityGroupId: {
-      type: "string",
-      pattern: "^sg-[a-f0-9]{17}$"
+      type: 'string',
+      pattern: '^sg-[a-f0-9]{17}$',
     },
     appStreamFleetDesiredInstances: {
-      type: "string"
+      type: 'string',
     },
     appStreamIdleDisconnectTimeoutSeconds: {
-      type: "string"
+      type: 'string',
     },
     appStreamDisconnectTimeoutSeconds: {
-      type: "string"
+      type: 'string',
     },
     appStreamMaxUserDurationSeconds: {
-      type: "string"
+      type: 'string',
     },
     appStreamImageName: {
-      type: "string"
+      type: 'string',
     },
     appStreamInstanceType: {
-      type: "string"
+      type: 'string',
     },
     appStreamFleetType: {
-      type: "string"
+      type: 'string',
     },
     route53HostedZone: {
-      type: "string"
+      type: 'string',
     },
     onboardStatusRoleArn: {
-      type: "string",
+      type: 'string',
       minLength: 10,
-      pattern: "^arn:aws:iam::.*$"
+      pattern: '^arn:aws:iam::.*$',
     },
     cfnStackName: {
-      type: "string",
-      maxLength: 2048
+      type: 'string',
+      maxLength: 2048,
     },
     cfnStackId: {
-      type: "string",
+      type: 'string',
       maxLength: 255,
-      pattern: "^arn:aws:cloudformation:.*$"
+      pattern: '^arn:aws:cloudformation:.*$',
     },
     permissionStatus: {
-      type: "string"
-    }
+      type: 'string',
+    },
   },
-  required: [
-    "accountId",
-    "name"
-  ]
-}
+  required: ['accountId', 'name'],
+};
 module.exports = schema;
