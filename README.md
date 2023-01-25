@@ -62,10 +62,10 @@ Service Workbench documentation can be accessed in the PDF format or by using th
 
 You can download the PDF versions if you do not have Service Workbench locally installed on your machine. Click the following links to download:
 
-- [Service Workbench Installation Guide](/docs/Service_Workbench_Install_Guide.pdf)
-- [Service Workbench Configuration Guide](/docs/Service_Workbench_Configuration_Guide.pdf)
-- [Service Workbench Post Deployment Guide](/docs/Service_Workbench_Post_Deployment_Guide.pdf)
-- [Service Workbench User's Guide](/docs/Service_Workbench_User_Guide.pdf)
+- [Service Workbench Installation Guide](https://awslabs.github.io/service-workbench-on-aws-cn/installation_guide/overview)
+- [Service Workbench Configuration Guide](https://awslabs.github.io/service-workbench-on-aws-cn/configuration_guide/overview)
+- [Service Workbench Post Deployment Guide](https://awslabs.github.io/service-workbench-on-aws-cn/deployment/post_deployment/)
+- [Service Workbench User's Guide](https://awslabs.github.io/service-workbench-on-aws-cn/user_guide/account_structure)
 
 ### Accessing Documentation using Docusaurus
 
