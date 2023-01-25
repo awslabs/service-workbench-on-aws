@@ -11,16 +11,67 @@ You can use Azure AD to create and manage domains, users, and objects within a n
 
 Azure AD (or any IdP) is a source of authentication. It authenticates users for Service Workbench login. After successful Azure AD login, it sends user information to an Amazon Cognito user pool created by Service Workbench. Service Workbench then uses the Amazon Cognito user pool for its internal use as described in [Service Workbench and IdP workflow](/configuration_guide/workflow).
 
-To configure Azure AD authentication:
+## To configure Azure AD authentication:
 
-1. Create an IdP if you don’t have one. For more information about creating an IdP, see [sign up your organization](https://docs.microsoft.com/en-us/azure/active-directory/fundamentals/sign-up-organization).
-2. Download SAML metadata (XML file).
-3. Using Amazon Cognito on the AWS Management Console, create an Amazon Cognito user pool. The name of the pool must be `<stage>-<solution_name>-userPool`, where`stage` and `solution_name` are configured in the main configuration file.
-4. Gather the relying party information, such as `User Pool Id`, `Relying Party Id`, and `User Pool Signing Cert`.
-5. Run the following script from the root of Service Workbench repository: 
- `scripts/get-relying-party.sh`
-6. Copy the output of this script and provide it to your Azure AD administrator.
+### Create an Azure AD directory
+* Log in to portal.azure.com using a new or existing Microsoft account
+* Under **Azure Services**, select **Azure Active Directory** (you may have to click on **more services** to scroll Active Directory into view)
+![](../images/active_directory_00.png)
 
+#### Create a Tenant and Primary Domain
+* In Azure Active Directory, **Default Directory**, click ‘Create a tenant’.  You may first need to select ‘Manage tenants’.
+![](../images/2021-08-05_17-52-58.png)
+![](../images/active_directory_07.png)
+* In **Create a tenant**, **Basics** tab, select **Azure Active Directory** and proceed to Configuration.
+* In **Create a tenant**, **Configuration** tab, enter the name and domain name of your organization.  The domain name must be globally unique in the `.onmicrosoft.com`  URL space.
+![](../images/active_directory_08.png)
+* Proceed to the **Review + create** tab and click **Create**
+
+#### Create Users
+* In your tenant, select **Users** from the left-hand menu bar. Also note your primary domain name.
+![](../images/active_directory_09.png)
+* Create one or more users by clicking **Create new user**.  While only the **Name** (full name) field is required, it is helpful to also fill in the **First Name** and **Last Name** fields, as these may be required by your application.
+![](../images/active_directory_10.png)
+
+#### Create an Azure AD Application
+* From your tenant (top level) page, select **Enterprise Applications** from the left menu bar, and select **New application**
+![](../images/active_directory_01.png)
+* In **Browse Azure AD Gallery**, select **Create your own application**
+![](../images/active_directory_11.png)
+* Retain the **Non-gallery** setting and give your application a name.  Click **Create**.
+![](../images/active_directory_03.png)
+
+#### Add Users to your Application
+* From within your application, select **Assign users and groups**.
+![](../images/active_directory_12.png)
+* Click **Add user/group**
+![](../images/active_directory_13.png)
+* Select the users to add, and click **Select**, then **Assign**
+![](../images/active_directory_14.png)
+
+#### Enable Single Sign-On
+* In your application, select **Single sign-on** from the left menu bar, and **SAML**
+![](../images/active_directory_15.png)
+* From **SAML-based Sign-on**, box 3, copy **App Federation Metadata Url**, which will be needed in the Service Workbench configuration.
+![](../images/2021-08-18_12-26-12.png)
+
+#### Configure Azure AD in Service Workbench
+* In the Service Workbench installation terminal, edit the main configuration file `main/config/settings/<stage>.yml`:
+	* `fedIdpIds` - The **Primary Domain** of your Active Directory.  E.g.: `yourdirectory.onmicrosoft.com`
+	* `fedIdpNames` - Short name for the login, such as `AzureAD`
+	* `fedIdpDisplayNames` - Long name for the login, such as `Log in using Azure AD`
+	* `fedIdpMetadatas` - **App Federation Metadata Url** from above
+		* `https://login.microsoftonline.com/000/federationmetadata/2007-06/federationmetadata.xml?appid=000`
+* Run `environment-deploy.sh ${STAGE}`
+* Run `get-relying-party-info.sh ${STAGE}` and take note of the following values:
+	* **Relying Party Id (Cognito User Pool URN)**
+	* **(Login) SAML Assersion Consumer Endpoint**
+	* **(Logout) SAML Logout Endpoint**
+    
 <img src={useBaseUrl('img/deployment/post_deployment/scripts.png')} />
 
-**Figure: Script output**
+#### Configure SAML Configuration in Azure Active Directory
+* In Active Directory, open the **Single sign-on** tab of your application and edit box 1, **Basic SAML Configuration** with the values just noted:
+	* **Identifier (Entity ID)** - use **Relying Party Id** above, e.g.: `urn:amazon:cognito:sp:us-east-1_xxx`
+	* **Reply URL (Assertion Consumer Service URL)** - use **SAML Assertion Consumer Endpoint**, e.g.: `https://STAGE-prod-sw.auth.us-east-1.amazoncognito.com/saml2/idpresponse`
+	* **Logout Url** - use **SAML Logout Endpoint**, e.g.: `https://STAGE-prod-sw.auth.us-east-1.amazoncognito.com/saml2/logout`
