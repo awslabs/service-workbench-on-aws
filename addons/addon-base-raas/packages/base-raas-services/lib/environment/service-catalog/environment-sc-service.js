@@ -21,8 +21,8 @@ const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 const { isAdmin, isCurrentUser } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
-const createSchema = require('../../schema/create-environment-sc.json');
-const updateSchema = require('../../schema/update-environment-sc.json');
+const createSchema = require('../../schema/create-environment-sc');
+const updateSchema = require('../../schema/update-environment-sc');
 const environmentScStatus = require('./environent-sc-status-enum');
 const { hasConnections, cfnOutputsArrayToObject } = require('./helpers/connections-util');
 const { hasAccess, accessLevels } = require('../../study/helpers/entities/study-methods');
@@ -538,10 +538,10 @@ class EnvironmentScService extends Service {
     const studyService = await this.service('studyService');
     const studies = environment.studyIds
       ? await Promise.all(
-          environment.studyIds.map(studyId => {
-            return studyService.mustFind(requestContext, studyId);
-          }),
-        )
+        environment.studyIds.map(studyId => {
+          return studyService.mustFind(requestContext, studyId);
+        }),
+      )
       : [];
     const openDataStudies = studies.filter(study => {
       return study.category === 'Open Data';

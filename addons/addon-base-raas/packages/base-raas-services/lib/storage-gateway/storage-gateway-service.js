@@ -20,8 +20,8 @@ const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/sys
 
 const uuid = require('uuid/v1');
 let fetch = require('node-fetch');
-const createStorageGatewaySchema = require('../schema/create-storage-gateway.json');
-const updateStorageGatewaySchema = require('../schema/update-storage-gateway.json');
+const createStorageGatewaySchema = require('../schema/create-storage-gateway');
+const updateStorageGatewaySchema = require('../schema/update-storage-gateway');
 
 // Webpack messes with the fetch function import and it breaks in lambda.
 if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'function') {
@@ -261,7 +261,7 @@ class StorageGatewayService extends Service {
   }
 
   async fetchIP() {
-    const ipAddressResult = await fetch('http://httpbin.org/get').then(function(res) {
+    const ipAddressResult = await fetch('http://httpbin.org/get').then(function (res) {
       return res.json();
     });
     return ipAddressResult.origin;

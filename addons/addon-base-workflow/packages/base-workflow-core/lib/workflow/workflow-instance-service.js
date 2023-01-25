@@ -20,10 +20,10 @@ const Service = require('@amzn/base-services-container/lib/service');
 const { ensureAdmin } = require('@amzn/base-services/lib/authorization/assertions');
 const { runAndCatch, generateId } = require('@amzn/base-services/lib/helpers/utils');
 
-const inputSchema = require('../schema/create-workflow-instance.json');
-const changeWorkflowStatusSchema = require('../schema/change-workflow-status.json');
-const changeStepStatusSchema = require('../schema/change-step-status.json');
-const saveStepAttributesSchema = require('../schema/save-step-attributes.json');
+const inputSchema = require('../schema/create-workflow-instance');
+const changeWorkflowStatusSchema = require('../schema/change-workflow-status');
+const changeStepStatusSchema = require('../schema/change-step-status');
+const saveStepAttributesSchema = require('../schema/save-step-attributes');
 
 const settingKeys = {
   tableName: 'dbWorkflowInstances',
@@ -139,7 +139,7 @@ class WorkflowInstanceService extends Service {
     if (stepIndex < 0) {
       throw this.boom.badRequest(
         'Invalid stepIndex specified. It must be non-zero index corresponding to ' +
-          'the step in the workflow for which you want to save attributes',
+        'the step in the workflow for which you want to save attributes',
         true,
       );
     }
@@ -157,8 +157,8 @@ class WorkflowInstanceService extends Service {
     if (stepIndex > workflow.selectedSteps.length) {
       throw this.boom.badRequest(
         'Invalid stepIndex specified. It must be non-zero index corresponding to ' +
-          'the step in the workflow for which you want to save attributes. ' +
-          'There is no step in the workflow at the specified step index',
+        'the step in the workflow for which you want to save attributes. ' +
+        'There is no step in the workflow at the specified step index',
         true,
       );
     }

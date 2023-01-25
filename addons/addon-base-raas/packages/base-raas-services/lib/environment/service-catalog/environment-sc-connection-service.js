@@ -20,7 +20,7 @@ const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
 const Service = require('@amzn/base-services-container/lib/service');
 const { retry, linearInterval } = require('@amzn/base-services/lib/helpers/utils');
-const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc.json');
+const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc');
 const { connectionScheme } = require('./environment-sc-connection-enum');
 const { cfnOutputsToConnections } = require('./helpers/connections-util');
 
@@ -465,7 +465,7 @@ class EnvironmentScConnectionService extends Service {
 
   async updateRoleToIncludeCurrentIP(iam, connection, currentPolicyResponse) {
     // Construct new statement which will allow the caller IP address permission to generate the presigned URL
-    const currentIpAddress = await fetch('http://checkip.amazonaws.com/').then(function(res) {
+    const currentIpAddress = await fetch('http://checkip.amazonaws.com/').then(function (res) {
       return res.text();
     });
     const newStatement = {

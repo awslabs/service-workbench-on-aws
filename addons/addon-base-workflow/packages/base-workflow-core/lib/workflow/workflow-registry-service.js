@@ -16,7 +16,7 @@
 const _ = require('lodash');
 const Service = require('@amzn/base-services-container/lib/service');
 
-const inputSchema = require('../schema/workflow.json');
+const inputSchema = require('../schema/workflow');
 
 class WorkflowRegistryService extends Service {
   constructor() {
