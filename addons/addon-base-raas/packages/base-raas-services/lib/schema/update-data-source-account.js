@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+const { nonHtmlRegex } = require('@amzn/base-services/lib/helpers/constants');
 const schema = {
   $schema: "http://json-schema.org/draft-07/schema#",
   type: "object",
@@ -29,17 +30,17 @@ const schema = {
       type: "string",
       minLength: 1,
       maxLength: 300,
-      pattern: "^([^<>{}]*)$"
+      pattern: nonHtmlRegex
     },
     description: {
       type: "string",
       maxLength: 2048,
-      pattern: "^([^<>{}]*)$"
+      pattern: nonHtmlRegex
     },
     contactInfo: {
       type: "string",
       maxLength: 2048,
-      pattern: "^([^<>{}]*)$"
+      pattern: nonHtmlRegex
     }
   },
   required: ["id", "rev"]
