@@ -54,7 +54,7 @@ class ProjectsList extends React.Component {
     const pageSize = projectsData.length;
     const pagination = projectsData.length > pageSize;
     return (
-      <div>
+      <div data-testid="projects-table">
         <ReactTable
           data={projectsData}
           showPagination={pagination}

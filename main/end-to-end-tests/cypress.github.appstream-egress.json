@@ -9,7 +9,7 @@
     "cognitoClientId": "3do9bsosfmol7r7hdnutbn5tup",
     "workspaces": {
       "sagemaker": {
-        "workspaceTypeName": "SageMaker Notebook-v5",
+        "workspaceTypeName": "SageMaker Notebook-v6",
         "configuration": "AppStream-SageMaker",
         "projectId": "TRE-Project"
       },

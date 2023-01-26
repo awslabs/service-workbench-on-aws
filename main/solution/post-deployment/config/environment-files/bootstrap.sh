@@ -43,32 +43,34 @@ update_jupyter_config() {
     cat << EOF | cut -b5- >> "$config_file"
 
     import subprocess
+    import os
     from notebook.services.sessions.sessionmanager import SessionManager as BaseSessionManager
+    from notebook.services.kernels.kernelmanager import MappingKernelManager
 
-    class SessionManager(BaseSessionManager):
-        def list_sessions(self, *args, **kwargs):
-            """Override default list_sessions() method"""
+    class CustomSessionManager(BaseSessionManager):
+        def __init__(self, *args, **kwargs):
+            """Override default __init__() method"""
             self.mount_studies()
-            result = super(SessionManager, self).list_sessions(*args, **kwargs)
+            result = super(CustomSessionManager, self).__init__(*args, **kwargs)
             return result
 
         def mount_studies(self):
-            """Execute mount_s3.sh if it hasn't already been run"""
-            if not hasattr(self, 'studies_mounted'):
+            """Execute mount_s3.sh if mounting hasn't been done yet"""
+            path = "~/studies"
+            isExist = os.path.exists(path)
+            if not isExist:
                 mounting_result = subprocess.run(
                     "mount_s3.sh",
                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT
                 )
-
                 # Log results
                 if mounting_result.stdout:
                     for line in mounting_result.stdout.decode("utf-8").split("\n"):
                         if line: # Skip empty lines
                             self.log.info(line)
-
-                self.studies_mounted = True
-
-    c.NotebookApp.session_manager_class = SessionManager
+                            
+    c.NotebookApp.session_manager_class = CustomSessionManager
+    c.NotebookApp.kernel_manager_class = AsyncMappingKernelManager
 EOF
 }
 
@@ -172,7 +174,10 @@ case "$(env_type)" in
             sudo yum --disablerepo=* localinstall -y *.rpm
             echo "Finish installing fuse"
         fi
+        cat "${FILES_DIR}/offline-packages/sagemaker/jupyter_notebook_config.py" > "/home/ec2-user/.jupyter/jupyter_notebook_config.py"
         update_jupyter_config "/home/ec2-user/.jupyter/jupyter_notebook_config.py"
+        # TODO: Automate running mount_s3 script. update_jupyter_config does not seem to work on JupyterLabv3
+        echo "Setting up a one-time mount script."
         if [ $OS_VERSION = '2' ]
         then
             systemctl restart jupyter-server

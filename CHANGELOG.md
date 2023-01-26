@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## Beta
+[This release is in beta. Click here to see changes since 5.2.7.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.7...mainline)
+
+### [5.2.7](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.6...v5.2.7) (2022-12-30)
+
+### Bug Fixes
+
+* Sagemaker compatibility fix with AL2. Fix issue in which Sagemaker instances running on AL2 could not mount dataset. ([#1089](https://github.com/awslabs/service-workbench-on-aws/issues/1089)) ([bdf978b](https://github.com/awslabs/service-workbench-on-aws/commit/bdf978b1c909c37207902f1b29b0fd05b5b24208))
+
+### [5.2.6](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.5...v5.2.6) (2022-12-19)
+
+
+### Bug Fixes
+
+* add permissions for stgEnvname and stgNamespace to IAM roles ([#1074](https://github.com/awslabs/service-workbench-on-aws/issues/1074)) ([62d35f4](https://github.com/awslabs/service-workbench-on-aws/commit/62d35f4e58a2a2d92a74a427548a721bc1c22114))
+* projects test was using the wrong role ([#1087](https://github.com/awslabs/service-workbench-on-aws/issues/1087)) ([9c283b6](https://github.com/awslabs/service-workbench-on-aws/commit/9c283b6ab3b19ab9b339fb4ffc310b4602b2892d))
+* UI properly sorts Projects with Detail button ([#1085](https://github.com/awslabs/service-workbench-on-aws/issues/1085)) ([a267305](https://github.com/awslabs/service-workbench-on-aws/commit/a2673055347818d5518de628d76f8603702ca759))
+
 ### [5.2.5](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.4...v5.2.5) (2022-12-09)
 
 ### Bug Fixes
@@ -264,16 +282,10 @@ To learn more about the new process, refer to the updated [instructions](https:/
 
 **Important Notes:**
 
-<<<<<<< HEAD
-
 - If you have already onboarded a member account for your Service Workbench installation, and this account has active or stopped workspaces, the safest course would be to terminate all workspaces prior to the update. We did test a scenario with active and stopped workspaces and observed no impact during testing, but because this update is a major release, we recommend the safest course.
-- # Any member accounts that were onboarded prior to this update will need to be updated through the Service Workbench user interface, and you will be prompted to do so when visiting the new “Accounts” page in Service Workbench. This update is necessary because there is a new capability that will check to see if the member and main account code versions are in sync, and provide a visual indicator if not, allowing you a clear indication of update.
+- After updating the member account, delete the old workspace types and import the new workspace types. This is needed because the old workspace types may not work correctly with Service Workbench 4.0.0.
+- Any member accounts that were onboarded prior to this update will need to be updated through the Service Workbench user interface, and you will be prompted to do so when visiting the new “Accounts” page in Service Workbench. This update is necessary because there is a new capability that will check to see if the member and main account code versions are in sync, and provide a visual indicator if not, allowing you a clear indication of update.
 
-* If you have already onboarded a member account for your Service Workbench installation, and this account has active or stopped workspaces, the safest course would be to terminate all workspaces prior to the update. We did test a scenario with active and stopped workspaces and observed no impact during testing, but because this update is a major release, we recommend the safest course.
-* After updating the member account, delete the old workspace types and import the new workspace types. This is needed because the old workspace types may not work correctly with Service Workbench 4.0.0.
-* Any member accounts that were onboarded prior to this update will need to be updated through the Service Workbench user interface, and you will be prompted to do so when visiting the new “Accounts” page in Service Workbench. This update is necessary because there is a new capability that will check to see if the member and main account code versions are in sync, and provide a visual indicator if not, allowing you a clear indication of update.
-
-> > > > > > > ea93a8cb23c69da9fe2508bdf681e5bc4db0e870
 
 #### 2. Enabling secure desktop
 

@@ -9,10 +9,12 @@ Conditions:
   UseCodeCommit: !Not
     - !Equals ['${self:custom.settings.sourceAccountId}', '']
   CreateStagingEnv: !Equals ['${self:custom.settings.createStagingEnv}', true]
-  RunTestsAgainstTargetEnv: !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
+  RunTestsAgainstTargetEnv:
+    !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
   DeleteTargetEnv: !Equals ['${self:custom.settings.deleteAfterInstall}', true]
   PreventCollision: !Equals ['${self:custom.settings.preventCollision}', true]
-  AddManualApproval: !Equals ['${self:custom.settings.requireManualApproval}', true]
+  AddManualApproval:
+    !Equals ['${self:custom.settings.requireManualApproval}', true]
   SubscribeNotificationEmail: !Not
     - !Equals ['${self:custom.settings.emailForNotifications}', '']
 
@@ -436,6 +438,157 @@ Resources:
                 - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
             - !Ref AWS::NoValue
 
+  PolicyAppDeployerStaging:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows CodePipeline to create resources required for deploying SWB with staging env
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - iam:GetRole
+                - iam:GetRolePolicy
+                - iam:CreateRole
+                - iam:PutRolePolicy
+                - iam:AttachRolePolicy
+                - iam:DeleteRole
+                - iam:DeleteRolePolicy
+                - iam:DetachRolePolicy
+                - iam:UpdateRoleDescription
+                - iam:*TagRole*
+              Effect: Allow
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - iam:PassRole
+              Effect: Allow
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: Allow
+              Action:
+                - iam:CreatePolicy
+                - iam:GetPolicy
+                - iam:DeletePolicy
+                - iam:*PolicyVersion*
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - dynamodb:*
+              Effect: Allow
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: Allow
+              Action:
+                - lambda:*
+              Resource:
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*:*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*:*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*:*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*'
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - 's3:*'
+              Effect: Allow
+              Resource:
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*/*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*/*
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:DeleteParameter
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.stgEnvName}/*'
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: Allow
+              Action:
+                - cloudformation:CreateStack
+                - cloudformation:DeleteStack
+                - cloudformation:DescribeStacks
+                - cloudformation:UpdateStack
+                - cloudformation:GetTemplate
+                - cloudformation:ListStackResources
+                - cloudformation:DescribeStackEvents
+                - cloudformation:ExecuteChangeSet
+                - cloudformation:DescribeChangeSet
+                - cloudformation:CreateChangeSet
+                - cloudformation:DeleteChangeSet
+              Resource:
+                - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*'
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Effect: 'Allow'
+              Action:
+                - kms:DescribeKey
+                - kms:EnableKey
+                - kms:Encrypt
+                - kms:Decrypt
+                - kms:CreateAlias
+                - kms:DeleteAlias
+                - kms:ScheduleKeyDeletion
+                - kms:ListKeyPolicies
+                - kms:ReEncrypt*
+                - kms:GenerateDataKey
+                - kms:ListGrants
+                - kms:GenerateDataKeyWithoutPlaintext
+                - kms:CreateGrant
+                - kms:RevokeGrant
+                - kms:TagResource
+                - kms:UntagResource
+                - kms:GetKeyPolicy
+                - kms:EnableKeyRotation
+              Resource:
+                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.stgNamespace}*'
+            - !Ref AWS::NoValue
+          - !If
+            - CreateStagingEnv
+            - Action:
+                - iam:PutRolePermissionsBoundary
+                - iam:DeleteRolePermissionsBoundary
+              Effect: Allow
+              Resource:
+                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.stgNamespace}*'
+            - !Ref AWS::NoValue
+
+          - Action:
+              - iam:PutRolePermissionsBoundary
+              - iam:DeleteRolePermissionsBoundary
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:AttachRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:DetachRolePolicy
+            Effect: Deny
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.stgNamespace}-cicd-pipeline-PolicyAppDeployerStaging-*'
   AppDeployerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -452,6 +605,7 @@ Resources:
         # The permissions required by stacks are very fluid and dependent on which resources are declared in those
         # stacks
         - !Ref PolicyAppDeployer
+        - !Ref PolicyAppDeployerStaging
       PermissionsBoundary: !Ref PolicyAppDeployer
 
   # Role that allows triggering the CodePipeline. This role is assumed by CloudWatch Events from the Source AWS Account
@@ -893,5 +1047,8 @@ Outputs:
   AppArtifactBucketArn: { Value: !GetAtt AppArtifactBucket.Arn }
   ArtifactBucketKeyArn: { Value: !GetAtt ArtifactBucketKey.Arn }
   AppPipelineName: { Value: !Ref AppPipeline }
-  AppPipelineArn: { Value: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}' }
+  AppPipelineArn:
+    {
+      Value: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}',
+    }
   PipelineNotificationsTopic: { Value: !Ref PipelineNotificationsTopic }
