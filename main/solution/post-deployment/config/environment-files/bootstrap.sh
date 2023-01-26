@@ -43,7 +43,9 @@ update_jupyter_config() {
     cat << EOF | cut -b5- >> "$config_file"
 
     import subprocess
+    import os
     from notebook.services.sessions.sessionmanager import SessionManager as BaseSessionManager
+    from notebook.services.kernels.kernelmanager import AsyncMappingKernelManager
 
     class SessionManager(BaseSessionManager):
         def list_sessions(self, *args, **kwargs):
@@ -51,7 +53,6 @@ update_jupyter_config() {
             self.mount_studies()
             result = super(SessionManager, self).list_sessions(*args, **kwargs)
             return result
-
         def mount_studies(self):
             """Execute mount_s3.sh if it hasn't already been run"""
             if not hasattr(self, 'studies_mounted'):
@@ -59,15 +60,12 @@ update_jupyter_config() {
                     "mount_s3.sh",
                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT
                 )
-
                 # Log results
                 if mounting_result.stdout:
                     for line in mounting_result.stdout.decode("utf-8").split("\n"):
                         if line: # Skip empty lines
                             self.log.info(line)
-
                 self.studies_mounted = True
-
     c.NotebookApp.session_manager_class = SessionManager
 EOF
 }
