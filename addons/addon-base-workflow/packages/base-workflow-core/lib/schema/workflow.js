@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+const { nonHtmlRegex } = require("@amzn/base-services/lib/helpers/constants");
 const schema = {
   definitions: {
     markdown: {
@@ -32,7 +33,7 @@ const schema = {
       properties: {
         stepTemplateId: { type: 'string', pattern: '^(.*)$' },
         stepTemplateVer: { type: 'integer', minimum: 0 },
-        title: { type: 'string' },
+        title: { type: 'string', pattern: nonHtmlRegex },
         desc: { $ref: '#/definitions/description' },
         skippable: { type: 'boolean' },
         configs: { type: 'object' },
