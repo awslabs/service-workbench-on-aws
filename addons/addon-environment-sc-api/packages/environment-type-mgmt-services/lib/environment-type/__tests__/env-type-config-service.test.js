@@ -168,6 +168,21 @@ describe('EnvTypeService', () => {
       }
     });
 
+    it('should fail because name contains invalid characters', async () => {
+      // BUILD
+      const newConfig = {
+        id: 'iveGotABadFeelingAboutThis',
+        name: '<script>console.log("**hacker voice** I\'m in")</script>',
+      };
+
+      // OPERATE
+      try {
+        await service.create({}, 'envTypeId', newConfig);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toBe('Input has validation errors');
+      }
+    });
     it('should fail because the config already exists', async () => {
       // BUILD
       const newConfig = {
@@ -360,6 +375,51 @@ describe('EnvTypeService', () => {
     //    -CFN template validation
     //    -checking if the config already exists
     // as a result, they don't need to be tested again
+    it('should fail to update if name has wrong format', async () => {
+      // BUILD
+      const oldConfig = {
+        id: 'yoda',
+        name: 'doOrDoNot',
+        params: [
+          {
+            key: 'someProperty',
+            value: 'someValue',
+          },
+        ],
+      };
+      const newConfig = {
+        id: 'yoda',
+        name: '<script>console.log("unsafe code")</script>',
+        params: [
+          {
+            key: 'someProperty',
+            value: 'someNewValue',
+          },
+        ],
+      };
+      const envType = {
+        id: newConfig.id,
+        name: 'luke',
+        params: [
+          {
+            ParameterKey: 'someProperty',
+            ParameterType: 'String',
+          },
+        ],
+      };
+      envTypeService.mustFind.mockImplementationOnce(() => envType);
+      service.getConfigsFromS3.mockImplementationOnce(() => [oldConfig]);
+      service.audit = jest.fn();
+
+      // OPERATE
+      try {
+        await service.update({}, envType.id, newConfig);
+        expect.hasAssertions();
+      }
+      catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
     it('should succeed to update the config for the envType', async () => {
       // BUILD
       const oldConfig = {

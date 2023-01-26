@@ -108,6 +108,29 @@ describe('IndexesService', () => {
       }
     });
 
+    it('should fail if the id is unsafe code', async () => {
+      // BUILD
+
+      const index = {
+        id: '<script>console.log("unsafe code")</script>',
+        description: 'is Jenny there?',
+        awsAccountId: 'example-ttutone-81',
+      };
+
+      dbService.table.update.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      // OPERATE
+      try {
+        await service.create({}, index);
+        expect.toHaveAssertions();
+      } catch (err) {
+        // VERIFY
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
     it('should succeed if the input is valid and the id does not exist', async () => {
       // BUILD
 
@@ -153,6 +176,32 @@ describe('IndexesService', () => {
       } catch (err) {
         // CHECK
         expect(err.message).toEqual('indexes with id "id-slipp-when-wet" does not exist');
+      }
+    });
+
+    it('should fail if id is unsafe code', async () => {
+      // BUILD
+
+      const index = {
+        id: '<script>console.log("unsafe code")</script>',
+        description: 'halfway there',
+        awsAccountId: 'example-JBJ-86',
+        rev: 1,
+      };
+
+      dbService.table.update.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      service.find = jest.fn().mockResolvedValue(null);
+
+      // OPERATE
+      try {
+        await service.update({}, index);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
       }
     });
 

@@ -209,7 +209,19 @@ describe('AwsAccountService', () => {
       name: 'my-aws-account',
       accountId: '012345678998',
     };
-
+    it('should fail if the name is invalid', async () => {
+      // BUILD
+      const failedAccount = { ...awsAccount, name: '<script>console.log("**hacker voice** I\'m in")</script>' };
+      const requestContext = {};
+      // OPERATE
+      try {
+        await service.create(requestContext, failedAccount);
+        expect.hasAssertions();
+      }
+      catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
     it('should fail if user is not allowed to create account', async () => {
       // BUILD
       const requestContext = {};
