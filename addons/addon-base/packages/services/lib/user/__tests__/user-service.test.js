@@ -67,6 +67,47 @@ describe('UserService', () => {
   });
 
   describe('createUser', () => {
+    it('should fail because the email has a script', async () => {
+      // BUILD
+      const newUser = {
+        email: '<script>console.log("**hacker voice** I\'m in")</script>',
+        firstName: 'Jaime',
+        lastName: 'Lannister',
+        username: 'dragonsrkool@example.com',
+        authenticationProviderId: 'someIdpId',
+      };
+
+      // OPERATE
+      try {
+        await service.createUser({}, newUser);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
+    it('should fail because the usernameInIdp has a script', async () => {
+      // BUILD
+      const newUser = {
+        usernameInIdp: '<script>console.log("**hacker voice** I\'m in")</script>',
+        email: 'example@example.com',
+        firstName: 'Jaime',
+        lastName: 'Lannister',
+        username: 'dragonsrkool@example.com',
+        authenticationProviderId: 'someIdpId',
+      };
+
+      // OPERATE
+      try {
+        await service.createUser({}, newUser);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
     it('should fail because the user lacks a username', async () => {
       // BUILD
       const newUser = {
@@ -348,6 +389,24 @@ describe('UserService', () => {
       } catch (err) {
         // CHECK
         expect(service.boom.is(err, 'outdatedUpdateAttempt')).toBe(true);
+      }
+    });
+
+    it('should fail because the usernameInIdp has a script', async () => {
+      // BUILD
+      const toUpdate = {
+        usernameInIdp: '<script>console.log("**hacker voice** I\'m in")</script>',
+        uid,
+        rev: 2,
+      };
+
+      // OPERATE
+      try {
+        await service.updateUser({}, toUpdate);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
       }
     });
 

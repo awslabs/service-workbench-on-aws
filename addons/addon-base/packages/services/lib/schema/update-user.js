@@ -22,8 +22,11 @@ const schema = {
     },
     usernameInIdp: {
       type: 'string',
-      minLength: 3,
-      maxLength: 300,
+      format: 'email',
+      minLength: 6,
+      maxLength: 512,
+      pattern:
+        '^([^.%+!$&*=^|~#%{}]+)[a-zA-Z0-9\\._%+!$&*=^|~#%{}/\\-]+([^.!]+)@([^-.!](([a-zA-Z0-9\\-]+\\.){1,}([a-zA-Z]{2,63})))',
     },
     email: {
       type: 'string',
