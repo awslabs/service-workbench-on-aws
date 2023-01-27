@@ -154,6 +154,35 @@ describe('DataEgressService', () => {
       );
     });
 
+    it('should fail creating egress store with unsafe code in name', async () => {
+      dataEgressService._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
+          }
+          if (settingName === 'egressStoreKmsKeyAliasArn') {
+            return 'test-egressStoreKmsKeyAliasArn';
+          }
+          return undefined;
+        },
+      };
+      const requestContext = {};
+      const rawEnvironment = {
+        id: 'test-id',
+        name: '<script>console.log("unsafe code")</script>',
+        createdBy: 'test-raw-environment-createdby',
+        projectId: 'test-raw-environment-projectId',
+      };
+
+      await expect(dataEgressService.createEgressStore(requestContext, rawEnvironment)).rejects.toThrow(
+        expect.objectContaining({
+          boom: true,
+          code: 'badRequest',
+          safe: true,
+          message: 'Input has validation errors',
+        }),
+      );
+    });
     it('should fail creating egress store with wrong schema', async () => {
       dataEgressService._settings = {
         getBoolean: settingName => {

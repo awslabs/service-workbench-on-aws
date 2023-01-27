@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const { nameRegex } = require('@amzn/base-services/lib/helpers/constants');
+const { idRegex } = require('@amzn/base-services/lib/helpers/constants');
 
 const schema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
@@ -24,7 +24,7 @@ const schema = {
       type: 'string',
       minLength: 1,
       maxLength: 200,
-      pattern: nameRegex,
+      pattern: idRegex,
     },
     rev: {
       type: 'number',

@@ -28,7 +28,7 @@ const schema = {
       type: 'string',
       maxLength: 128,
       minLength: 2,
-      pattern: nameRegex,
+      pattern: idRegex,
     },
     desc: {
       type: 'string',

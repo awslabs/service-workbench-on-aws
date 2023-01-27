@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const { userNameRegex, emailIdpRegex } = require('@amzn/base-services/lib/helpers/constants');
+const { userNameRegex, emailIdpRegex, firstLastNameRegex } = require('@amzn/base-services/lib/helpers/constants');
 
 const schema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
@@ -38,13 +38,13 @@ const schema = {
       type: 'string',
       minLength: 1,
       maxLength: 500,
-      pattern: '^[A-Za-z0-9 .-]+$',
+      pattern: firstLastNameRegex,
     },
     lastName: {
       type: 'string',
       minLength: 1,
       maxLength: 500,
-      pattern: '^[A-Za-z0-9 .-]+$',
+      pattern: firstLastNameRegex,
     },
     userType: {
       type: 'string',

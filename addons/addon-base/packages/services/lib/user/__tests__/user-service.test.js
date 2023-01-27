@@ -108,6 +108,46 @@ describe('UserService', () => {
       }
     });
 
+    it('should fail because the firstName has a script', async () => {
+      // BUILD
+      const newUser = {
+        email: 'example@example.com',
+        firstName: '<script>console.log("unsafe code")</script>',
+        lastName: 'Lannister',
+        username: 'dragonsrkool@example.com',
+        authenticationProviderId: 'someIdpId',
+      };
+
+      // OPERATE
+      try {
+        await service.createUser({}, newUser);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
+    it('should fail because the lastName has a script', async () => {
+      // BUILD
+      const newUser = {
+        email: 'example@example.com',
+        firstName: 'Jaime',
+        lastName: '<script>console.log("unsafe code")</script>',
+        username: 'dragonsrkool@example.com',
+        authenticationProviderId: 'someIdpId',
+      };
+
+      // OPERATE
+      try {
+        await service.createUser({}, newUser);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
     it('should fail because the user lacks a username', async () => {
       // BUILD
       const newUser = {
@@ -396,6 +436,40 @@ describe('UserService', () => {
       // BUILD
       const toUpdate = {
         usernameInIdp: '<script>console.log("**hacker voice** I\'m in")</script>',
+        uid,
+        rev: 2,
+      };
+
+      // OPERATE
+      try {
+        await service.updateUser({}, toUpdate);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+    it('should fail because the firstName has a script', async () => {
+      // BUILD
+      const toUpdate = {
+        firstName: '<script>console.log("unsafe code")</script>',
+        uid,
+        rev: 2,
+      };
+
+      // OPERATE
+      try {
+        await service.updateUser({}, toUpdate);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+    it('should fail because the lastName has a script', async () => {
+      // BUILD
+      const toUpdate = {
+        lastName: '<script>console.log("unsafe code")</script>',
         uid,
         rev: 2,
       };

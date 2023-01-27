@@ -23,7 +23,7 @@ const schema = {
       type: 'string',
       maxLength: 100,
       minLength: 2,
-      pattern: '^[a-zA-Z0-9_\\-]*',
+      pattern: '^[a-zA-Z0-9_\\-]*$',
     },
     rev: {
       type: 'number',

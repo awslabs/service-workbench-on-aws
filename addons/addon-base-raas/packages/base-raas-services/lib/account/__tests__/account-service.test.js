@@ -260,9 +260,24 @@ describe('accountService', () => {
   });
 
   describe('update tests', () => {
+    it('should fail if the id is invalid', async () => {
+      // BUILD
+      const updateData = {
+        id: '<script>console.log("unsafe code")</script>',
+        name: 'new Name'
+      };
+
+      // OPERATE
+      try {
+        await service.update({}, updateData);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
     it('should fail if the accountName is invalid', async () => {
       // BUILD
-      const acct = { accountName: '<script>console.log("**hacker voice** I\'m in")</script>' };
+      const acct = { id: 'schmidt', accountName: '<script>console.log("**hacker voice** I\'m in")</script>' };
 
       // OPERATE
       try {

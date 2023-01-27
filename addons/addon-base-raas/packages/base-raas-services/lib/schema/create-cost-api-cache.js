@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+const { idRegex } = require('@amzn/base-services/lib/helpers/constants');
 const schema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
@@ -20,6 +21,7 @@ const schema = {
     indexId: {
       type: 'string',
       minLength: 1,
+      pattern: idRegex,
     },
     query: {
       type: 'string',
