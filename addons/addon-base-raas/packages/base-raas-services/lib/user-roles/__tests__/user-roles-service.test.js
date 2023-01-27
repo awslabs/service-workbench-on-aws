@@ -72,7 +72,7 @@ describe('UserRolesService', () => {
     it('should successfully try to create a user role', async () => {
       // BUILD
       const roleToCreate = {
-        id: 'Murasaki Shikibu',
+        id: 'MurasakiShikibu',
         description: 'Hikaru Genji no inochi monogatari desu',
         userType: 'INTERNAL',
       };
@@ -121,7 +121,7 @@ describe('UserRolesService', () => {
       };
 
       const datum = {
-        id: 'yasakani no magatama',
+        id: 'yasakaniNoMagatama',
         rev: 1,
         userType: 'INTERNAL',
       };

@@ -524,7 +524,7 @@ describe('studyService', () => {
     it('should fail due to missing projectId on non-Open Data call', async () => {
       // BUILD
       const dataIpt = {
-        id: '4 score and 7 years ago',
+        id: '4Scoreand7YearsAgo',
         category: 'Organization',
       };
 
@@ -540,7 +540,7 @@ describe('studyService', () => {
 
     it('should fail for users other than admin or internal-researcher ', async () => {
       const dataIpt = {
-        id: '4 score and 7 years ago',
+        id: '4Scoreand7YearsAgo',
         projectId: 'some_project_id',
         category: 'Organization',
       };
@@ -553,7 +553,7 @@ describe('studyService', () => {
     it('should fail if user project association is missing', async () => {
       // BUILD
       const dataIpt = {
-        id: '4 score and 7 years ago',
+        id: '4Scoreand7YearsAgo',
         projectId: 'some_project_id',
         category: 'Organization',
       };

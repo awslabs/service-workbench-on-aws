@@ -44,7 +44,7 @@ const schema = {
       type: 'string',
       minLength: 1,
       maxLength: 100,
-      pattern: '^[A-Za-z0-9-_]+$',
+      pattern: idRegex,
     },
     folder: {
       type: 'string',
