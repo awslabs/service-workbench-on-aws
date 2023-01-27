@@ -415,8 +415,7 @@ describe('EnvTypeService', () => {
       try {
         await service.update({}, envType.id, newConfig);
         expect.hasAssertions();
-      }
-      catch (err) {
+      } catch (err) {
         expect(err.message).toEqual('Input has validation errors');
       }
     });

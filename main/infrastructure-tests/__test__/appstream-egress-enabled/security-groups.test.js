@@ -1,3 +1,4 @@
+/* eslint-disable jest/expect-expect */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *

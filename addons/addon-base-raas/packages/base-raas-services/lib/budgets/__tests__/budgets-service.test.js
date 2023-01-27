@@ -160,7 +160,7 @@ describe('BudgetsService', () => {
       // OPERATE and CHECK
       await expect(service.get(requestContext, '12345678')).rejects.toThrow(
         'AWS member account accountId does not have Budget permission set up, ' +
-        'please add permissions budgets:ModifyBudget and budgets:ViewBudget to the system role.',
+          'please add permissions budgets:ModifyBudget and budgets:ViewBudget to the system role.',
       );
     });
   });

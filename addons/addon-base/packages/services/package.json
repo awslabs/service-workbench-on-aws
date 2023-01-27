@@ -7,6 +7,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@amzn/base-services-container": "workspace:*",
+    "@amzn/base-services": "workspace:*",
     "ajv": "^6.12.6",
     "aws-sdk": "^2.1228.0",
     "aws-xray-sdk": "^3.2.0",
@@ -21,7 +22,6 @@
     "validatorjs": "^3.22.1"
   },
   "devDependencies": {
-    "@amzn/base-services": "workspace:*",
     "aws-sdk-mock": "^5.7.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.2.1",

@@ -150,7 +150,7 @@ describe('EnvironmentSCService', () => {
         name: '<script>console.log("**unsafe code")</script>',
         envTypeId: 'exampleETI',
         envTypeConfigId: 'exampleETCI',
-        id: 'exampleId'
+        id: 'exampleId',
       };
 
       // OPERATE
@@ -688,7 +688,7 @@ describe('EnvironmentSCService', () => {
       };
       const envToUpdate = {
         id: 'exampleId',
-        cidr: '<script>console.log("**unsafe code")</script>'
+        cidr: '<script>console.log("**unsafe code")</script>',
       };
 
       // OPERATE

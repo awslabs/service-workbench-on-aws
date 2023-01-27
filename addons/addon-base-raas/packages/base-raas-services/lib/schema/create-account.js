@@ -1,4 +1,4 @@
-const { nonHtmlRegex } = require("@amzn/base-services/lib/helpers/constants");
+const { nonHtmlRegex } = require('@amzn/base-services/lib/helpers/constants');
 
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -21,7 +21,7 @@ const schema = {
   properties: {
     accountName: {
       type: 'string',
-      pattern: nonHtmlRegex
+      pattern: nonHtmlRegex,
     },
     accountEmail: {
       type: 'string',

@@ -217,8 +217,7 @@ describe('AwsAccountService', () => {
       try {
         await service.create(requestContext, failedAccount);
         expect.hasAssertions();
-      }
-      catch (err) {
+      } catch (err) {
         expect(err.message).toEqual('Input has validation errors');
       }
     });

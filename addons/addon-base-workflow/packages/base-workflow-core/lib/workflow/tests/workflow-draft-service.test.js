@@ -79,19 +79,20 @@ describe('WorkflowDraftService', () => {
         await workflowDraftService.updateDraft(requestContext, {
           workflowId: 'workflow-test-1',
           templateId: 'template-1',
-          selectedSteps: [{
-            stepTemplateId: 'stepId',
-            stepTemplateVer: 0,
-            title: '<script>console.log("unsafe code")</script>',
-            desc: 'desc',
-            skippable: true,
-            configs: {},
-            id: 'id',
-          }]
+          selectedSteps: [
+            {
+              stepTemplateId: 'stepId',
+              stepTemplateVer: 0,
+              title: '<script>console.log("unsafe code")</script>',
+              desc: 'desc',
+              skippable: true,
+              configs: {},
+              id: 'id',
+            },
+          ],
         });
         expect.hasAssertions();
-      }
-      catch (err) {
+      } catch (err) {
         expect(err.message).toEqual('Input has validation errors');
       }
     });
@@ -106,19 +107,20 @@ describe('WorkflowDraftService', () => {
         await workflowDraftService.publishDraft(requestContext, {
           workflowId: 'workflow-test-1',
           templateId: 'template-1',
-          selectedSteps: [{
-            stepTemplateId: 'stepId',
-            stepTemplateVer: 0,
-            title: '<script>console.log("unsafe code")</script>',
-            desc: 'desc',
-            skippable: true,
-            configs: {},
-            id: 'id',
-          }]
+          selectedSteps: [
+            {
+              stepTemplateId: 'stepId',
+              stepTemplateVer: 0,
+              title: '<script>console.log("unsafe code")</script>',
+              desc: 'desc',
+              skippable: true,
+              configs: {},
+              id: 'id',
+            },
+          ],
         });
         expect.hasAssertions();
-      }
-      catch (err) {
+      } catch (err) {
         expect(err.message).toEqual('Input has validation errors');
       }
     });
@@ -152,7 +154,9 @@ describe('WorkflowDraftService', () => {
       expect(workflowDraftService.isWorkFlowDraftIdValid('ab')).toEqual(false);
     });
     it('Invalid workflow draft id: unsafe code', () => {
-      expect(workflowDraftService.isWorkFlowDraftIdValid('<script>console.log("**hacker voice** I\'m in")</script>')).toEqual(false);
+      expect(
+        workflowDraftService.isWorkFlowDraftIdValid('<script>console.log("**hacker voice** I\'m in")</script>'),
+      ).toEqual(false);
     });
     it('Invalid workflow draft id: longer than 100 char', () => {
       expect(

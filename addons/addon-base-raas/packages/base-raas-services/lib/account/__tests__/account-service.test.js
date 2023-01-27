@@ -90,8 +90,7 @@ describe('accountService', () => {
         try {
           await service.provisionAccount({}, fullIptData);
           expect.hasAssertions();
-        }
-        catch (err) {
+        } catch (err) {
           expect(err.message).toEqual('Input has validation errors');
         }
       });
@@ -269,8 +268,7 @@ describe('accountService', () => {
       try {
         await service.update({}, acct);
         expect.hasAssertions();
-      }
-      catch (err) {
+      } catch (err) {
         expect(err.message).toEqual('Input has validation errors');
       }
     });
