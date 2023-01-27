@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const { nameRegex, nonHtmlRegex } = require('@amzn/base-services/lib/helpers/constants');
+const { idRegex, nameRegex, nonHtmlRegex } = require('@amzn/base-services/lib/helpers/constants');
 const schema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
@@ -22,7 +22,7 @@ const schema = {
       type: 'string',
       maxLength: 128,
       minLength: 2,
-      pattern: '^[A-Za-z0-9-_]+$',
+      pattern: idRegex,
     },
     name: {
       type: 'string',
