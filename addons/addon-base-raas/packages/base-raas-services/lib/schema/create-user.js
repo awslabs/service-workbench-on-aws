@@ -12,7 +12,9 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+
 const { userNameRegex, emailIdpRegex } = require('@amzn/base-services/lib/helpers/constants');
+
 const schema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
@@ -23,13 +25,13 @@ const schema = {
       minLength: 3,
       maxLength: 300,
       format: 'email',
-      pattern: userNameRegex
+      pattern: userNameRegex,
     },
     usernameInIdp: {
       type: 'string',
       minLength: 3,
       maxLength: 300,
-      pattern: emailIdpRegex
+      pattern: emailIdpRegex,
     },
     password: {
       type: 'string',
@@ -42,7 +44,7 @@ const schema = {
     },
     email: {
       type: 'string',
-      pattern: userNameRegex
+      pattern: userNameRegex,
     },
     firstName: {
       type: 'string',

@@ -71,4 +71,5 @@ const schema = {
   },
   required: ['uid', 'rev'],
 };
+
 module.exports = schema;

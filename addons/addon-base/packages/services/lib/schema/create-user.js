@@ -87,4 +87,5 @@ const schema = {
   },
   required: ['username', 'email', 'firstName', 'lastName'],
 };
+
 module.exports = schema;
