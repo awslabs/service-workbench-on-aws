@@ -139,6 +139,51 @@ describe('EnvironmentSCService', () => {
   });
 
   describe('create function', () => {
+    it('should fail because name has unsafe code ', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const newEnv = {
+        name: '<script>console.log("**unsafe code")</script>',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        id: 'exampleId',
+      };
+
+      // OPERATE
+      try {
+        await service.create(requestContext, newEnv);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toBe('Input has validation errors');
+      }
+    });
+    it('should fail because cidr has unsafe code ', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const newEnv = {
+        cidr: '<script>console.log("**unsafe code")</script>',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        id: 'exampleId',
+        name: 'name',
+      };
+
+      // OPERATE
+      try {
+        await service.create(requestContext, newEnv);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toBe('Input has validation errors');
+      }
+    });
     it('should fail create since CIDR info is included when AppStream is enabled', async () => {
       // BUILD
       settings.getBoolean = jest.fn(key => {
@@ -646,6 +691,27 @@ describe('EnvironmentSCService', () => {
       };
       const envToUpdate = {
         id: 'exampleId',
+      };
+
+      // OPERATE
+      try {
+        await service.update(requestContext, envToUpdate);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toBe('Input has validation errors');
+      }
+    });
+
+    it('should fail because cidr has unsafe code ', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const envToUpdate = {
+        id: 'exampleId',
+        cidr: '<script>console.log("**unsafe code")</script>',
       };
 
       // OPERATE

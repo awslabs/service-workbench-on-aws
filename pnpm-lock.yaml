@@ -1406,6 +1406,7 @@ importers:
       serverless: ^3.22.0
   addons/addon-base/packages/services:
     dependencies:
+      '@amzn/base-services': 'link:'
       '@amzn/base-services-container': link:../services-container
       ajv: 6.12.6
       aws-sdk: 2.1228.0
@@ -1420,7 +1421,6 @@ importers:
       uuid: 3.4.0
       validatorjs: 3.22.1
     devDependencies:
-      '@amzn/base-services': 'link:'
       aws-sdk-mock: 5.7.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.2.1_8d88d46baa50c1f24951b035ada57c78
@@ -5429,6 +5429,7 @@ packages:
     engines:
       node: '>=0.1.90'
     optional: true
+    requiresBuild: true
     resolution:
       integrity: sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
   /@cspotcode/source-map-support/0.8.1:
@@ -6331,6 +6332,7 @@ packages:
   /@nicolo-ribaudo/chokidar-2/2.1.8-no-fsevents.3:
     dev: true
     optional: true
+    requiresBuild: true
     resolution:
       integrity: sha512-s88O1aVtXftvp5bCPB7WnmXc5IwOZZ7YPuwNPt+GtOOXpPvad1LfbmjYv+qII7zP6RU2QGnqve27dnLycEnyEQ==
   /@nodelib/fs.scandir/2.1.5:
@@ -6715,6 +6717,7 @@ packages:
   /@types/aws-lambda/8.10.106:
     dev: false
     optional: true
+    requiresBuild: true
     resolution:
       integrity: sha512-yzgMaql7aW1by1XuhKhovuhLyK/1A60lapFXDXXBeHmoyRGQFO2T8lkL3g8hAhHoW5PEvqPJFWPd8jvXiRnxeQ==
   /@types/babel__core/7.1.19:
@@ -7003,6 +7006,7 @@ packages:
       '@types/node': 18.8.2
     dev: true
     optional: true
+    requiresBuild: true
     resolution:
       integrity: sha512-Cn6WYCm0tXv8p6k+A8PvbDG763EDpBoTzHdA+Q/MF6H3sapGjCm9NzoaJncJS9tUKSuCoDs9XHxYYsQDgxR6kw==
   /@typescript-eslint/eslint-plugin/2.34.0_984cbb313f9ea271f36cadd8f9814e06:
@@ -21968,6 +21972,7 @@ packages:
         optional: true
       '@swc/wasm':
         optional: true
+    requiresBuild: true
     resolution:
       integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==
   /ts-pnp/1.1.6:

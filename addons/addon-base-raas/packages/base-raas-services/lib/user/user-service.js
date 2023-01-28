@@ -18,8 +18,8 @@ const { ensureCurrentUser } = require('@amzn/base-services/lib/authorization/ass
 const BaseUserService = require('@amzn/base-services/lib/user/user-service');
 const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
 
-const createUserJsonSchema = require('../schema/create-user.json');
-const updateUserJsonSchema = require('../schema/update-user.json');
+const createUserJsonSchema = require('../schema/create-user');
+const updateUserJsonSchema = require('../schema/update-user');
 
 class UserService extends BaseUserService {
   constructor() {

@@ -18,8 +18,8 @@ const Service = require('@amzn/base-services-container/lib/service');
 const { allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 
-const createSchema = require('../schema/create-user-roles.json');
-const updateSchema = require('../schema/update-user-roles.json');
+const createSchema = require('../schema/create-user-roles');
+const updateSchema = require('../schema/update-user-roles');
 
 const settingKeys = {
   tableName: 'dbUserRoles',

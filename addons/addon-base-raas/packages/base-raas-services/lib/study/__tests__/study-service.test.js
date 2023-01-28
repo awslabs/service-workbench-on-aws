@@ -388,6 +388,34 @@ describe('studyService', () => {
       );
     });
 
+    it('should fail due to unsafe name', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { isAdmin: true, userRole: 'admin', status: 'active' },
+      };
+      const accountEntity = {};
+      const bucketEntity = {};
+      const rawStudyEntity = {
+        id: 'study-1',
+        name: '<script>console.log("unsafe code")</script>',
+        category: 'Organization',
+        description: 'valid',
+        projectId: 'project1',
+        folder: 'folder',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        kmsScope: 'bucket',
+        adminUsers: ['admin'],
+        accessType: 'readonly',
+      };
+      // OPERATE
+      await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
     it('should fail due to egress store feautre is enabled and access type is readwrite', async () => {
       // BUILD
       service._settings = {
@@ -496,7 +524,7 @@ describe('studyService', () => {
     it('should fail due to missing projectId on non-Open Data call', async () => {
       // BUILD
       const dataIpt = {
-        id: '4 score and 7 years ago',
+        id: '4Scoreand7YearsAgo',
         category: 'Organization',
       };
 
@@ -512,7 +540,7 @@ describe('studyService', () => {
 
     it('should fail for users other than admin or internal-researcher ', async () => {
       const dataIpt = {
-        id: '4 score and 7 years ago',
+        id: '4Scoreand7YearsAgo',
         projectId: 'some_project_id',
         category: 'Organization',
       };
@@ -525,7 +553,7 @@ describe('studyService', () => {
     it('should fail if user project association is missing', async () => {
       // BUILD
       const dataIpt = {
-        id: '4 score and 7 years ago',
+        id: '4Scoreand7YearsAgo',
         projectId: 'some_project_id',
         category: 'Organization',
       };

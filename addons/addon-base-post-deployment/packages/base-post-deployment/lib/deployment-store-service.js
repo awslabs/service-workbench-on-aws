@@ -16,7 +16,7 @@
 const Service = require('@amzn/base-services-container/lib/service');
 const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 
-const createOrUpdateSchema = require('./schema/deployment-item.json');
+const createOrUpdateSchema = require('./schema/deployment-item');
 
 const settingKeys = {
   tableName: 'dbDeploymentStore',

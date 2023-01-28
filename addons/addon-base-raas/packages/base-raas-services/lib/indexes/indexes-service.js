@@ -19,8 +19,8 @@ const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 const { isExternalGuest, isExternalResearcher, isInternalGuest } = require('../helpers/is-role');
-const createSchema = require('../schema/create-indexes.json');
-const updateSchema = require('../schema/update-indexes.json');
+const createSchema = require('../schema/create-indexes');
+const updateSchema = require('../schema/update-indexes');
 
 const settingKeys = {
   tableName: 'dbIndexes',

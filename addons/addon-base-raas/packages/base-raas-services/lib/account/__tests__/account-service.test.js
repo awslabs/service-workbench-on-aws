@@ -82,6 +82,19 @@ describe('accountService', () => {
         description: 'A classic nodejs-lodash mess-around',
       };
 
+      it('should fail if the accountName is invalid', async () => {
+        // BUILD
+        const fullIptData = { ...iptData, accountName: '<script>console.log("**hacker voice** I\'m in")</script>' };
+
+        // OPERATE
+        try {
+          await service.provisionAccount({}, fullIptData);
+          expect.hasAssertions();
+        } catch (err) {
+          expect(err.message).toEqual('Input has validation errors');
+        }
+      });
+
       it('should fail to create account with no credentials', async () => {
         // BUILD
         // OPERATE
@@ -247,6 +260,33 @@ describe('accountService', () => {
   });
 
   describe('update tests', () => {
+    it('should fail if the id is invalid', async () => {
+      // BUILD
+      const updateData = {
+        id: '<script>console.log("unsafe code")</script>',
+        name: 'new Name',
+      };
+
+      // OPERATE
+      try {
+        await service.update({}, updateData);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+    it('should fail if the accountName is invalid', async () => {
+      // BUILD
+      const acct = { id: 'schmidt', accountName: '<script>console.log("**hacker voice** I\'m in")</script>' };
+
+      // OPERATE
+      try {
+        await service.update({}, acct);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
     it('should fail if no id is provided', async () => {
       // BUILD
       const acct = {

@@ -21,7 +21,7 @@ const { toVersionString, parseVersionString, runAndCatch } = require('@amzn/base
 
 const PropsOverrideOption = require('./helpers/props-override-option');
 const ConfigOverrideOption = require('./helpers/config-override-option');
-const inputSchema = require('../schema/workflow.json');
+const inputSchema = require('../schema/workflow');
 const {
   workflowPropsSupportedOverrideKeys,
   workflowPropsSupportedOverrideKeysTransformer,

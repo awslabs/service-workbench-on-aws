@@ -106,7 +106,24 @@ describe('keyPairService', () => {
         uid: 'UID',
       },
     };
+    describe('if the id is invalid', () => {
+      const keyPair = {
+        id: '<script>console.log("**hacker voice** I\'m in")</script>',
+        name: 'name',
+      };
 
+      it('should fail', async () => {
+        // OPERATE and CHECK
+        await expect(service.update(requestContext, keyPair)).rejects.toThrow(
+          expect.objectContaining({
+            boom: true,
+            code: 'badRequest',
+            safe: true,
+            message: 'Input has validation errors',
+          }),
+        );
+      });
+    });
     describe('if the name is invalid', () => {
       const keyPair = {
         id: 'id',
