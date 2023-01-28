@@ -29,7 +29,7 @@ const schema = {
       type: 'string',
       maxLength: 128,
       minLength: 2,
-      pattern: idRegex,
+      pattern: nameRegex,
     },
     desc: {
       type: 'string',
