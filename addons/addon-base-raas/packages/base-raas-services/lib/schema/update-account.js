@@ -12,7 +12,8 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const { nonHtmlRegex, idRegex } = require("@amzn/base-services/lib/helpers/constants");
+const { nonHtmlRegex, idRegex } = require('@amzn/base-services/lib/helpers/constants');
+
 const schema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',

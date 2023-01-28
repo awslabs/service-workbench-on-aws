@@ -173,7 +173,7 @@ describe('EnvironmentSCService', () => {
         envTypeId: 'exampleETI',
         envTypeConfigId: 'exampleETCI',
         id: 'exampleId',
-        name: 'name'
+        name: 'name',
       };
 
       // OPERATE

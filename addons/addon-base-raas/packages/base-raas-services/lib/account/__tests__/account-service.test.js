@@ -264,7 +264,7 @@ describe('accountService', () => {
       // BUILD
       const updateData = {
         id: '<script>console.log("unsafe code")</script>',
-        name: 'new Name'
+        name: 'new Name',
       };
 
       // OPERATE

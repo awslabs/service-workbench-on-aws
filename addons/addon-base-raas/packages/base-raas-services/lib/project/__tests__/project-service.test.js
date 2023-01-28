@@ -209,7 +209,7 @@ describe('ProjectService', () => {
         expect(error).toMatchObject({
           keyword: 'pattern',
           dataPath: '.id',
-          message: 'should match pattern \"^[A-Za-z0-9-_]+$\"',
+          message: 'should match pattern "^[A-Za-z0-9-_]+$"',
         });
       }
     });
