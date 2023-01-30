@@ -13,11 +13,11 @@
  *  permissions and limitations under the License.
  */
 
-const createAwsAccounts = require('../schema/create-aws-accounts.json');
-const ensureExternalAwsAccounts = require('../schema/ensure-external-aws-accounts.json');
-const updateAwsAccounts = require('../schema/update-aws-accounts.json');
-const createAccount = require('../schema/create-account.json');
-const updateAccount = require('../schema/update-account.json');
+const createAwsAccounts = require('../schema/create-aws-accounts');
+const ensureExternalAwsAccounts = require('../schema/ensure-external-aws-accounts');
+const updateAwsAccounts = require('../schema/update-aws-accounts');
+const createAccount = require('../schema/create-account');
+const updateAccount = require('../schema/update-account');
 
 const schemas = {
   createAwsAccounts,

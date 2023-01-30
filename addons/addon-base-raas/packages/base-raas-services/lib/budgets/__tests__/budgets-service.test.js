@@ -269,7 +269,7 @@ describe('BudgetsService', () => {
     it('should fail id invalid', async () => {
       // BUILD
       const requestBodyCopy = _.cloneDeep(requestBody);
-      requestBodyCopy.id = 'invalid##';
+      requestBodyCopy.id = '<script>console.log("unsafe code")</script>';
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
@@ -280,7 +280,7 @@ describe('BudgetsService', () => {
     it('should fail budgetLimit invalid', async () => {
       // BUILD
       const requestBodyCopy = _.cloneDeep(requestBody);
-      requestBodyCopy.budgetConfiguration.budgetLimit = 'invalid##';
+      requestBodyCopy.budgetConfiguration.budgetLimit = '<script>console.log("unsafe code")</script>';
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
@@ -484,7 +484,7 @@ describe('BudgetsService', () => {
     it('should fail id invalid', async () => {
       // BUILD
       const requestBodyCopy = _.cloneDeep(requestBody);
-      requestBodyCopy.id = 'invalid##';
+      requestBodyCopy.id = '<script>console.log("unsafe code")</script>';
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
@@ -495,7 +495,7 @@ describe('BudgetsService', () => {
     it('should fail budgetLimit invalid', async () => {
       // BUILD
       const requestBodyCopy = _.cloneDeep(requestBody);
-      requestBodyCopy.budgetConfiguration.budgetLimit = 'invalid##';
+      requestBodyCopy.budgetConfiguration.budgetLimit = '<script>console.log("unsafe code")</script>';
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(

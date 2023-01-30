@@ -16,7 +16,7 @@
 const _ = require('lodash');
 
 const CollectionResource = require('../base/collection-resource');
-const CognitoAuthProviderType = require('./helpers/default-auth-provider-type-cognito.json');
+const CognitoAuthProviderType = require('./helpers/default-auth-provider-type-cognito');
 
 class AuthenticationProviderTypes extends CollectionResource {
   constructor({ clientSession, parent }) {

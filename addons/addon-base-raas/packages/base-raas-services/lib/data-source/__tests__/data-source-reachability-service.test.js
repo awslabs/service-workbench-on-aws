@@ -158,7 +158,7 @@ describe('DataSourceBucketService', () => {
     it('fails because status declared with non-wildcard id', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
-      const params = { id: 'sampleAccountId', type: 'dsAccount', status: 'pending' };
+      const params = { id: '<script>console.log("unsafe code")</script>', type: 'dsAccount', status: 'pending' };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
