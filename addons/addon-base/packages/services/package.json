@@ -12,7 +12,7 @@
     "aws-sdk": "^2.1228.0",
     "aws-xray-sdk": "^3.2.0",
     "cycle": "^1.0.3",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.5",
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.21",
