@@ -127,7 +127,7 @@ class UserAttributesMapperService extends Service {
 
     if (username.includes('\\')) {
       usernameInIdp = _.split(username, '\\')[1];
-      username = username.replace(/\\\\/g, '_');
+      username = username.replace(/\\/g, '_');
     }
 
     if (username.includes('|')) {
