@@ -20,7 +20,6 @@ Azure AD (or any IdP) is a source of authentication. It authenticates users for 
 
 #### Create a Tenant and Primary Domain
 * In Azure Active Directory, **Default Directory**, click ‘Create a tenant’.  You may first need to select ‘Manage tenants’.
-![](../images/2021-08-05_17-52-58.png)
 ![](../images/active_directory_07.png)
 * In **Create a tenant**, **Basics** tab, select **Azure Active Directory** and proceed to Configuration.
 * In **Create a tenant**, **Configuration** tab, enter the name and domain name of your organization.  The domain name must be globally unique in the `.onmicrosoft.com`  URL space.
