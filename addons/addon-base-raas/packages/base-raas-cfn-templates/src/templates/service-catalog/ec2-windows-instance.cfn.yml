@@ -261,6 +261,7 @@ Resources:
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
             DeleteOnTermination: true
+      PropagateTagsToVolumeOnCreation: true
       NetworkInterfaces:
         - AssociatePublicIpAddress: !If [ AppStreamEnabled, 'false', 'true' ]
           DeviceIndex: '0'
