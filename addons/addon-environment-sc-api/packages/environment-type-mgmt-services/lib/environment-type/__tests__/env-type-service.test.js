@@ -351,6 +351,38 @@ describe('EnvTypeService', () => {
   });
 
   describe('create function', () => {
+    it('should fail if the name is invalid', async () => {
+      const envType = {
+        id: 'iwilltravelacrosstheland',
+        name: '<script>console.log("**hacker voice** I\'m in")</script>',
+        product: {
+          productId: 'each-------tounderstand',
+        },
+        provisioningArtifact: {
+          id: 'thepowerthatsinside',
+        },
+      };
+
+      const requestContext = {
+        principalIdentifier: {
+          id: 'aheartsotrue',
+          ns: 'ourcouragewillpullusthrough',
+        },
+      };
+
+      service.audit = jest.fn();
+
+      // This function mainly just wraps some aws functions on a ServiceCatalogClient instance
+      service.getProvisioningArtifactParams = jest.fn();
+
+      // OPERATE
+      try {
+        await service.create(requestContext, envType);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
     it('should fail because the envType is missing a product', async () => {
       // BUILD
       const envType = {

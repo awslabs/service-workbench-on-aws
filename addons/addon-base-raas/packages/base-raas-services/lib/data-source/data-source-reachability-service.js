@@ -17,7 +17,7 @@ const _ = require('lodash');
 const Service = require('@amzn/base-services-container/lib/service');
 const { allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
-const attemptReachSchema = require('../schema/attempt-reach-data-source.json');
+const attemptReachSchema = require('../schema/attempt-reach-data-source');
 
 const workflowIds = {
   bulkCheck: 'wf-bulk-reachability-check',

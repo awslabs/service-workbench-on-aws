@@ -134,6 +134,26 @@ describe('ProjectService', () => {
         });
       }
     });
+    it('should fail if id is unsafe code', async () => {
+      const project = {
+        id: '<script>console.log("unsafe code")</script>',
+        description: 'Some relevant description',
+        indexId: '123',
+      };
+
+      try {
+        await service.create({}, project);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.payload).toBeDefined();
+        const error = err.payload.validationErrors[0];
+        expect(error).toMatchObject({
+          keyword: 'pattern',
+          dataPath: '.id',
+          message: 'should match pattern "^[A-Za-z0-9-_]+$"',
+        });
+      }
+    });
   });
 
   it('should fail if rev is empty', async () => {
@@ -172,7 +192,27 @@ describe('ProjectService', () => {
       // Happy-path: Make sure no exceptions are thrown
       await expect(() => service.update({}, project)).not.toThrow();
     });
+    it('should fail if id is unsafe code', async () => {
+      const project = {
+        id: '<script>console.log("unsafe code")</script>',
+        description: 'Some relevant description',
+        indexId: '123',
+        rev: 1,
+      };
 
+      try {
+        await service.update({}, project);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.payload).toBeDefined();
+        const error = err.payload.validationErrors[0];
+        expect(error).toMatchObject({
+          keyword: 'pattern',
+          dataPath: '.id',
+          message: 'should match pattern "^[A-Za-z0-9-_]+$"',
+        });
+      }
+    });
     it('should fail if id is empty', async () => {
       const project = {
         id: '', // empty id should cause error

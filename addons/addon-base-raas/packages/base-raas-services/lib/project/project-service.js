@@ -20,8 +20,8 @@ const { allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authori
 const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 const { isExternalGuest, isExternalResearcher, isInternalGuest, isAdmin, isSystem } = require('../helpers/is-role');
-const createSchema = require('../schema/create-project.json');
-const updateSchema = require('../schema/update-project.json');
+const createSchema = require('../schema/create-project');
+const updateSchema = require('../schema/update-project');
 
 const settingKeys = {
   tableName: 'dbProjects',
