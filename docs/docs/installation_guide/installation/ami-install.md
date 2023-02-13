@@ -19,7 +19,8 @@ Pre-requisites:
      + Install packer from the root of your home directory:     
            `wget https://releases.hashicorp.com/packer/1.6.2/packer_1.6.2_linux_amd64.zip`    
            `unzip packer_1.6.2_linux_amd64.zip`     
-     For more information about packer installation, refer to the [README](https://github.com/awslabs/service-workbench-on-aws/blob/b20208099d5acf51816ee4efd5b5bb3bf6d22fc8/addons/addon-base-raas/packages/serverless-packer/README.md#topics). 
+     For more information about packer installation, refer to the [README](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/addons/addon-base-raas/packages/serverless-packer/README.md#topics).
+      
      
 Build AMIs for EC2-based workspaces: 
 1. Change to the directory `/service-workbench-on-aws/main/solutions/machine-images`:. Ensure that the environment variable `STAGE_NAME` has been set (or) replace `${STAGE_NAME}` with your stage file name without the extension. 
@@ -33,6 +34,6 @@ Build AMIs for EC2-based workspaces:
 
 2. Verify that the AMIs have been created by going to Amazon EC2 service console, select AMI in the left-hand navigation. You should see AMIs for EC2-LINUX, EC2-RSTUDIO, EC2-WINDOWS, and Amazon EMR.  
 
-<img src={useBaseUrl('img/deployment/installation/AMI.png')} />
+<img src={useBaseUrl('../../../static/img/deployment/installation/AMI.png')} />
 
 **Warning**: Each time the above command is run, a new set of AMIs will be created.

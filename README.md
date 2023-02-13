@@ -60,7 +60,7 @@ Service Workbench documentation can be accessed in the PDF format or by using th
 
 ### Documentation PDFs
 
-You can download the PDF versions if you do not have Service Workbench locally installed on your machine. Click the following links to download:
+You can view the online documentation if you do not have Service Workbench locally installed on your machine. Click the following links to access the documentation:
 
 - [Service Workbench Installation Guide](https://awslabs.github.io/service-workbench-on-aws-cn/installation_guide/overview)
 - [Service Workbench Configuration Guide](https://awslabs.github.io/service-workbench-on-aws-cn/configuration_guide/overview)
