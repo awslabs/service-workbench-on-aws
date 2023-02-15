@@ -14,7 +14,7 @@ Azure AD (or any IdP) is a source of authentication. It authenticates users for 
 ## To configure Azure AD authentication:
 
 ### Create an Azure AD directory
-* Log in to portal.azure.com using a new or existing Microsoft account
+* Log in to [Azure Portal](https://portal.azure.com) using a new or existing Microsoft account
 * Under **Azure Services**, select **Azure Active Directory** (you may have to click on **more services** to scroll Active Directory into view)
 ![](../images/active_directory_00.png)
 
@@ -52,7 +52,7 @@ Azure AD (or any IdP) is a source of authentication. It authenticates users for 
 * In your application, select **Single sign-on** from the left menu bar, and **SAML**
 ![](../images/active_directory_15.png)
 * From **SAML-based Sign-on**, box 3, copy **App Federation Metadata Url**, which will be needed in the Service Workbench configuration.
-![](../images/2021-08-18_12-26-12.png)
+![](../images/active_directory_16.png)
 
 #### Configure Azure AD in Service Workbench
 * In the Service Workbench installation terminal, edit the main configuration file `main/config/settings/<stage>.yml`:
