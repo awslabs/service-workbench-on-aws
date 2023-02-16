@@ -67,7 +67,7 @@ Azure AD (or any IdP) is a source of authentication. It authenticates users for 
 	* **(Login) SAML Assersion Consumer Endpoint**
 	* **(Logout) SAML Logout Endpoint**
     
-<img src={useBaseUrl('img/deployment/post_deployment/scripts.png')} />
+![](../deployment/post_deployment/script.png)
 
 #### Configure SAML Configuration in Azure Active Directory
 * In Active Directory, open the **Single sign-on** tab of your application and edit box 1, **Basic SAML Configuration** with the values just noted:
