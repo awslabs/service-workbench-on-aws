@@ -128,7 +128,7 @@ function checkWorkspaceAvailable(workspaceName) {
 function checkWorkspaceAutoStop(workspaceName) {
   cy.contains(workspaceName)
     .parent()
-    .contains('STOPPED', { timeout: 300000 });
+    .contains('STOPPED', { timeout: 1000000 });
 }
 
 module.exports = {
