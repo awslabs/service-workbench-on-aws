@@ -9,7 +9,7 @@
     "cognitoClientId": "6dmj4qhbihtkigcbsjo346hjmi",
     "workspaces": {
       "sagemaker": {
-        "workspaceTypeName": "SageMaker Notebook-v4",
+        "workspaceTypeName": "SageMaker Notebook-v8",
         "configuration": "sagemaker-e2e",
         "projectId": "e2eTestProject"
       },
