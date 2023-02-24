@@ -35,7 +35,6 @@ createServiceCatalogPortfolio: true
 # Root user's email address. Currently unused, and can be left unspecified for test environments,
 # though future features might use it for capabilities such as usage reports and system alerts.
 #rootUserEmail: user@example.com
-rootUserEmail: stabassum@dius.com.au
 # THIS SETTING IS ONLY APPLICABLE FOR LOCAL DEVELOPMENT
 # A flag indicating if lambda function role's trust policy (assume role policy) should be automatically adjusted to
 # allow assuming the role from local machine (applicable only for local development)
