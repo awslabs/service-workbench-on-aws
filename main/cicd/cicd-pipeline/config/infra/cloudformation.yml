@@ -232,7 +232,16 @@ Resources:
         Version: '2012-10-17'
         Statement:
           - Action:
-              - 'route53:*'
+              - 'route53:GetChange'
+              - 'route53:ListHostedZones'
+              - 'route53:CreateHostedZone'
+              - 'route53:ListHostedZonesByName'
+            Resource: '*'
+            Effect: Allow
+          - Action:
+              - 'route53:GetHostedZone'
+              - 'route53:ChangeResourceRecordSets'
+              - 'route53:ListResourceRecordSets'
             Resource:
               - 'arn:aws:route53:::hostedzone/Z09239502PJ50GPR2E1UK'
             Effect: Allow
