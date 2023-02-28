@@ -5,7 +5,7 @@ awsRegion: ap-southeast-2
 
 # AWS profile to use for deployment; if not specified here, defaults to using the same credentials
 # the AWS CLI is set up to use (either a profile in ~/.aws/config or an instance role if on EC2).
-awsProfile: wehi-dev
+# awsProfile: wehi-dev
 # The short solution name is used to namespace a few AWS resources. Try to keep this
 # setting short to avoid hitting long strings issues; the default should be fine in most cases,
 # but if multiple separate instances of the system are deployed within a single account,
