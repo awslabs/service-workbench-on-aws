@@ -9,12 +9,10 @@ Conditions:
   UseCodeCommit: !Not
     - !Equals ['${self:custom.settings.sourceAccountId}', '']
   CreateStagingEnv: !Equals ['${self:custom.settings.createStagingEnv}', true]
-  RunTestsAgainstTargetEnv:
-    !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
+  RunTestsAgainstTargetEnv: !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
   DeleteTargetEnv: !Equals ['${self:custom.settings.deleteAfterInstall}', true]
   PreventCollision: !Equals ['${self:custom.settings.preventCollision}', true]
-  AddManualApproval:
-    !Equals ['${self:custom.settings.requireManualApproval}', true]
+  AddManualApproval: !Equals ['${self:custom.settings.requireManualApproval}', true]
   SubscribeNotificationEmail: !Not
     - !Equals ['${self:custom.settings.emailForNotifications}', '']
 
@@ -162,6 +160,11 @@ Resources:
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
+              - Action:
+                  - codestar-connections:UseConnection
+                Effect: Allow
+                Resource:
+                  - !Sub 'arn:aws:codestar-connections:ap-southeast-2:311447612024:connection/1f3e5a49-cc86-44fc-b0af-92ee38a477a6'
               - Action:
                   - codecommit:GetBranch
                   - codecommit:GetCommit
@@ -1047,8 +1050,5 @@ Outputs:
   AppArtifactBucketArn: { Value: !GetAtt AppArtifactBucket.Arn }
   ArtifactBucketKeyArn: { Value: !GetAtt ArtifactBucketKey.Arn }
   AppPipelineName: { Value: !Ref AppPipeline }
-  AppPipelineArn:
-    {
-      Value: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}',
-    }
+  AppPipelineArn: { Value: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}' }
   PipelineNotificationsTopic: { Value: !Ref PipelineNotificationsTopic }
