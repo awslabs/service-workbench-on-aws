@@ -477,7 +477,7 @@ Resources:
                 - iam:*TagRole*
               Effect: Allow
               Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stagingNamespace}-*'
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
             - !Ref AWS::NoValue
           - !If
@@ -486,7 +486,7 @@ Resources:
                 - iam:PassRole
               Effect: Allow
               Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stagingNamespace}-*'
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
             - !Ref AWS::NoValue
           - !If
@@ -498,7 +498,7 @@ Resources:
                 - iam:DeletePolicy
                 - iam:*PolicyVersion*
               Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stagingNamespace}-*'
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -506,7 +506,7 @@ Resources:
                 - dynamodb:*
               Effect: Allow
               Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stagingNamespace}-*'
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -514,8 +514,8 @@ Resources:
               Action:
                 - lambda:*
               Resource:
-                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*:*'
-                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgNamespace}*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stagingNamespace}*:*'
+                - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stagingNamespace}*'
                 - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*:*'
                 - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.stgEnvName}-*'
                 - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*:*'
@@ -527,8 +527,8 @@ Resources:
                 - 's3:*'
               Effect: Allow
               Resource:
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*
-                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgNamespace}*/*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stagingNamespace}*
+                - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stagingNamespace}*/*
                 - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*
                 - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}*/*
             - !Ref AWS::NoValue
@@ -557,7 +557,7 @@ Resources:
                 - cloudformation:CreateChangeSet
                 - cloudformation:DeleteChangeSet
               Resource:
-                - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.stagingNamespace}-*'
                 - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.stgEnvName}-va-${self:custom.settings.solutionName}-*'
             - !Ref AWS::NoValue
           - !If
@@ -583,7 +583,7 @@ Resources:
                 - kms:GetKeyPolicy
                 - kms:EnableKeyRotation
               Resource:
-                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.stgNamespace}*'
+                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.stagingNamespace}*'
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
@@ -592,7 +592,7 @@ Resources:
                 - iam:DeleteRolePermissionsBoundary
               Effect: Allow
               Resource:
-                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.stgNamespace}*'
+                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.stagingNamespace}*'
             - !Ref AWS::NoValue
 
           - Action:
@@ -605,7 +605,7 @@ Resources:
               - iam:DetachRolePolicy
             Effect: Deny
             Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.stgNamespace}-cicd-pipeline-PolicyAppDeployerStaging-*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.stagingNamespace}-cicd-pipeline-PolicyAppDeployerStaging-*'
   AppDeployerRole:
     Type: AWS::IAM::Role
     Properties:
