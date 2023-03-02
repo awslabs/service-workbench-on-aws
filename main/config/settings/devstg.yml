@@ -29,7 +29,8 @@ envName: ${opt:stage}
 envType: dev
 
 # This prefix is used for naming various resources
-namespace: ${self:custom.settings.envName}stg-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}
+namespace: ${self:custom.settings.envName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}
+
 # Enable this to create a Service Catalog portfolio and populate workspace products
 # Override and disable this setting if you wish to create your portfolio manually
 createServiceCatalogPortfolio: true
