@@ -19,7 +19,7 @@ solutionName: sw
 # This indirection allows for easy incorporation of extra variables in the "envName", if required.
 # For example, if the same solution needs to be deployed across multiple AWS accounts we can easily
 # add account specific variable in "envName" for keeping the namespace specific to each account.
-envName: ${opt:stage}stg
+envName: ${self:custom.settings.stgEnvName}
 
 # The environment type (e.g. dev, demo, prod). This is for grouping multiple environments
 # into types. For example, all developers' environments can be of type "dev". This can be
@@ -29,8 +29,7 @@ envName: ${opt:stage}stg
 envType: dev
 
 # This prefix is used for naming various resources
-namespace: ${self:custom.settings.envName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}stg
-
+namespace: ${self:custom.settings.stgNamespace}
 # Enable this to create a Service Catalog portfolio and populate workspace products
 # Override and disable this setting if you wish to create your portfolio manually
 createServiceCatalogPortfolio: true

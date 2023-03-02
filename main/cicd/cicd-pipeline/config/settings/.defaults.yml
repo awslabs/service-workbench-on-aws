@@ -45,7 +45,8 @@ stgEnvName: ${self:custom.settings.envName}stg
 
 # Name of the staging environment to run the integration tests against.
 # This setting is ignored when createStagingEnv is not true.
-stgNamespace: ${self:custom.settings.namespace}stg
+# stgNamespace: ${self:custom.settings.namespace}stg
+stgNamespace: ${self:custom.settings.stgEnvName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}
 # stgNamespace: ${self:custom.settings.stgEnvName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*'
 # stagingNamespace: ${self:custom.settings.stgEnvName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}
 
