@@ -623,7 +623,7 @@ Resources:
         # stacks
         - !Ref PolicyAppDeployer
         - !Ref PolicyAppDeployerStaging
-      # PermissionsBoundary: !Ref PolicyAppDeployer
+      PermissionsBoundary: !Ref PolicyAppDeployer
 
   # Role that allows triggering the CodePipeline. This role is assumed by CloudWatch Events from the Source AWS Account
   # where the source code is located (i.e., the account containing the AWS CodeCommit repo with the source code)
