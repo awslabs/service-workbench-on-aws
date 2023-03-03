@@ -499,6 +499,7 @@ Resources:
                 - iam:*PolicyVersion*
               Resource:
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.stgNamespace}-*'
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
