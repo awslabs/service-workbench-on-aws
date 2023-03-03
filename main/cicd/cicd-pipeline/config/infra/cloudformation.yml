@@ -508,6 +508,7 @@ Resources:
               Effect: Allow
               Resource:
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.stgNamespace}-*'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.stgNamespace}-*'
             - !Ref AWS::NoValue
           - !If
             - CreateStagingEnv
