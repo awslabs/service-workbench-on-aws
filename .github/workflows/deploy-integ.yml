@@ -52,6 +52,18 @@ jobs:
           cp ./main/end-to-end-tests/e2eGitHubConfig.yml ./main/config/settings/${STAGE_NAME}.yml
           ./scripts/read-values-for-github-action.sh
           ./scripts/environment-deploy.sh ${STAGE_NAME}
+      - name: Deploy to standalone RStudio environment
+        env:
+          STAGE_NAME: dev
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_CERTIFICATE_ARN_RSTUDIO: ${{ secrets.AWS_CERTIFICATE_ARN_RSTUDIO }}
+          AWS_DOMAIN_NAME_RSTUDIO: ${{ secrets.AWS_DOMAIN_NAME_RSTUDIO }}
+          AWS_HOSTED_ZONE_ID_RSTUDIO: ${{ secrets.AWS_HOSTED_ZONE_ID_RSTUDIO }}
+        run: |
+          cp ./main/end-to-end-tests/RStudioGithubConfig.yml ./main/config/settings/${STAGE_NAME}.yml
+          ./scripts/read-values-for-github-action-rstudio.sh 
+          ./scripts/environment-deploy.sh ${STAGE_NAME}
   integration-test:
     name: Integration test
     runs-on: ubuntu-20.04
