@@ -286,6 +286,10 @@ Outputs:
       - https://${self:custom.settings.domainName}
       - !Join ['', ['https://', !GetAtt WebsiteCloudFront.DomainName]]
 
+  Cert:
+    Description: cert
+    Value: /${self:custom.settings.paramStoreRoot}/certificate/value
+
   WebsiteBucket:
     Description: The bucket name of the static website
     Value: !Ref WebsiteBucket
@@ -305,15 +309,5 @@ Outputs:
       - !If
         - UseHostedZoneId
         - ${self:custom.settings.hostedZoneId}
-        - !Ref HostedZone
-      - 'CustomDomainNotSet'
-
-  Cert:
-    Description: Cert for custom domian
-    Value: !If
-      - UseCustomDomain
-      - !If
-        - UseHostedZoneId
-        - ${/${self:custom.settings.paramStoreRoot}/certificate/value}
         - !Ref HostedZone
       - 'CustomDomainNotSet'
