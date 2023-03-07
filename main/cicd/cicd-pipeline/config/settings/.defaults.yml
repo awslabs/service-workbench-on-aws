@@ -10,6 +10,12 @@ repoBranch: master
 # Path to repo token (e.g. Github access token) in parameter store
 tokenName: /${self:custom.settings.paramStoreRoot}/github/token
 
+# Path to SSL certificate in parameter store
+sslCertificateParam: /${self:custom.settings.paramStoreRoot}/certificate/value
+
+# Path to Hostedzone id in parameter store
+hostedZoneIdParam: /${self:custom.settings.paramStoreRoot}/hostedzoneid/value
+
 # Name of the AWS CodePipeline instance
 pipelineName: ${self:custom.settings.namespace}-${self:custom.settings.repoBranch}
 cicdAppArtifactBucketName: ${self:custom.settings.globalNamespace}-cicd-appartifacts
