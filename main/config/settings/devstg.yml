@@ -48,8 +48,8 @@ hostedZoneIdParam: /${self:custom.settings.paramStoreRoot}/hostedzoneid/value
 #localRoleAutoAdjustTrust: true
 # Optional custom domain name; if empty, use the CloudFront domain name
 domainName: stgdev.wehiresearch.com
-# certificateArn: arn:aws:acm:us-east-1:311447612024:certificate/55c12c93-6c30-474c-baba-0297f1d4e9b4
-certificateArn: 'arn:aws:acm:us-east-1:${self:custom.settings.awsAccountInfo.awsAccountId}:certificate/${sslCertificateParam}'
+certificateArn: arn:aws:acm:us-east-1:311447612024:certificate/55c12c93-6c30-474c-baba-0297f1d4e9b4
+# certificateArn: 'arn:aws:acm:us-east-1:${self:custom.settings.awsAccountInfo.awsAccountId}:certificate/${sslCertificateParam}'
 hostedZoneId: ${hostedZoneIdParam}
 # To use a custom domain name, provide the following two values, the domain name
 # itself, and the ARN for the manually-created TLS certificate to use from ACM.
