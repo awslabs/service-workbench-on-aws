@@ -307,3 +307,13 @@ Outputs:
         - ${self:custom.settings.hostedZoneId}
         - !Ref HostedZone
       - 'CustomDomainNotSet'
+
+  Cert:
+    Description: Cert for custom domian
+    Value: !If
+      - UseCustomDomain
+      - !If
+        - UseHostedZoneId
+        - ${/${self:custom.settings.paramStoreRoot}/certificate/value}
+        - !Ref HostedZone
+      - 'CustomDomainNotSet'
