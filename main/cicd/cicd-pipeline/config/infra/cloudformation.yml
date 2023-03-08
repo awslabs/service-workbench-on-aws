@@ -164,7 +164,7 @@ Resources:
                   - codestar-connections:UseConnection
                 Effect: Allow
                 Resource:
-                  - !Sub 'arn:aws:codestar-connections:ap-southeast-2:311447612024:connection/1f3e5a49-cc86-44fc-b0af-92ee38a477a6'
+                  - !Sub 'arn:aws:codestar-connections:${AWS::Region}:${AWS::AccountId}:connection/1f3e5a49-cc86-44fc-b0af-92ee38a477a6'
               - Action:
                   - codecommit:GetBranch
                   - codecommit:GetCommit
