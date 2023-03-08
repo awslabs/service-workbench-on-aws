@@ -39,10 +39,25 @@ export INT_TEST_DIR="${SOLUTION_ROOT_DIR}/main/integration-tests"
 export TEST_CONFIG_EXISTS=true
 popd > /dev/null
 
+function install_pnpm() {
+  PNPM_VERSION=5.18.9
+  echo "Installing pnpm ${PNPM_VERSION}"
+  npm install -g pnpm@${PNPM_VERSION}
+}
+
 function init_package_manager() {
   PACKAGE_MANAGER=pnpm
   if ! command -v $PACKAGE_MANAGER &> /dev/null; then
-    npm install -g pnpm@5.18.9
+    install_pnpm
+  else
+    # As of March 2023, SWB will not deploy with pnpm > v5
+    pnpm_ver=$(pnpm --version)
+    pnpm_major_ver=$(echo $pnpm_ver | awk -F . '{print $1}')
+    if (( $pnpm_major_ver > 5 )); then
+      echo "NOTE: Uninstalling pnpm ${pnpm_ver} due to incompatibility"
+      npm uninstall -g pnpm
+      install_pnpm
+    fi
   fi
   case "$PACKAGE_MANAGER" in
     yarn)
