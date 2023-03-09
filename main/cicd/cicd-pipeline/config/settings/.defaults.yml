@@ -28,10 +28,10 @@ sourceRoleArn: ''
 # If this flag is set to true then you MUST also provide settings file for the staging env.
 # For example, if createStagingEnv=true and if the stgEnvName=t"prodstg" then make sure you have
 # "prodstg.yml" file in top level "config/settings" directory
-createStagingEnv: false
+createStagingEnv: true
 
 # Flag indicating whether to require manual approval before deploying to target environment
-requireManualApproval: false
+requireManualApproval: true
 
 # Flag indicating whether to run integration tests against the target environment
 # Set this to false if you do not want to run automated tests against target env (such as production)
@@ -45,7 +45,10 @@ stgEnvName: ${self:custom.settings.envName}stg
 
 # Name of the staging environment to run the integration tests against.
 # This setting is ignored when createStagingEnv is not true.
-stgNamespace: ${self:custom.settings.namespace}stg
+# stgNamespace: ${self:custom.settings.namespace}stg
+stgNamespace: ${self:custom.settings.stgEnvName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}
+# stgNamespace: ${self:custom.settings.stgEnvName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*'
+# stagingNamespace: ${self:custom.settings.stgEnvName}-${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}
 
 # WARNING: Setting this to true deletes the installed Service Workbench environment at the end of the pipeline
 # This can be used for testing the fresh install and uninstall experience of the product using CodePipeline
