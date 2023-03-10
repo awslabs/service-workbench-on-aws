@@ -4,7 +4,7 @@ awsProfile: wehi-prod
 # Github parameters
 githubOwner: WEHI-ResearchComputing
 repoName: service-workbench-on-aws
-repoBranch: 'feat/cicd-prod-deployment'
+repoBranch: mainline
 
 # Email address to receive CodePipeline failure notifications and notifications for manual approval
 emailForNotifications: stabassum@dius.com.au
