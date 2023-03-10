@@ -1,0 +1,125 @@
+# Target AWS region, defaults to us-east-1 if not provided.  Note thet some global system components
+# (e.g. Lambda@Edge) are always deployed via a stack in us-east-1 no matter the setting here.
+# Note: Please delete the hashtag and empty space for settings to be in effect
+awsRegion: ap-southeast-2
+
+# AWS profile to use for deployment; if not specified here, defaults to using the same credentials
+# the AWS CLI is set up to use (either a profile in ~/.aws/config or an instance role if on EC2).
+# awsProfile: wehi-prod
+# The short solution name is used to namespace a few AWS resources. Try to keep this
+# setting short to avoid hitting long strings issues; the default should be fine in most cases,
+# but if multiple separate instances of the system are deployed within a single account,
+# this name can be changed to ensure they are disambiguated.
+solutionName: sw
+
+# The environment name where you want to deploy the solution to. Normally this defaults to
+# the serverless stage name and should be left unchanged here.
+# This is also used for creating a namespace for resources. Usually, this is same as serverless "stage".
+# All resource names reference "envName" instead of directly using "opt:stage".
+# This indirection allows for easy incorporation of extra variables in the "envName", if required.
+# For example, if the same solution needs to be deployed across multiple AWS accounts we can easily
+# add account specific variable in "envName" for keeping the namespace specific to each account.
+envName: ${opt:stage}
+
+# The environment type (e.g. dev, demo, prod). This is for grouping multiple environments
+# into types. For example, all developers' environments can be of type "dev". This can be
+# used for enabling conditionals in code that might need to be different between dev and
+# production builds (for example, enabling CORS for localhost for local development).
+# Defaults to prod if unspecified.
+envType: prod
+
+# Enable this to create a Service Catalog portfolio and populate workspace products
+# Override and disable this setting if you wish to create your portfolio manually
+createServiceCatalogPortfolio: true
+# Root user's email address. Currently unused, and can be left unspecified for test environments,
+# though future features might use it for capabilities such as usage reports and system alerts.
+rootUserEmail: user@example.com
+
+# THIS SETTING IS ONLY APPLICABLE FOR LOCAL DEVELOPMENT
+# A flag indicating if lambda function role's trust policy (assume role policy) should be automatically adjusted to
+# allow assuming the role from local machine (applicable only for local development)
+#localRoleAutoAdjustTrust: true
+# Optional custom domain name; if empty, use the CloudFront domain name
+domainName: main.prod.wehiresearch.com
+certificateArn: arn:aws:acm:us-east-1:${self:custom.settings.awsAccountInfo.awsAccountId}:certificate/69f3e1ff-52fe-413b-8a43-81af29394a77
+hostedZoneId: Z09165212K3SH794S09I
+# To use a custom domain name, provide the following two values, the domain name
+# itself, and the ARN for the manually-created TLS certificate to use from ACM.
+# Note the current implementation assumes that DNS is handled elsewhere; a future
+# improvement will automatically handle creation of the cert and Route53 entries.
+#domainName: sw.example.com
+#certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/abcdef01-abcd-ef01-2345-abcdef012345
+
+# Array of identity provider ids.
+# The usual practice is to keep this same as the domain name of the idp.
+# For example, when connecting with an IdP that has users "user1@example.com", "user2@example.com" etc then
+# the id should be set to "example.com"
+#
+# If you do not want to connect to Active Directory then leave this setting as its default.
+#fedIdpIds: '["datalake.example.com"]'
+
+# Array of identity provider names. This array should be in same order as the "fedIdpIds"
+# Some name for the IdPs. (such as 'com.ee', 'EEAD' etc)
+#
+# If you do not want to connect to Active Directory then leave this setting as its default.
+#fedIdpNames: '["DataLake"]'
+
+# Array of identity provider display names. This array should be in same order as the "fedIdpIds"
+# Display name (such as 'Employee Login', 'AD Login' etc). This can be used in UI to login options.
+#
+# If you do not want to connect to Active Directory then leave this setting as its default.
+#fedIdpDisplayNames: '["Login using Active Directory"]'
+
+# Array of identity provider SAML metadata. This array should be in same order as the "fedIdpIds".
+# The array should contain either
+# 1. S3 or http(s) url pointing to the IdP metadata.
+#  If S3 URL then it must be accessible by the post-deployment lambda
+#   (i.e., the lambda must have getObject permission to read the specified metadata file location from S3)
+#   The GetObject permission is given by the "RolePostDeploymentLambda" in "post-deployment/config/infra/cloudformation.yml"
+#  If it's http(s) URL then it must be reachable over the public internet.
+# (TODO: Add support for metadata URLs accessible only in private network.)
+# OR
+# 2. the metadata content XML blob as string
+# The current implementation looks for the file in "solution/post-deployment/config/saml-metadata" directory and
+# uploads the file to the S3 directory (prefix) "${self:custom.settings.deploymentBucketName}/saml-metadata/".
+# The uploading of the file is done using serverless s3-sync plugin. See "post-deployment/serverless.yml"
+# file and search for "s3Sync" to see which files are uploaded to the "${self:custom.settings.deploymentBucketName}" S3
+# bucket.
+#
+# If you do not want to connect to Active Directory then leave this setting as its default.
+# TODO: Remove saml-metadata/datalake-example-idp-metadata.xml file and replace this setting to use sample file
+#fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-example-idp-metadata.xml"]'
+
+# Enable the Egress Store feature would allow researchers to securely egress data from lockdown Workspace
+# NOTE: Once the enableEgressStore is set to true, the egress store feature will be enabled and can NOT be toggled off.
+# If you toggle the egress store from true to false and redeploy the whole solution, the backend stack deployment should error out with following message:
+# Error validating existing stack policy: Unknown logical id 'LogicalResourceId/EgressStore*' in statement {} - stack policies can only be applied to logical ids referenced in the template
+# Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
+#enableEgressStore: false
+
+# Determine whether workspace should be accessible only through AppStream
+# NOTE: Once the isAppStremEnabled is set to true, the AppStrem feature will be enabled and can NOT be toggled off.
+# If you toggle the AppStream feature from true to false and redeploy the whole solution, the backend stack deployment should error out with following message:
+# Error validating existing stack policy: Unknown logical id 'LogicalResourceId/AppStream*' in statement {} - stack policies can only be applied to logical ids referenced in the template
+# Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
+#isAppStreamEnabled: false
+
+# Enable the AMI sharing feature so the AMIs and Appstream images can be maintained in a central devops account
+#enableAmiSharing: false
+
+# The images will be shared using the AWS CLI profile mentioned below.
+# Please make sure that the profile has necessary permissions to create images and create IAM role
+#devopsProfile: devops
+
+# If you want to restrict the administrator to accessing the user's workspace then to enable the flag by setting it to true. Also, It will also allow the admin to connect with his own workspace.
+# restrictAdminWorkspaceConnection: false
+
+# Disable the create study button and upload files button in the studies to the researchers, the data will flow through BYOB workflow only. To enable this feature by setting it to true
+# disableStudyUploadByResearcher: false
+
+# Application admin should not be a study admin in the creation of BYOB study. To enable this feature by setting it to true
+# disableAdminBYOBSelfAssignment: false
+versionNumber: 'Beta'
+versionDate: 'Latest Release Version: 5.2.7'
+
+customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
