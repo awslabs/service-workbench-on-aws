@@ -125,6 +125,12 @@ function checkWorkspaceAvailable(workspaceName) {
     .contains('AVAILABLE', { timeout: 1000000 });
 }
 
+function checkWorkspaceAutoStop(workspaceName) {
+  cy.contains(workspaceName)
+    .parent()
+    .contains('STOPPED', { timeout: 1000000 });
+}
+
 module.exports = {
   terminateWorkspaces,
   launchWorkspace,
@@ -132,4 +138,5 @@ module.exports = {
   checkDetailsTable,
   checkWorkspaceAvailableAndClickConnectionsButton,
   checkWorkspaceAvailable,
+  checkWorkspaceAutoStop
 };
