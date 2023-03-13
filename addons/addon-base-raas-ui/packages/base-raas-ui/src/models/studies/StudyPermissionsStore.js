@@ -65,7 +65,9 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
           // Set selected users as "usersToAdd" (API is idempotent)
           // And remove staleUserIds from usersToAdd list
           updateRequest.usersToAdd.push(
-            ..._.differenceWith(selectedUserIds[type], self.studyPermissions[`${type}Users`], _.isEqual).map(userToRequestFormat),
+            ..._.differenceWith(selectedUserIds[type], self.studyPermissions[`${type}Users`], _.isEqual).map(
+              userToRequestFormat,
+            ),
           );
 
           // Set removed users as "usersToRemove"
