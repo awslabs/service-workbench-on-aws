@@ -56,19 +56,19 @@ hostedZoneId: Z09239502PJ50GPR2E1UK
 # the id should be set to "example.com"
 #
 # If you do not want to connect to Active Directory then leave this setting as its default.
-#fedIdpIds: '["datalake.example.com"]'
+fedIdpIds: '["wehi.edu.au"]'
 
 # Array of identity provider names. This array should be in same order as the "fedIdpIds"
 # Some name for the IdPs. (such as 'com.ee', 'EEAD' etc)
 #
 # If you do not want to connect to Active Directory then leave this setting as its default.
-#fedIdpNames: '["DataLake"]'
+fedIdpNames: '["AAD"]'
 
 # Array of identity provider display names. This array should be in same order as the "fedIdpIds"
 # Display name (such as 'Employee Login', 'AD Login' etc). This can be used in UI to login options.
 #
 # If you do not want to connect to Active Directory then leave this setting as its default.
-#fedIdpDisplayNames: '["Login using Active Directory"]'
+fedIdpDisplayNames: '["Login using Active Directory"]'
 
 # Array of identity provider SAML metadata. This array should be in same order as the "fedIdpIds".
 # The array should contain either
@@ -88,7 +88,7 @@ hostedZoneId: Z09239502PJ50GPR2E1UK
 #
 # If you do not want to connect to Active Directory then leave this setting as its default.
 # TODO: Remove saml-metadata/datalake-example-idp-metadata.xml file and replace this setting to use sample file
-#fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-example-idp-metadata.xml"]'
+fedIdpMetadatas: '["https://login.microsoftonline.com/aa7c72e2-c5cf-4a40-a22a-a585c04ca07c/federationmetadata/2007-06/federationmetadata.xml?appid=59919fb2-6f3b-4500-99df-6595d2e95c29"]'
 
 # Enable the Egress Store feature would allow researchers to securely egress data from lockdown Workspace
 # NOTE: Once the enableEgressStore is set to true, the egress store feature will be enabled and can NOT be toggled off.
