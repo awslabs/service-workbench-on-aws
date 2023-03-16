@@ -1,12 +1,3 @@
----
-id: appstream
-title: Prepare your account for AppStream
-sidebar_label: Prepare your account for AppStream
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
-
 **Note**: *Read this section only if you want to enable AppStream.*
 
 AWS AppStream service limits may block resource creation in a new AWS account, or an account that has not yet hosted AppStream resources.  The following actions will best prepare the hosting account.
@@ -67,7 +58,7 @@ This section describes the procedure of setting up an AppStream image with the f
 
 ### Building AppStream image
 
-<img src={useBaseUrl('img/deployment/post_deployment/buildappstream.png')} />
+![](../../../static/img/deployment/post_deployment/buildappstream.png)
 
 _**Figure: Create an AppStream image**_
 

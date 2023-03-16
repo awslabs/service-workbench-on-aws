@@ -1,10 +1,3 @@
----
-id: activedirectory
-title: Configuring Service Workbench using Microsoft Azure AD
-sidebar_label: Configuring Service Workbench using Microsoft Azure AD
----
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 ### Updating accounts
 
 You can use Azure AD to create and manage domains, users, and objects within a network. It provides a way to organize a large number of users into logical groups and subgroups. It also provides access control at each level. For more information about IdPs, see [Identity Providers](https://docs.microsoft.com/en-us/azure/active-directory/external-identities/identity-providers).
