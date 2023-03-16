@@ -1,11 +1,3 @@
----
-id: authentication
-title: Upgrading deprecated internal authentication
-sidebar_label: Upgrading to deprecated internal authentication
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 In the Service Workbench version 5.0.0, internal authentication has been deprecated. To upgrade to this version from your current version of Service Workbench, the administrators need to prepare the environment for an upgrade by deactivating, terminating, or disassociating internal users and the resources to which they are associated. The following tasks must be completed to prepare the Service Workbench environment for an upgrade:
 
 + Workspaces created by internal authentication users must be terminated.  
@@ -42,7 +34,7 @@ When using Postman, make sure you have a valid token in your environment variabl
 3. In the **Params** section, paste the SSH key Id from the output of the failed deployment in the path variable for keyPairId.
 4. Choose **Send**.
 
-<img src={useBaseUrl('img/deployment/installation/deactivate_ssh_key.png')} />
+![](../../../static/img/deployment/installation/deactivate_ssh_key.png)
 
  
 ### Using command line to deactivate SSH keys
@@ -81,8 +73,8 @@ When using Postman, make sure you have a valid token in your environment variabl
 4. In the **Body** section, add the user Ids of the users you want to add and to remove and their respective permission levels. 
 5. Choose **Send**.
 
-<img src={useBaseUrl('img/deployment/installation/diss_org_study.png')} />
-<img src={useBaseUrl('img/deployment/installation/diss_org_study1.png')} />
+![](../../../static/img/deployment/installation/diss_org_study.png)
+![](../../../static/img/deployment/installation/diss_org_study1.png)
 
 
 ### Using command line to disassociate organization study
@@ -133,13 +125,13 @@ After completing all of those steps, you are now ready to deploy and see if you 
 4. Import `openapi.yml` from the Service Workbench repository. This imports the APIs as a collection if you are not logged in.      
 5. Choose the **Environment quick look** icon.  
 
-<img src={useBaseUrl('img/deployment/installation/setting_postman1.png')} />
+![](../../../static/img/deployment/installation/setting_postman1.png)
 
 6. In the **Environment** section, either choose **Add** (if you do not have an environment yet set for the Service Workbench environment you need to edit) or select the environment that corresponds to the Service Workbench environment you are preparing for upgrade. It will appear as:   
 
-<img src={useBaseUrl('img/deployment/installation/setting_postman2.png')} />
+![](../../../static/img/deployment/installation/setting_postman2.png)
 
-<img src={useBaseUrl('img/deployment/installation/setting_postman3.png')} />   
+![](../../../static/img/deployment/installation/setting_postman3.png) 
 
 7. If you are adding a new environment, you will need to add two new variables.
     + Create a `baseUrl` variable. The value should be the API endpoint for the Service Workbench environment. This can be found in the information displayed after deployed the environment or after running `scripts/get-info.sh <stage>` in your `service-workbench-on-aws` repository folder: 
@@ -178,7 +170,7 @@ After completing all of those steps, you are now ready to deploy and see if you 
 7. In the **Request Headers** section, there should be an authorization property
 8. Copy that value. This is your authentication token.
 
-<img src={useBaseUrl('img/deployment/installation/setting_postman4.png')} />
+![](../../../static/img/deployment/installation/setting_postman4.png)
 
 
 ## Migrating My Study resources
@@ -200,7 +192,7 @@ We will be using API calls to migrate My Study resources.<a name="migrating"></a
    + In the body section, create objects with studyId and uid values.    
    + Choose **Send**.
 
-<img src={useBaseUrl('img/deployment/installation/migrating_my_studies.png')} />
+![](../../../static/img/deployment/installation/migrating_my_studies.png)
 
 For command line, make sure you have a valid token. For more information on how to get this token, see [Getting authentication token](#token). In your terminal paste and substitute the following:
 

@@ -1,11 +1,3 @@
----
-id: configuring_auth0
-title: Configure Auth0 and SAML2
-sidebar_label: Configure Auth0 and SAML2
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 Service Workbench on AWS can be configured to authenticate users through [Auth0][1] and SAML2. 
 [1]: https://auth0.com/
 
@@ -23,11 +15,11 @@ To create an application, log into your account at [Auth0][3]  and navigate to t
 **Figure 20** shows a screenshot image of the ‘**Applications**’ of [Auth0][4], while **Figure 21** displays a screenshot of the application types available after you click the ‘**Create Applications**’ button. 
 [4]: https://auth0.com/
 
-<img src={useBaseUrl('img/deployment/configuration/auth/auth0/0001.png')} />
+![](../../../../static/img/deployment/configuration/auth/auth0/0001.png)
 
 ***Figure 20: Applications Webpage of Auth0.com***
 
-<img src={useBaseUrl('img/deployment/configuration/auth/auth0/0002.png')} />
+![](../../../../static/img/deployment/configuration/auth/auth0/0002.png)
 
 ***Figure 21: Application Types***
 
@@ -37,7 +29,7 @@ To configure SAML2, navigate to the ‘**Addons**’ tab and enable the ‘**SAM
 
 **Figure 22** shows a screenshot image of the ‘**Addons**’ tab for ‘**Single Page Web Applications**’. 
 
-<img src={useBaseUrl('img/deployment/configuration/auth/auth0/0003.png')} />
+![](../../../../static/img/deployment/configuration/auth/auth0/0003.png)
 
 ***Figure 22: Addons Tab for Single Page Web Applications***
 
@@ -48,7 +40,7 @@ https://`STAGE_NAME-SOLUTION_NAME`.auth.REGION.amazoncognito.com/saml2/idprespon
 ```
 **Figure 23** shows an image of the ‘**Application Callback URL**’ page and the settings.
 
-<img src={useBaseUrl('img/deployment/configuration/auth/auth0/0004.png')} />
+![](../../../../static/img/deployment/configuration/auth/auth0/0004.png)
 
 ***Figure 23: Application Callback URL Page and Settings***
 
@@ -76,7 +68,7 @@ To download SAML metadata, click on the ‘**SAML2 Web App**’ button again, an
 
 **Figure 24** shows the ‘**Usage**’ tab of the ‘**SAML2 Web App**’ page. 
 
-<img src={useBaseUrl('img/deployment/configuration/auth/auth0/0005.png')} />
+![](../../../../static/img/deployment/configuration/auth/auth0/0005.png)
 
 ***Figure 24: Usage Tab of the SAML2 Web Application***
 

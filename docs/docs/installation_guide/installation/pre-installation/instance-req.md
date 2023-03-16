@@ -1,11 +1,3 @@
----
-id: instance-req
-title: Instance requirements
-sidebar_label: Instance requirements
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 | Section                                                      | Description                                                                                                                             |
 | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
 | [Creating an EC2 instance](#createinst)                      | Provides information on selecting the EC2 instance size for Service Workbench installation.                                             |
@@ -38,19 +30,19 @@ When creating a new Amazon EC2 instance, an instance profile may be assigned to 
 
 1. Choose **Create a new IAM role** located next to the AWS IAM role drop-down. To continue the process, highlight Amazon EC2 and proceed to permissions.
 
-<img src={useBaseUrl('img/deployment/installation/iam1.png')} />
+![](../../../../static/img/deployment/installation/iam1.png)
 
 2. For **Permissions**, choose **AdministratorAccess** from the filter and proceed through **tags**.
 
-<img src={useBaseUrl('img/deployment/installation/iam2.png')} />
+![](../../../../static/img/deployment/installation/iam2.png)
 
 3. In the **Review** page, enter the role name.
 
-<img src={useBaseUrl('img/deployment/installation/iam3.png')} />
+![](../../../../static/img/deployment/installation/iam3.png)
 
 4. Return to the **Amazon EC2** tab, refresh the **IAM role** drop-down, and choose your administrator role to attach to the new Amazon EC2 instance.
 
-<img src={useBaseUrl('img/deployment/installation/iam4.png')} />
+![](../../../../static/img/deployment/installation/iam4.png)
 
 5. Create the Amazon EC2 instance.
 

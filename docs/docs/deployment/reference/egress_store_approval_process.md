@@ -1,16 +1,8 @@
----
-id: egress_store_approval_process
-title: Exporting data from AppStream-enabled workspaces
-sidebar_label: Exporting data from AppStream-enabled workspaces
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 As a researcher, if you have AppStream and Egress store enabled, AppStream provides limited access to the workspace that is being used. You can view and use data within that workspace. When you work on this data, it can be saved in the Egress folder, and then a request can be made to export that data. But if you want to export data from that workspace, it requires approval. 
 
 In the following example, you don’t currently have access to the `hello.txt` file out of your workspace. Hence, you need permission to export this file. The **Submit Egress Request** button shown in the figure below is used to export data from your workspace. 
 
- <img src={useBaseUrl('img/deployment/reference/egress1.png')} />
+![](../../../static/img/deployment/reference/egress1.png)
 
 When you choose **Submit Egress Request**, the file gets picked up by the SNS topic. The SNS topic has following format:
 
@@ -20,11 +12,11 @@ For example, it can look like this:
 
 `prod-iad-sw-EgressTopic`
 
- <img src={useBaseUrl('img/deployment/reference/egress2.png')} />
+![](../../../static/img/deployment/reference/egress2.png)
 
 The SNS topic allows an administrator to determine which files you would like to export from the workspace. The administrator can subscribe to the SNS topic to receive updates when a user submits an Egress request. For example, the administrator can subscribe a Lambda function to process the Egress submission request or could also provide an email address.
 
- <img src={useBaseUrl('img/deployment/reference/egress3.png')} />
+![](../../../static/img/deployment/reference/egress3.png)
 
 After subscribing to the SNS topic, the administrator receives information in the following JSON file format:
 

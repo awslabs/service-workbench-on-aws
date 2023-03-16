@@ -1,11 +1,3 @@
----
-id: index
-title: Deploying Service Workbench
-sidebar_label: Deploying Service Workbench
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 This section describes the process for deploying the Service Workbench.
 
 ## Run the Main Deployment Script

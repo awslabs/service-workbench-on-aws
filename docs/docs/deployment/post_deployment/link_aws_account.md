@@ -1,11 +1,3 @@
----
-id: link_aws_account
-title: Create or add an AWS Account
-sidebar_label: Create or add an AWS Account
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 There are two categories of AWS Account within Service Workbench: **Internal accounts** and **External accounts**. 
 * **Internal accounts**: Internal accounts are those linked to the AWS account from which you deployed Service Workbench. Users linked to an internal account will all be billed to that AWS account. 
 * **External accounts**: External accounts supply their own AWS account, and users linked to an external account are billed to the external AWS account. This is how external researchers can collaborate and share data within Service Workbench, but remain responsible for their own billing.
@@ -23,16 +15,13 @@ In the AWS Management Console, create an AWS Organization in the **Master** acco
 ```
 `scripts/master-account-deploy.sh <stage>` 
 ```
-The output of this command is described in **Figure 2**.
-<img src={useBaseUrl('img/deployment/post_deployment/service_information_00')} />
-**_Figure 2: Service Information_**
 3.	Copy the value of the **Master Role ARN** from the output of the previous step. This value is the ARN of the newly created **Master** role.
 
 ### Create AWS Account
 
 This will create an account whose billing will go to the **Main** account. The **Main** account is the account in which Service Workbench is deployed. See **Figure 3**.
 
-<img src={useBaseUrl('img/deployment/post_deployment/create_account_00.jpg')} />
+![](../../../static/img/deployment/post_deployment/create_account_00.jpg)
 **_Figure 3: Create AWS Account_**
 
 To create the AWS Account, perform the following actions: 
@@ -53,7 +42,7 @@ _**Note**: If instead you see an error message such as, “Stop Internal State A
 –	In AWS IAM, the new **Master** role will be created.
 Once you add the account, it gets listed in ‘**AWS Accounts**’ as shown in **Figure 4**.
 
-<img src={useBaseUrl('img/deployment/post_deployment/create_account_02.jpg')} />
+![](../../../static/img/deployment/post_deployment/create_account_02.jpg)
 **_Figure 4: Example of an AWS Account_**
 
 ## Add External AWS Account
@@ -66,5 +55,5 @@ addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-ac
 2.	In the Service Workbench administrative interface, click the ‘**AWS Accounts**’ tab of an administrator login. See **Figure 5**. 
 3.	Click ‘**Add AWS Account**’ and enter the account information.
 
-<img src={useBaseUrl('img/deployment/post_deployment/create_account_01.jpg')} />
+![](../../../static/img/deployment/post_deployment/create_account_01.jpg)
 **_Figure 5: Add AWS Account_**
