@@ -79,7 +79,7 @@ All notable changes to this project will be documented in this file. See [standa
   - **Restricted data upload capabilities for Researcher Profile**: Users with a researcher role will not have the ability to create a study or upload files to any study, allowing organization to have more control over the study creation and data ingestion.
     - `disableStudyUploadByResearcher` configuration setting has been added, disabled by default. This can be overriden in your `main/config/settings/<stage>.yml` file.
 
-  For more information about these flags, please take a look at our [User Guide](https://awslabs.github.io/service-workbench-on-aws-cn/user_guide/account_structure/) document.
+  For more information about these flags, please take a look at our [User Guide](./docs/Service_Workbench_User_Guide.pdf) document.
 
 ### Bug Fixes
 
@@ -283,7 +283,7 @@ The Service Workbench member account onboarding process is changed to be more in
 
 This change applies to all updated installations, and can be applied to those installations that have already onboarded member accounts.
 
-To learn more about the new process, refer to the updated [instructions](https://awslabs.github.io/service-workbench-on-aws-cn/deployment/post_deployment/) in the Service Workbench Post Deployment guide.
+To learn more about the new process, refer to the updated [instructions](./docs/Service_Workbench_Post_Deployment_Guide.pdf) in the Service Workbench Post Deployment guide.
 
 **Important Notes:**
 
@@ -306,7 +306,7 @@ This feature is disabled by default upon install. To enable this feature, change
 - If you have an existing installation without the feature flag enabled, and want to activate this feature flag, terminate all workspaces prior to activating the flag.
 - AppStream service use does incur additional cost and we recommend you review the cost impact prior to configuring your AppStream fleet: https://aws.amazon.com/appstream2/pricing/
 - Because the Service Workbench workspaces do not have internet connectivity, [VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints.html) are introduced for all AWS services that the workspaces use (such as S3, EC2, and AppStream).
-- Significant updates to the post deployment configuration instructions when this feature is enabled are outlined [here](https://awslabs.github.io/service-workbench-on-aws-cn/deployment/post_deployment/)
+- Significant updates to the post deployment configuration instructions when this feature is enabled are outlined [here](./docs/Service_Workbench_Post_Deployment_Guide.pdf)
 
 #### 3. Enabling secure egress
 

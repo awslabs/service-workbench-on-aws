@@ -1,11 +1,3 @@
----
-id: ami-install
-title: Installing AMIs
-sidebar_label: Installing AMIs
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 You can install Service Workbench either by creating and configuring an EC2 instance or by creating a Cloud9 instance. This section describes the steps to install Service Workbench by using either of the two options.
 
 ### Installing AMIs for EC2 Workspace
@@ -34,6 +26,6 @@ Build AMIs for EC2-based workspaces:
 
 2. Verify that the AMIs have been created by going to Amazon EC2 service console, select AMI in the left-hand navigation. You should see AMIs for EC2-LINUX, EC2-RSTUDIO, EC2-WINDOWS, and Amazon EMR.  
 
-<img src={useBaseUrl('../../../static/img/deployment/installation/AMI.png')} />
+![](../../../static/img/deployment/installation/AMI.png)
 
 **Warning**: Each time the above command is run, a new set of AMIs will be created.
