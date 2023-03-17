@@ -1,11 +1,3 @@
----
-id: auth0
-title: Configuring Service Workbench using Auth0
-sidebar_label: Configuring Service Workbench using Auth0
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 You can configure Service Workbench using Auth0 by first creating an application in Auth0. Next, configure SAML and download the SAML template. Finally, configure the Service Workbench environment.
 
 ## Configuring Auth0
@@ -23,14 +15,14 @@ To create an application:
 1. Log in to your [Auth0](https://auth0.com/) account and navigate to the **Applications** page. 
 2. If an application does not already exist, choose **Create Application**.
 
-<img src={useBaseUrl('img/deployment/post_deployment/auth01.png')} /> 
+![](../../static/img/deployment/post_deployment/auth01.png)
  
 
 **Figure 1: Applications webpage of Auth0.com**
 
 3. Select the application type as **Single Page Web Applications** and choose **Create**.
 
-<img src={useBaseUrl('img/deployment/post_deployment/auth02.png')} /> 
+![](../../static/img/deployment/post_deployment/auth02.png)
  
 
 **Figure 2: Application types**
@@ -43,7 +35,7 @@ To configure SAML2:
 
 1. Navigate to the **Addons** tab and enable **SAML2 WEB APP**.
 
-<img src={useBaseUrl('img/deployment/post_deployment/auth03.png')} /> 
+![](../../static/img/deployment/post_deployment/auth03.png) 
 
 **Figure 3: Addons tab for Single Page Web Applications**
 
@@ -51,7 +43,7 @@ To configure SAML2:
 
 `https://STAGE_NAME-SOLUTION_NAME.auth.REGION.amazoncognito.com/saml2/idpresponse`
  
-<img src={useBaseUrl('img/deployment/post_deployment/auth04.png')} /> 
+![](../../static/img/deployment/post_deployment/auth04.png)
 
 **Figure 4: Application callback URL page and settings**
 
@@ -84,7 +76,7 @@ To download SAML metadata:
 1. Choose **SAML2 Web App** again, and go to the **Usage** tab. 
 2. Choose **Download** to download the SAML metadata XML file locally.
  
-<img src={useBaseUrl('img/deployment/post_deployment/auth05.png')} /> 
+![](../../static/img/deployment/post_deployment/auth05.png)
 
 **Figure 5: Usage tab of the SAML2 web application**
 

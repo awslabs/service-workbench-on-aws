@@ -1,11 +1,3 @@
----
-id: aws_accounts
-title: Create or add accounts
-sidebar_label: Create or add accounts
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 After logging in as **root** user for the first time, go to the '**Accounts**' page in the [SideBar](/user_guide/introduction). Service Workbench uses AWS accounts on this page for launching research workspaces. You can add existing AWS accounts or create new ones on the '**Accounts**' tab.  Accounts are responsible for the charges incurred by the resources that are deployed within the Service Workbench.
 
 * **Create AWS Account**: Creates a new AWS account using AWS Organizations.
@@ -21,7 +13,7 @@ _**Important:** If you do not need to create new AWS accounts from within Servic
 
 After logging in as the root user for the first time, go to the **Accounts** page. 
 
-<img src={useBaseUrl('img/deployment/post_deployment/navbar.png')} />
+![](../../../static/img/deployment/post_deployment/navbar.png)
 
 **Figure: Service Workbench navigation bar**
 
@@ -45,7 +37,7 @@ Before creating an AWS account from Service Workbench, configure an existing AWS
 ### Creating a new Account
 This creates a new hosting AWS account in the organization, whose billing goes to the organizational account. 
  
-<img src={useBaseUrl('img/deployment/post_deployment/newacc1.png')} />
+![](../../../static/img/deployment/post_deployment/newacc1.png)
 
 _**Figure: Create a new hosting account**_
 
@@ -76,7 +68,7 @@ Adding an existing AWS account enables Service Workbench to launch research work
 
 1.	On the **Accounts** Page, choose **AWS Accounts**, and then choose **Add AWS Account**.
 
-     <img src={useBaseUrl('img/deployment/post_deployment/addacc1.png')} /> 
+     ![](../../../static/img/deployment/post_deployment/addacc1.png)
  
      _**Figure: Add an existing account**_
 
@@ -86,7 +78,7 @@ Adding an existing AWS account enables Service Workbench to launch research work
 
 + Enter the **Account Name**, **Account ID** (12-digit AWS account ID for the account you wish to add), and **Description**.
 
-<img src={useBaseUrl('img/deployment/post_deployment/addacc2.png')} />
+![](../../../static/img/deployment/post_deployment/addacc2.png)
 
 _**Figure: Specify account details**_
 
@@ -95,7 +87,7 @@ _**Figure: Specify account details**_
      - **I have admin access** : You have administrator-level access to the hosting account that is being onboarded.  Selecting this and then proceeding launches the CloudFormation template within the hosting account.  Note that you need to be logged into the AWS account console for the hosting account when selecting this option and proceeding.
      - **I do not have admin access** : The CloudFormation template is generated and you can then share the template to be run by the party that does have administrator access in the AWS account that you are onboarding.
  
-<img src={useBaseUrl('img/deployment/post_deployment/onboardacc.png')} />
+![](../../../static/img/deployment/post_deployment/onboardacc.png)
 
 
 _**Figure: Onboard AWS account**_
@@ -105,7 +97,7 @@ _**Figure: Onboard AWS account**_
 
 If you have chosen to enable AppStream for your installation, there are additional values required when onboarding a hosting account.
 
-<img src={useBaseUrl('img/deployment/post_deployment/appstream1.png')} />
+![](../../../static/img/deployment/post_deployment/appstream1.png)
 
 
 _**Figure: Add account when AppStream is enabled**_
@@ -114,7 +106,7 @@ _**Figure: Add account when AppStream is enabled**_
 + **AppStreamDisconnectTimeoutSeconds**: With a minimum of 60 seconds, this is the amount between a researcher disconnection from a session (Manual Stop, Auto Stop, or Terminate) and the release of the AppStream instance that is supporting that session.
 + **AppStreamIdleDisconnectTimeoutSeconds**: The amount of time that an AppStream session idle time (meaning no activity within the session) before the AppStream instance disconnects.
  
-<img src={useBaseUrl('img/deployment/post_deployment/appstream2.png')} />
+![](../../../static/img/deployment/post_deployment/appstream2.png)
 
 _**Figure: Add account when AppStream is enabled (contd..)**_
 
@@ -143,7 +135,7 @@ You can access the RStudio workspace type by using the template and AMI provided
 
 When you create RStudio Application Load Balancer (ALB) workspace, an ALB is created that can host upto 100 workspaces per hosting account. Per workspace, you can have upto 4 CIDR blocks (IP ranges) for port 443 only. This is updated in the hosting accounts. If there are no ALBs for that hosting account and you have created the very first workspace, then ALB will be created for the first time and it will be common for every workspace that you create subsequently. Once you terminate all the workspaces and you terminate the last workspace for that hosting account, the ALB is deleted. An ALB is created for minimum one active workspace.
 
-<img src={useBaseUrl('img/deployment/post_deployment/ALB-1.png')} />
+![](../../../static/img/deployment/post_deployment/ALB-1.png)
 
 Each workspace type corresponds to one listener rule and there can be 100 such rules. In each rule, users can specify the IP ranges that user wants to allowlist. You can specify only upto 4 IP ranges per listener rule. For more information about ALB, refer to [Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html).
 

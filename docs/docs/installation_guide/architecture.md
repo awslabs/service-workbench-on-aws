@@ -1,24 +1,16 @@
----
-id: architecture
-title: Service Workbench architecture
-sidebar_label: Service Workbench architecture
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 Service Workbench integrates existing AWS services, such as [Amazon CloudFront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html), [AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/welcome.html), and [AWS Step Functions](https://docs.aws.amazon.com/lambda/latest/dg/lambda-stepfunctions.html). Service Workbench enables you to create your own custom templates and share those templates with other organizations. To provide cost transparency, Service Workbench has been integrated with [AWS Cost Explorer](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/ce-getting-started.html), [AWS Budgets](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/budgets-managing-costs.html), and [AWS Organizations](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/consolidated-billing.html).
 
 ### Main account
 
 This is the account where Service Workbench infrastructure is deployed.
 
-<img src={useBaseUrl('img/deployment/installation/main_account.png')} />
+![](../../static/img/deployment/installation/main_account.png)
 
 ### Hosting account
 
 This is the account where compute resources are deployed.
 
-<img src={useBaseUrl('img/deployment/installation/hosting_account.png')} />
+![](../../static/img/deployment/installation/hosting_account.png)
 
 ### Authentication
 
@@ -36,7 +28,7 @@ The core of the Workspace management in Service Workbench is [AWS Service Catalo
 
 Besides provisioning an environment using templates, you can access your Workspaces, view billing details, or decommission them.
 
-<img src={useBaseUrl('img/deployment/installation/workspace_management.png')} />
+![](../../static/img/deployment/installation/workspace_management.png)
 
 ### Cost control
 
@@ -48,10 +40,10 @@ Service Workbench uses AWS accounts to manage compute Workspaces. This way, you 
 
 A dashboard displays a quick overview of the cost your Workspaces or projects have accumulated. This helps you to stay on budget and track Workspaces that possibly consume more resources.
 
-<img src={useBaseUrl('img/deployment/installation/dashboard.png')} />
+![](../../static/img/deployment/installation/dashboard.png)
 
 ### Workspace sizes
 
 When you create a Workspace from a template, you can choose the Workspace type in addition to multiple environment sizes. An administrator can pre-define these sizes and associate them with users based on individual permissions.
 
-<img src={useBaseUrl('img/deployment/installation/workspace_sizes.png')} />
+![](../../static/img/deployment/installation/workspace_sizes.png)

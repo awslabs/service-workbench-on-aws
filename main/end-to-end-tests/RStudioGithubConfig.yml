@@ -1,0 +1,5 @@
+awsRegion: us-east-1
+solutionName: sw
+envType: dev
+createServiceCatalogPortfolio: true
+portfolioId: port-fjlrngpoemjly
