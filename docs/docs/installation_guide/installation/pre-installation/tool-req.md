@@ -1,11 +1,3 @@
----
-id: tool-req
-title: Tool requirements
-sidebar_label: Tool requirements
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 The initial prerequisites include creating a main account in AWS, enabling the AWS Cost Explorer and activating the cost allocation tags.
 
 **Important**: Before installing Service Workbench, ensure that you have practical knowledge of core AWS services. 
@@ -24,15 +16,15 @@ To enable AWS Cost Explorer in the account into which you will be deploying Serv
 
 1. From the account drop-down, choose **My Billing Dashboard**.
 
-<img src={useBaseUrl('img/deployment/installation/billing_dashboard.png')} />
+![](../../../../static/img/deployment/installation/billing_dashboard.png)
 
 2. Choose **Cost Explorer** from the sidebar.
 
-<img src={useBaseUrl('img/deployment/installation/cost_explorer1.png')} />
+![](../../../../static/img/deployment/installation/cost_explorer1.png)
 
 3. Select **Launch Cost Explorer**.
 
-<img src={useBaseUrl('img/deployment/installation/cost_explorer2.png')} />
+![](../../../../static/img/deployment/installation/cost_explorer2.png)
 
 **Note**: The initialization can take up 24 hours; however, it does not have to be completed before starting the installation process.
 
@@ -44,11 +36,11 @@ Activate the necessary cost allocation tags in the **AWS Billing & Cost Manageme
 
 2. In the navigation pane, choose **Cost allocation tags**.
 
-<img src={useBaseUrl('img/deployment/installation/cost_atags1.png')} /> 
+![](../../../../static/img/deployment/installation/cost_atags1.png)
 
 3. Under User-defined cost allocation tags, choose **createdBy**, **Env**, and **Proj** tags.
  
-<img src={useBaseUrl('img/deployment/installation/cost_atags2.png')} />
+![](../../../../static/img/deployment/installation/cost_atags2.png)
 
 **Note**: There might be a delay after enabling the AWS Cost Explorer before these tags are visible. 
 
