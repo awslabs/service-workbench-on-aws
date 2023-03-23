@@ -15,7 +15,7 @@ If the `recurringDownloads` flag is set to `true`, the program will periodically
 
 #### Tools
 
-- Go 1.13.7+
+- Go 1.18+
 
 ## Usage
 

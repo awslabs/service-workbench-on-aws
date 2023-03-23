@@ -33,7 +33,7 @@ jobs:
           node-version: 16
       - uses: actions/setup-go@v2
         with:
-          go-version: 1.13
+          go-version: "addons/addon-raas-s3-copy/packages/s3-synchronizer/go.mod"
       - name: Install pnpm
         run: npm install -g pnpm@5.18.9
       - name: Install dependencies
