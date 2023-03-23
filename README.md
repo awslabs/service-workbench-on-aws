@@ -61,6 +61,13 @@ Service Workbench documentation can be accessed in the PDF format or by visiting
 ### Implementation Guide
 For information on installing Service Workbench on AWS, please visit the [AWS Solutions Implementation Guide](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/solution-overview.html).
 
+- [Service Workbench Solution Overview](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/solution-overview.html)
+- [Service Workbench  Architecture Overview](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/architecture-overview.html)
+- [Service Workbench Plan Your Deployment](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/plan-your-deployment.html)
+- [Service Workbench Deploy The Solution](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/deploy-the-solution.html)
+- [Service Workbench Update The Solution](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/update-the-solution.html)
+- [Service Workbench Uninstall The Solution](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/uninstall-the-solution.html)
+
 ### Documentation PDFs
 
 You can view the online documentation if you do not have Service Workbench locally installed on your machine. Click the following links to access the documentation:
