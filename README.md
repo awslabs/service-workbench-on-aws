@@ -56,20 +56,26 @@ The solution also includes a Continuous Integration/Continuous Delivery feature:
 
 ## Accessing Service Workbench Documentation
 
-Service Workbench documentation can be accessed in the PDF format or by using the Docusaurus website.
+Service Workbench documentation can be accessed in the PDF format or by visiting the AWS Solution Implementation Guide.
+
+### Implementation Guide
+For information on installing Service Workbench on AWS, please visit the [AWS Solutions Implementation Guide](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/solution-overview.html).
+
+- [Service Workbench Solution Overview](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/solution-overview.html)
+- [Service Workbench  Architecture Overview](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/architecture-overview.html)
+- [Service Workbench Plan Your Deployment](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/plan-your-deployment.html)
+- [Service Workbench Deploy The Solution](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/deploy-the-solution.html)
+- [Service Workbench Update The Solution](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/update-the-solution.html)
+- [Service Workbench Uninstall The Solution](https://docs.aws.amazon.com/solutions/latest/service-workbench-on-aws/uninstall-the-solution.html)
 
 ### Documentation PDFs
 
-You can download the PDF versions if you do not have Service Workbench locally installed on your machine. Click the following links to download:
+You can view the online documentation if you do not have Service Workbench locally installed on your machine. Click the following links to access the documentation:
 
-- [Service Workbench Installation Guide](/docs/Service_Workbench_Install_Guide.pdf)
-- [Service Workbench Configuration Guide](/docs/Service_Workbench_Configuration_Guide.pdf)
-- [Service Workbench Post Deployment Guide](/docs/Service_Workbench_Post_Deployment_Guide.pdf)
-- [Service Workbench User's Guide](/docs/Service_Workbench_User_Guide.pdf)
-
-### Accessing Documentation using Docusaurus
-
-You first need to download the Service Workbench [source code](https://github.com/awslabs/service-workbench-on-aws/tags) on your local machine before accessing the documentation using Docusaurus. After downloading the source, you need to install Docusaurus so that you can launch the help site. For steps on how to install Docusaurus locally, read the [Documentation Readme](/docs/README.md).
+- [Service Workbench Implementation Guide](./docs/service-workbench-on-aws-implementation-guide.pdf), formerly known as the Installation Guide
+- [Service Workbench Configuration Guide](./docs/Service_Workbench_Configuration_Guide.pdf)
+- [Service Workbench Post Deployment Guide](./docs/Service_Workbench_Post_Deployment_Guide.pdf)
+- [Service Workbench User's Guide](./docs/Service_Workbench_User_Guide.pdf)
 
 ## Software requirements
 

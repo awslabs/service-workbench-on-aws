@@ -26,6 +26,8 @@ You can install Service Workbench by using AWS Cloud9. This section provides inf
 4. Choose **Next step**.
 5. For **Instance type**, choose **m5.large (8 GiB + 2 vCPU)**.
 6. For **Platform**, choose **Amazon Linux 2**.
+7. For **Network settings**, choose the VPC and a Public Subnet to deploy Cloud9. **Note** if you plan to use a private subnet you will not
+be able to use [AWS Managed Temporary Credentials](https://docs.aws.amazon.com/cloud9/latest/user-guide/security-iam.html#auth-and-access-control-temporary-managed-credentials) at this time and can impact installation. 
 7. Choose **Next step**.
 8. Review all the changes and choose **Create environment**.
 
@@ -49,7 +51,7 @@ For more information on partitioning, read [Moving an environment and resizing/e
 
 ### Install Packer
 
-Packer is used to build AMIs. For steps on packer installation, refer to the [README](https://github.com/awslabs/service-workbench-on-aws/blob/b20208099d5acf51816ee4efd5b5bb3bf6d22fc8/addons/addon-base-raas/packages/serverless-packer/README.md).
+Packer is used to build AMIs. For steps on packer installation, refer to the [README](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/addons/addon-base-raas/packages/serverless-packer#topics).
 
 #### Verifying the file size
 

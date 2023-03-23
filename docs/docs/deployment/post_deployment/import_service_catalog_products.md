@@ -1,11 +1,3 @@
----
-id: import_service_catalog_products
-title: Import AWS Service Catalog products
-sidebar_label: Import AWS Service Catalog products
----
-
-import useBaseUrl from '@docusaurus/useBaseUrl';
-
 Service Workbench uses [AWS Service Catalog](https://aws.amazon.com/servicecatalog/?aws-service-catalog.sort-by=item.additionalFields.createdDate&aws-service-catalog.sort-order=desc)
 to manage different types of computation resources available for researchers to use through the platform.
 
@@ -51,7 +43,7 @@ To check if AMIs were created successfully:
 1. Log in to Service Workbench UI as an **administrator**.
 2. Navigate to ‘**Workspace Types**’ tab. Four AWS Service Catalog Products display as shown below.
 
-<img src={useBaseUrl('img/deployment/post_deployment/service_catalog_import_00.png')} />
+![](../../../static/img/deployment/post_deployment/service_catalog_import_00.png)
 
 ***Figure: AWS Service Catalog Products***
 
@@ -87,11 +79,11 @@ For Amazon EC2 Linux, the only two fields that are not available in the drop-dow
 
 The following figures display screenshot images that exemplify Amazon EC2 Linux configurations.
 
-<img src={useBaseUrl('img/deployment/post_deployment/sc_ec2_linux_00.png')} />
+![](../../../static/img/deployment/post_deployment/sc_ec2_linux_00.png)
 
 ***Figure: Configurations for Amazon EC2 Linux***
 
-<img src={useBaseUrl('img/deployment/post_deployment/sc_ec2_linux_01.png')} />
+![](../../../static/img/deployment/post_deployment/sc_ec2_linux_01.png)
 
 ***Figure: Configurations for Amazon Linux EC2***
 
@@ -101,15 +93,15 @@ For Amazon EC2 Windows, the only two fields that are not available in the drop-d
 
 The following figures display screenshot images that exemplify Amazon EC2 Windows configurations.
 
-<img src={useBaseUrl('img/deployment/post_deployment/SWB_param1.png')} />
+![](../../../static/img/deployment/post_deployment/SWB_param1.png)
 
 ***Figure: Configurations for EC2 Windows*** 
 
-<img src={useBaseUrl('img/deployment/post_deployment/SWB_param2.png')} />
+![](../../../static/img/deployment/post_deployment/SWB_param2.png)
 
 ***Figure: Configurations for EC2 Windows***
 
-<img src={useBaseUrl('img/deployment/post_deployment/SWB_param3.png')} />
+![](../../../static/img/deployment/post_deployment/SWB_param3.png)
 
 ***Figure: Configurations for EC2 Windows*** 
 
@@ -119,11 +111,11 @@ For Amazon SageMaker, the only field that’s not available in the drop-down is 
 
 The following figures display screenshot images that exemplify Amazon SageMaker configurations.
 
-<img src={useBaseUrl('img/deployment/post_deployment/sc_sagemaker_00.png')} />
+![](../../../static/img/deployment/post_deployment/sc_sagemaker_00.png)
 
 ***Figure: Configurations for Amazon SageMaker*** 
 
-<img src={useBaseUrl('img/deployment/post_deployment/sc_sagemaker_01.png')} />
+![](../../../static/img/deployment/post_deployment/sc_sagemaker_01.png)
 
 ***Figure: Configurations for Amazon SageMaker*** 
 
@@ -142,14 +134,14 @@ Amazon EMR requires a few more fields that are not available in the drop-down me
 
 The following figures display screenshot images that exemplify Amazon EMR configurations. 
 
-<img src={useBaseUrl('img/deployment/post_deployment/sc_emr_00.png')} />
+![](../../../static/img/deployment/post_deployment/sc_emr_00.png)
 
 ***Figure: Configurations for Amazon EMR*** 
 
-<img src={useBaseUrl('img/deployment/post_deployment/sc_emr_01.png')} />
+![](../../../static/img/deployment/post_deployment/sc_emr_01.png)
 
 ***Figure: Configurations for Amazon EMR***
-<img src={useBaseUrl('img/deployment/post_deployment/sc_emr_02.png')} />
+![](../../../static/img/deployment/post_deployment/sc_emr_02.png)
 
 ***Figure: Configurations for Amazon EMR*** 
 

@@ -47,6 +47,10 @@ Parameters:
   EncryptionKeyArn:
     Type: String
     Description: The ARN of the KMS encryption Key used to encrypt data in the instance
+  RootVolumeSize:
+    Type: Number
+    Description: The size of the root volume. Must be larger than the AMI size.
+    Default: 30
   RaidDataVolumeSize:
     Type: Number
     Description: The size of each volume in the RAID array used to hold studies data, in GiB. The template creates a striped volume (RAID 0) by joining 8 volumes. The total size of the data volume would be roughly 8 times the size specified here.
@@ -196,7 +200,7 @@ Resources:
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
-            VolumeSize: 30
+            VolumeSize: !Ref RootVolumeSize
             VolumeType: gp2
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
@@ -257,6 +261,7 @@ Resources:
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
             DeleteOnTermination: true
+      PropagateTagsToVolumeOnCreation: true
       NetworkInterfaces:
         - AssociatePublicIpAddress: !If [ AppStreamEnabled, 'false', 'true' ]
           DeviceIndex: '0'
