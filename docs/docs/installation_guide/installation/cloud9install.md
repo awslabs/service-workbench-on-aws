@@ -26,6 +26,8 @@ You can install Service Workbench by using AWS Cloud9. This section provides inf
 4. Choose **Next step**.
 5. For **Instance type**, choose **m5.large (8 GiB + 2 vCPU)**.
 6. For **Platform**, choose **Amazon Linux 2**.
+7. For **Network settings**, choose the VPC and a Public Subnet to deploy Cloud9. **Note** if you plan to use a private subnet you will not
+be able to use [AWS Managed Temporary Credentials](https://docs.aws.amazon.com/cloud9/latest/user-guide/security-iam.html#auth-and-access-control-temporary-managed-credentials) at this time and can impact installation. 
 7. Choose **Next step**.
 8. Review all the changes and choose **Create environment**.
 
