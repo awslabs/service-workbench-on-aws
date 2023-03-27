@@ -59,12 +59,14 @@ function get_rp_info() {
 
   userpool_signing_cert=$(aws cognito-idp get-signing-certificate \
     $aws_profile_cli_param \
+    --region $aws_region \
     --user-pool-id  ${userpool_id} \
     --output text)
 
   domain_name_prefix=$(aws cognito-idp describe-user-pool \
     $aws_profile_cli_param \
     --user-pool-id ${userpool_id} \
+    --region $aws_region \
     --output text --query "UserPool.Domain")
 
   printf "\n\n\n-------------------------------------------------------------------------\n"
