@@ -119,7 +119,7 @@ class AppStreamScService extends Service {
     const appStream = await environmentScService.getClientSdkWithEnvMgmtRole(
       requestContext,
       { id: environmentId },
-      { clientName: 'AppStream', options: { signatureVersion: 'v4' } },
+      { clientName: 'AppStream', options: { signatureVersion: 'v4' , useFipsEndpoint: true} },
     );
 
     const environment = await environmentScService.mustFind(requestContext, { id: environmentId });
