@@ -122,6 +122,18 @@ Resources:
               - sagemaker:DescribeNotebookInstance
               - sagemaker:StopNotebookInstance
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssm:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ssmmessages:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ec2messages:*'
+            Resource: '*'
 
   IAMRoleSageMakerURL:
     Type: 'AWS::IAM::Role'
@@ -167,6 +179,7 @@ Resources:
                 - 'sagemaker.amazonaws.com'
             Action:
               - 'sts:AssumeRole'
+      ManagedPolicyArns: ['arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore']
       Policies:
         - !If
           - IamPolicyEmpty
