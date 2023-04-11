@@ -98,7 +98,7 @@ jobs:
         env:
           DEPLOYMENT_BUCKET: ${{ secrets.DEPLOYMENT_BUCKET}}
           STAGE_NAME: e2etest
-          aws-region: us-east-1
+          aws-region: ${{ secrets.AWS_DEV_REGION }}
   cypress-test:
     name: Cypress test
     runs-on: ubuntu-20.04
