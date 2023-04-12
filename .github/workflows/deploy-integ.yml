@@ -8,6 +8,8 @@ on:
   push:
     branches:
       - develop
+permissions:
+      id-token: write
 jobs:
   pre-deployment-check:
     name: Pre deployment check
