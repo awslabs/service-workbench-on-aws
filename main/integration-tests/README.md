@@ -110,7 +110,7 @@ $ pnpm intTestSpecific __test__/api-tests/<your test suite file> -- --stage=<STA
   - set `isLocal` to `false`
 - Upload the config file to the deployment S3 bucket `<namespace>-artifacts` under `integration-test` folder if it's not present
 - Create the following GitHub secrets in your target repository:
-  - AWS_ACCESS_KEY_ID
-  - AWS_SECRET_ACCESS_KEY
+  - AWS_ROLE_TO_ASSUME (the GitHubActionsRoleArn output value in your OIDC provider stack)
+  - AWS_DEV_REGION
   - DEPLOYMENT_BUCKET (set the value to `<namespace>-artifacts`)
 - Integration test will be triggered as part of a GitHub workflow
