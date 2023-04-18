@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file. See [standa
 * update bootstrap script for sagemaker ([#1110](https://github.com/awslabs/service-workbench-on-aws/issues/1110)) ([0c1571d](https://github.com/awslabs/service-workbench-on-aws/commit/0c1571d361e2b4091805d4df587ec41a8aab7fd6))
 * update env type name for sagemaker tre ([#1101](https://github.com/awslabs/service-workbench-on-aws/issues/1101)) ([49f46df](https://github.com/awslabs/service-workbench-on-aws/commit/49f46df7598f1f19e9d950db6a952797186d5fbe))
 * upgrade code build image for target env deploy project ([#1168](https://github.com/awslabs/service-workbench-on-aws/issues/1168)) ([d4120ff](https://github.com/awslabs/service-workbench-on-aws/commit/d4120ff3a307d5a7e7d9b13af670c8d238e9c833))
-* upgrade goland in buildspec ([#1166](https://github.com/awslabs/service-workbench-on-aws/issues/1166)) ([68abc3c](https://github.com/awslabs/service-workbench-on-aws/commit/68abc3c22161d98721c2f90ffb8fae35c0308198))
+* upgrade golang in buildspec ([#1166](https://github.com/awslabs/service-workbench-on-aws/issues/1166)) ([68abc3c](https://github.com/awslabs/service-workbench-on-aws/commit/68abc3c22161d98721c2f90ffb8fae35c0308198))
 
 ### [5.2.7](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.6...v5.2.7) (2022-12-30)
 
