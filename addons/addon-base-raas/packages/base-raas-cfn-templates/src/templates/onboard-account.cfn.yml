@@ -1228,7 +1228,9 @@ Outputs:
     Condition: isAppStreamAndCustomDomain
     Value: !Ref Route53HostedZone
 
-  S3VpcEndpoint:
+  S3VPCE:
     Description: S3 interface endpoint
     Condition: isAppStream
     Value: !Ref S3Endpoint
+    Export:
+      Name: !Join [ '', [ Ref: Namespace, '-S3VPCE' ] ]

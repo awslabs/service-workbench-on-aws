@@ -122,6 +122,14 @@ Resources:
               - sagemaker:DescribeNotebookInstance
               - sagemaker:StopNotebookInstance
             Resource: '*'
+          - Effect: Deny
+            Action: 's3:*'
+            Resource: '*'
+            Condition:
+              StringNotEquals:
+                aws:SourceVpce:
+                  Fn::ImportValue: !Sub '${SolutionNamespace}-S3VPCE'
+
 
   IAMRoleSageMakerURL:
     Type: 'AWS::IAM::Role'
