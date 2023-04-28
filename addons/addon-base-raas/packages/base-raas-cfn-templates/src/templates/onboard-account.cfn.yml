@@ -1227,8 +1227,3 @@ Outputs:
     Description: Route53 hosted zone
     Condition: isAppStreamAndCustomDomain
     Value: !Ref Route53HostedZone
-
-  S3VpcEndpoint:
-    Description: S3 interface endpoint
-    Condition: isAppStream
-    Value: !Ref S3Endpoint
