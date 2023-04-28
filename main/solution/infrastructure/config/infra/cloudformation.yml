@@ -86,6 +86,9 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
 
   LoggingBucketPolicy:
     Type: AWS::S3::BucketPolicy
