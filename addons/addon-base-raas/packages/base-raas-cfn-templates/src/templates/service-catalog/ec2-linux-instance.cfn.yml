@@ -79,17 +79,21 @@ Resources:
             Action:
               - 'sts:AssumeRole'
             Resource: 'arn:aws:iam::*:role/swb-*'
-          - Effect: Deny
-            Action: '*'
-            Resource: '*'
-            Condition:
-              StringNotEquals:
-                aws:Ec2InstanceSourceVPC: "${aws:SourceVpc}"
-                aws:ec2InstanceSourcePrivateIPv4: "${aws:VpcSourceIp}"
-              BoolIfExists:
-                aws:ViaAWSService: "false"
-              'Null':
-                aws:ec2InstanceSourceVPC: "false"
+          - !If
+            - AppStreamEnabled
+            - Effect: Deny
+              Action: '*'
+              Resource: '*'
+              Condition:
+                StringNotEquals:
+                  aws:Ec2InstanceSourceVPC: "${aws:SourceVpc}"
+                  aws:ec2InstanceSourcePrivateIPv4: "${aws:VpcSourceIp}"
+                BoolIfExists:
+                  aws:ViaAWSService: "false"
+                'Null':
+                  aws:ec2InstanceSourceVPC: "false"
+            - !Ref 'AWS::NoValue'
+
 
   IAMRole:
     Type: 'AWS::IAM::Role'
