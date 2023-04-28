@@ -2,8 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.9.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.9...mainline)
+### [5.2.10](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.9...v5.2.10) (2023-04-28)
+
+
+### Bug Fixes
+
+* add OwnershipControls for LoggingBucket ([#1185](https://github.com/awslabs/service-workbench-on-aws/issues/1185)) ([c75600c](https://github.com/awslabs/service-workbench-on-aws/commit/c75600cdd74846d6f43b74f888e88b7ab2739536))
 
 ### [5.2.9](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.8...v5.2.9) (2023-04-25)
 * add `Ec2InstanceSourceVPC` and `ec2InstanceSourcePrivateIPv4` conditional checks to IAM roles for Linux and Windows EC2 templates ([#1181](https://github.com/awslabs/service-workbench-on-aws/pull/1181)) ([9295efb](https://github.com/awslabs/service-workbench-on-aws/commit/9295efb43f46e5da7201a3dc4d36000c4eccf34d))
