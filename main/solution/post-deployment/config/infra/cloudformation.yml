@@ -387,6 +387,7 @@ Resources:
                 Resource: 'arn:aws:s3:::sc-*-logbucket-*'
               - Effect: Allow
                 Action:
+                  - elasticmapreduce:AddTags
                   - elasticmapreduce:CreateSecurityConfiguration
                   - elasticmapreduce:RunJobFlow
                   - elasticmapreduce:TerminateJobFlows
@@ -420,7 +421,7 @@ Resources:
                   - sagemaker:DescribeNotebookInstanceLifecycleConfig
                   - sagemaker:CreateNotebookInstanceLifecycleConfig
                   - sagemaker:DeleteNotebookInstanceLifecycleConfig
-                Resource: 'arn:aws:sagemaker:*:*:notebook-instance-lifecycle-config/basicnotebookinstancelifecycleconfig-*'
+                Resource: 'arn:aws:sagemaker:*:*:notebook-instance-lifecycle-config/?asic?otebook?nstance?ifecycle?onfig-*'
               - Effect: Allow
                 Action:
                   - sagemaker:DescribeNotebookInstance
@@ -428,7 +429,7 @@ Resources:
                   - sagemaker:AddTags
                   - sagemaker:StopNotebookInstance
                   - sagemaker:DeleteNotebookInstance
-                Resource: 'arn:aws:sagemaker:*:*:notebook-instance/basicnotebookinstance-*'
+                Resource: 'arn:aws:sagemaker:*:*:notebook-instance/?asic?otebook?nstance-*'
               - Effect: Allow
                 Action:
                   - ec2:DescribeNetworkInterfaces

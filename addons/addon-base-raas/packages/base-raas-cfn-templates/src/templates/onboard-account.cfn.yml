@@ -106,13 +106,13 @@ Parameters:
     Description: Optional custom Domain name to be created in Route53
     Type: String
     Default: ''
-  
+
   EnableAmiSharing:
     Type: String
     AllowedValues: [true, false]
     Description: Use appstream image from the central devops account
     Default: false
-  
+
   DevopsAccountId:
     Type: String
     Description: The account id of the central AWS account where the appstream image is created.
@@ -150,8 +150,8 @@ Conditions:
     - !Not [!Equals [!Ref 'DomainName', '']]
     - !Condition isAppStream
   enableFlowLogs: !Equals [!Ref EnableFlowLogs, true]
-  enableFlowLogsNonAppStream: !And [Condition: isNotAppStream,Condition: enableFlowLogs]
-  enableFlowLogsWithAppStream: !And [Condition: isAppStream,Condition: enableFlowLogs]
+  enableFlowLogsNonAppStream: !And [Condition: isNotAppStream, Condition: enableFlowLogs]
+  enableFlowLogsWithAppStream: !And [Condition: isAppStream, Condition: enableFlowLogs]
   amiSharingEnabled: !Equals
     - !Ref EnableAmiSharing
     - true
@@ -424,7 +424,7 @@ Resources:
               - sagemaker:StartNotebookInstance
               - sagemaker:StopNotebookInstance
               - sagemaker:DescribeNotebookInstance
-            Resource: !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/basicnotebookinstance-*'
+            Resource: !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/?asic?otebook?nstance-*'
           - Effect: Allow
             Action:
               - sagemaker:ListNotebookInstances
@@ -768,7 +768,7 @@ Resources:
     Properties:
       AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
       TargetKeyId: !Ref EncryptionKey
-  
+
   FlowLogCloudwatchGroup:
     Type: 'AWS::Logs::LogGroup'
     DeletionPolicy: Retain
@@ -1082,7 +1082,12 @@ Resources:
       EnableDefaultInternetAccess: False
       FleetType: !Ref AppStreamFleetType
       IdleDisconnectTimeoutInSeconds: !Ref AppStreamIdleDisconnectTimeoutSeconds
-      ImageArn: !If [amiSharingEnabled, !Sub 'arn:aws:appstream:${AWS::Region}:${DevopsAccountId}:image/${AppStreamImageName}', !Sub 'arn:aws:appstream:${AWS::Region}:${CentralAccountId}:image/${AppStreamImageName}']
+      ImageArn:
+        !If [
+          amiSharingEnabled,
+          !Sub 'arn:aws:appstream:${AWS::Region}:${DevopsAccountId}:image/${AppStreamImageName}',
+          !Sub 'arn:aws:appstream:${AWS::Region}:${CentralAccountId}:image/${AppStreamImageName}',
+        ]
       InstanceType: !Ref AppStreamInstanceType
       MaxUserDurationInSeconds: !Ref AppStreamMaxUserDurationSeconds
       Name: !Sub ${Namespace}-ServiceWorkbenchFleet

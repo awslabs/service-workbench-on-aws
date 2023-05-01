@@ -2,8 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.7.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.7...mainline)
+### [5.2.10](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.9...v5.2.10) (2023-04-28)
+
+
+### Bug Fixes
+
+* add OwnershipControls for LoggingBucket ([#1185](https://github.com/awslabs/service-workbench-on-aws/issues/1185)) ([c75600c](https://github.com/awslabs/service-workbench-on-aws/commit/c75600cdd74846d6f43b74f888e88b7ab2739536))
+
+### [5.2.9](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.8...v5.2.9) (2023-04-25)
+* add `Ec2InstanceSourceVPC` and `ec2InstanceSourcePrivateIPv4` conditional checks to IAM roles for Linux and Windows EC2 templates ([#1181](https://github.com/awslabs/service-workbench-on-aws/pull/1181)) ([9295efb](https://github.com/awslabs/service-workbench-on-aws/commit/9295efb43f46e5da7201a3dc4d36000c4eccf34d))
+
+### [5.2.8](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.7...v5.2.8) (2023-04-18)
+
+
+### Features
+
+* `PropagateTagsToVolumeOnCreation: true` ([#1124](https://github.com/awslabs/service-workbench-on-aws/issues/1124)) ([65417fb](https://github.com/awslabs/service-workbench-on-aws/commit/65417fbe26a77b67638b90d181b9fc700022e140)), closes [/docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html#cfn-ec2](https://github.com/awslabs//docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-ec2-instance.html/issues/cfn-ec2)
+* EC2 workspace root volume size can be configured ([#1123](https://github.com/awslabs/service-workbench-on-aws/issues/1123)) ([62b8ea8](https://github.com/awslabs/service-workbench-on-aws/commit/62b8ea8f0ae98269249edb8d30ccbe892a9cc190))
+
+
+### Bug Fixes
+
+* autostop sagemaker fix for non TRE/no study mounting ([#1154](https://github.com/awslabs/service-workbench-on-aws/issues/1154)) ([cfa455b](https://github.com/awslabs/service-workbench-on-aws/commit/cfa455be321fd7c1dea5a08000c9815e5efa3c14))
+* go mod format ([#1163](https://github.com/awslabs/service-workbench-on-aws/issues/1163)) ([358788d](https://github.com/awslabs/service-workbench-on-aws/commit/358788d2e48d76aa2c16b72675bbaf5d5081037b))
+* Make SageMaker IAM policy case insensitive ([#1177](https://github.com/awslabs/service-workbench-on-aws/issues/1177)) ([fd6f1b8](https://github.com/awslabs/service-workbench-on-aws/commit/fd6f1b892e8bd5f8f062d8c3d017976720679e8e))
+* remove unneeded lock file ([#1100](https://github.com/awslabs/service-workbench-on-aws/issues/1100)) ([3c030b7](https://github.com/awslabs/service-workbench-on-aws/commit/3c030b7de19dc4db8f043f95b0fced44b4bef46f))
+* revert previous changes for Sagemaker fix ([#1114](https://github.com/awslabs/service-workbench-on-aws/issues/1114)) ([63315cd](https://github.com/awslabs/service-workbench-on-aws/commit/63315cde14b9e36882ba6c942658817b8f33615d))
+* s3 CLI command fix ([#1149](https://github.com/awslabs/service-workbench-on-aws/issues/1149)) ([3a70970](https://github.com/awslabs/service-workbench-on-aws/commit/3a709700d2749b1da98de85817841f1935d8ed63))
+* sagemaker autostop ([#1153](https://github.com/awslabs/service-workbench-on-aws/issues/1153)) ([31b6cd8](https://github.com/awslabs/service-workbench-on-aws/commit/31b6cd8b8db39ddd0732b4945615f93afa08100f))
+* update bootstrap script for sagemaker ([#1110](https://github.com/awslabs/service-workbench-on-aws/issues/1110)) ([0c1571d](https://github.com/awslabs/service-workbench-on-aws/commit/0c1571d361e2b4091805d4df587ec41a8aab7fd6))
+* update env type name for sagemaker tre ([#1101](https://github.com/awslabs/service-workbench-on-aws/issues/1101)) ([49f46df](https://github.com/awslabs/service-workbench-on-aws/commit/49f46df7598f1f19e9d950db6a952797186d5fbe))
+* upgrade code build image for target env deploy project ([#1168](https://github.com/awslabs/service-workbench-on-aws/issues/1168)) ([d4120ff](https://github.com/awslabs/service-workbench-on-aws/commit/d4120ff3a307d5a7e7d9b13af670c8d238e9c833))
+* upgrade golang in buildspec ([#1166](https://github.com/awslabs/service-workbench-on-aws/issues/1166)) ([68abc3c](https://github.com/awslabs/service-workbench-on-aws/commit/68abc3c22161d98721c2f90ffb8fae35c0308198))
 
 ### [5.2.7](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.6...v5.2.7) (2022-12-30)
 
