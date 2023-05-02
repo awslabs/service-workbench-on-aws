@@ -9,19 +9,19 @@
     "cognitoClientId": "6dmj4qhbihtkigcbsjo346hjmi",
     "workspaces": {
       "sagemaker": {
-        "workspaceTypeName": "SageMaker Notebook-v9",
-        "configuration": "e2etest-config-with-autostop",
+        "workspaceTypeName": "SageMaker Notebook-v12",
+        "configuration": "SageMaker",
         "projectId": "e2eTestProject"
       },
       "ec2": {
         "windows": {
-          "workspaceTypeName": "EC2 Windows-v4",
-          "configuration": "ec2-windows-e2e",
+          "workspaceTypeName": "EC2 Windows-v9",
+          "configuration": "Windows",
           "projectId": "e2eTestProject"
         },
         "linux": {
-          "workspaceTypeName": "EC2 Linux-v3",
-          "configuration": "ec2-linux-e2e",
+          "workspaceTypeName": "EC2 Linux-v8",
+          "configuration": "Linux-v8",
           "projectId": "e2eTestProject"
         }
       },
