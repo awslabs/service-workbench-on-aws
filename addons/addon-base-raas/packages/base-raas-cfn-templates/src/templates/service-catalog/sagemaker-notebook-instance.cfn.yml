@@ -122,16 +122,17 @@ Resources:
               - sagemaker:DescribeNotebookInstance
               - sagemaker:StopNotebookInstance
             Resource: '*'
-          - !If
-            - AppStreamEnabled
-            - Effect: Deny
-              Action: 's3:*'
-              Resource: '*'
-              Condition:
-                StringNotEquals:
-                  aws:SourceVpce:
-                    Fn::ImportValue: !Sub '${SolutionNamespace}-S3VPCE'
-            - !Ref 'AWS::NoValue'
+          - Effect: Deny
+            Action: 's3:*'
+            Resource: '*'
+            Condition:
+              StringNotEquals:
+                aws:SourceVpce:
+                  - !If
+                    - AppStreamEnabled
+                    - Fn::ImportValue: !Sub '${SolutionNamespace}-S3AppStreamVPCE'
+                    - Fn::ImportValue: !Sub '${SolutionNamespace}-S3NonAppStreamVPCE'
+
 
 
   IAMRoleSageMakerURL:

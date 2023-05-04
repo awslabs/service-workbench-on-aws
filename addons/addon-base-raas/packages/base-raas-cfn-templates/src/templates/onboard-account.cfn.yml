@@ -882,6 +882,41 @@ Resources:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       VpcId: !Ref VPC
 
+  S3NonAppStreamEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isNotAppStream
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:GetObject'
+              - 's3:GetObjectTagging'
+              - 's3:GetObjectTorrent'
+              - 's3:GetObjectVersion'
+              - 's3:GetObjectVersionTagging'
+              - 's3:GetObjectVersionTorrent'
+              - 's3:AbortMultipartUpload'
+              - 's3:ListMultipartUploadParts'
+              - 's3:PutObject'
+              - 's3:PutObjectAcl'
+              - 's3:PutObjectTagging'
+              - 's3:PutObjectVersionTagging'
+              - 's3:DeleteObject'
+              - 's3:DeleteObjectTagging'
+              - 's3:DeleteObjectVersion'
+              - 's3:DeleteObjectVersionTagging'
+              - 's3:ListBucket' # Required in get_bootstrap.sh when running `aws s3 sync`
+            Resource:
+              - '*'
+      RouteTableIds:
+        - !Ref PublicRouteTable
+      VpcEndpointType: Gateway
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcId: !Ref VPC
+
   KMSEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Condition: isAppStream
@@ -1157,6 +1192,13 @@ Outputs:
     Description: The public route table assigned to the workspace VPC
     Value: !Ref PublicRouteTable
 
+  S3NonAppStreamVPCE:
+    Description: S3 interface endpoint
+    Condition: isNotAppStream
+    Value: !Ref S3NonAppStreamEndpoint
+    Export:
+      Name: !Join [ '', [ Ref: Namespace, '-S3NonAppStreamVPCE' ] ]
+
   #------------AppStream Output Below-------
   PrivateAppStreamSubnet:
     Description: AppStream subnet
@@ -1228,9 +1270,9 @@ Outputs:
     Condition: isAppStreamAndCustomDomain
     Value: !Ref Route53HostedZone
 
-  S3VPCE:
+  S3AppStreamVPCE:
     Description: S3 interface endpoint
     Condition: isAppStream
     Value: !Ref S3Endpoint
     Export:
-      Name: !Join [ '', [ Ref: Namespace, '-S3VPCE' ] ]
+      Name: !Join [ '', [ Ref: Namespace, '-S3AppStreamVPCE' ] ]
