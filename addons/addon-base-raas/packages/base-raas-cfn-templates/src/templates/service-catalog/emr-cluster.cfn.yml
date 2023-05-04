@@ -187,10 +187,7 @@ Resources:
             Condition:
               StringNotEquals:
                 aws:SourceVpce:
-                  - !If
-                    - AppStreamEnabled
-                    - Fn::ImportValue: !Sub '${SolutionNamespace}-S3AppStreamVPCE'
-                    - Fn::ImportValue: !Sub '${SolutionNamespace}-S3NonAppStreamVPCE'
+                  - Fn::ImportValue: !Sub '${SolutionNamespace}-S3NonAppStreamVPCE'
 
   Ec2Role:
     Type: 'AWS::IAM::Role'
