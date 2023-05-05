@@ -122,6 +122,11 @@ Resources:
               - sagemaker:DescribeNotebookInstance
               - sagemaker:StopNotebookInstance
             Resource: '*'
+          - Effect: 'Allow'
+            Action:
+              - 'ec2:DescribePrefixLists'
+              - 'ec2:DescribeManagedPrefixLists'
+            Resource: '*'
           - Effect: Deny
             Action: 's3:*'
             Resource: '*'
@@ -132,8 +137,6 @@ Resources:
                     - AppStreamEnabled
                     - Fn::ImportValue: !Sub '${SolutionNamespace}-S3AppStreamVPCE'
                     - Fn::ImportValue: !Sub '${SolutionNamespace}-S3NonAppStreamVPCE'
-
-
 
   IAMRoleSageMakerURL:
     Type: 'AWS::IAM::Role'
@@ -210,6 +213,11 @@ Resources:
                     s3:prefix: !Sub
                       - '${S3Prefix}/*'
                       - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
+              - Effect: 'Allow'
+                Action:
+                  - 'ec2:DescribePrefixLists'
+                  - 'ec2:DescribeManagedPrefixLists'
+                Resource: '*'
         - PolicyName: cw-logs
           PolicyDocument:
             Statement:
@@ -269,6 +277,21 @@ Resources:
         - Content:
             Fn::Base64: !Sub |
               #!/usr/bin/env bash
+              set -e
+              TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+              REGION=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" '{print $4}')
+              PREFIX_LIST_ID=$(aws --region $REGION ec2 describe-managed-prefix-lists --filters Name=owner-id,Values=AWS Name=prefix-list-name,Values=com.amazonaws.$REGION.s3 --query PrefixLists[0].PrefixListId --output text)
+              PREFIXES=$(aws --region $REGION ec2 describe-prefix-lists --prefix-list-id $PREFIX_LIST_ID --query PrefixLists[0].Cidrs --output text)
+            
+              IFACE=$(ip link show eth2 | grep ether | awk '{ print $2 }')
+              VPC_CIDR=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/network/interfaces/macs/$IFACE/vpc-ipv4-cidr-block)
+              GATEWAY=$(ip route show | grep $VPC_CIDR | awk '{ print $3 }')
+            
+              set -x
+              for PREFIX in $PREFIXES; do
+                sudo ip route add $PREFIX via $GATEWAY dev eth2
+              done
+              
               # Download and execute bootstrap script
               aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
               chmod 500 "/tmp/get_bootstrap.sh"
