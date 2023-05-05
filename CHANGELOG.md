@@ -2,11 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.10.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.10...mainline)
+### [5.2.11](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.10...v5.2.11) (2023-05-05)
+
+### Bug Fixes
+
+* add S3 VPC Endpoints to restrict bucket access ([#1189](https://github.com/awslabs/service-workbench-on-aws/pull/1189)) ([60c3439](https://github.com/awslabs/service-workbench-on-aws/commit/60c34392e791fdadcfdbeb5a45e6b80a57eb31fe))
 
 ### [5.2.10](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.9...v5.2.10) (2023-04-28)
-
 
 ### Bug Fixes
 
