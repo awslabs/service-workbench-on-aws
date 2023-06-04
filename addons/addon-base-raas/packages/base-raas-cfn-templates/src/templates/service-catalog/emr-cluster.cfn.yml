@@ -181,6 +181,13 @@ Resources:
             Action:
               - 'sts:AssumeRole'
             Resource: 'arn:aws:iam::*:role/swb-*'
+          - Effect: Deny
+            Action: 's3:*'
+            Resource: '*'
+            Condition:
+              StringNotEquals:
+                aws:SourceVpce:
+                  - Fn::ImportValue: !Sub '${SolutionNamespace}-S3NonAppStreamVPCE'
 
   Ec2Role:
     Type: 'AWS::IAM::Role'

@@ -296,8 +296,7 @@ class EnvironmentConfigVarsService extends Service {
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
       isAppStreamEnabled,
-      solutionNamespace:
-        isAppStreamEnabled === 'true' ? await this.getSolutionNamespace(requestContext, awsAccountId) : '',
+      solutionNamespace: await this.getSolutionNamespace(requestContext, awsAccountId),
       // s3Prefixes // This variable is no longer relevant it is being removed, the assumption is that
       // this variable has not been used in any of the product templates.
       uid: user.uid,

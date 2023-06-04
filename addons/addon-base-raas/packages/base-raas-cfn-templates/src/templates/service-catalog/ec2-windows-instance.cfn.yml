@@ -101,6 +101,16 @@ Resources:
             Action:
               - 'sts:AssumeRole'
             Resource: 'arn:aws:iam::*:role/swb-*'
+          - Effect: Deny
+            Action: 's3:*'
+            Resource: '*'
+            Condition:
+              StringNotEquals:
+                aws:SourceVpce:
+                  - !If
+                    - AppStreamEnabled
+                    - Fn::ImportValue: !Sub '${SolutionNamespace}-S3AppStreamVPCE'
+                    - Fn::ImportValue: !Sub '${SolutionNamespace}-S3NonAppStreamVPCE'
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:

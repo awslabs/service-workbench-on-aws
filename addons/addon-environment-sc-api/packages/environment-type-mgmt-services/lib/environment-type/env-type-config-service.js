@@ -264,7 +264,7 @@ class EnvTypeConfigService extends Service {
       params = [
         ...params,
         { key: 'EgressStoreIamPolicyDocument', value: '{}' },
-        { key: 'SolutionNamespace', value: '' },
+        { key: 'SolutionNamespace', value: '${solutionNamespace}' },
       ];
     }
     updatedConfig.params = params;
