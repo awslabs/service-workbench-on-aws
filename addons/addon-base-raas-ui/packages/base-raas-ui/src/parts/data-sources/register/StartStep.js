@@ -136,6 +136,13 @@ class StartStep extends React.Component {
           <List.Item>Accessing buckets via fips endpoints is not supported</List.Item>
           <List.Item>Buckets with requester pays are not supported</List.Item>
         </List>
+        <div className="mt1">
+          <b>Disclaimer:</b> The CloudFormation template generated on the next screen <b>does not</b> create or modify a
+          bucket policy for the bucket you are sharing. Only an IAM role granting cross-account access is created. To
+          control the networks your S3 bucket is accessible from, you <b>must</b> set a bucket policy to limit traffic
+          to specific IP address ranges or Virtual Private Cloud (VPC) endpoints. For more information, see
+          https://repost.aws/knowledge-center/block-s3-traffic-vpc-ip.
+        </div>
       </>
     );
   }

@@ -135,18 +135,22 @@ function newFsRoleEntity(appRoleEntity = {}) {
   };
 }
 
-function toInlinePolicyDoc(fsRoleEntity = {}) {
+// vpcEpStudyMap Object structure: { VPCEndpoint1: [study1, study2,...], VPCEndpoint2: [study3], ... }
+function toInlinePolicyDoc(fsRoleEntity = {}, vpcEpStudyMap = {}) {
   const { bucket, bucketKmsArn, awsPartition } = fsRoleEntity;
   const studyPolicy = new StudyPolicy();
   const studies = fsRoleEntity.studies || [];
+  const studyIds = Object.keys(studies);
 
-  _.forEach(studies, study => {
+  _.forEach(studyIds, studyId => {
+    const study = studies[studyId];
     const { folder, kmsArn, kmsScope } = study;
     const item = {
       bucket,
       awsPartition,
       folder,
       permission: study.envPermission || { read: false, write: false },
+      id: studyId, // Need to add the SWB study ID to parse normalized S3 prefix string later
     };
 
     if (kmsScope === 'bucket') {
@@ -158,7 +162,43 @@ function toInlinePolicyDoc(fsRoleEntity = {}) {
     studyPolicy.addStudy(item);
   });
 
-  return studyPolicy.toPolicyDoc();
+  const vpcEpStatements = [];
+  const createConditionForVpce = (vpce, currentStudyIds) => {
+    const vpcEpStatement = {
+      Condition: {
+        StringNotEquals: {
+          'aws:SourceVpce': vpce,
+        },
+        StringLike: {
+          's3:prefix': _.map(currentStudyIds, studyId => {
+            const prefix = _.get(_.find(studyPolicy.studies, { id: studyId }), 'prefix');
+            // We need to account for the fact that a study might be the whole bucket, and when this
+            // is the case, the s3:prefix entry should be "*" and not "/*"
+            return prefix === '/' ? '*' : `${prefix}*`;
+          }),
+        },
+      },
+      Action: [
+        's3:Get*',
+        's3:List*',
+        's3:Put*',
+        's3:Delete*',
+        's3:AbortMultipartUpload',
+        's3:ListMultipartUploadParts',
+      ],
+      Resource: `arn:aws:s3:::${bucket}`,
+      Effect: 'Deny',
+      Sid: `AllowAccessFrom${vpce.split('-')[1]}`, // Managed Policy Sid cannot have anything but alphanumeric chars
+    };
+    vpcEpStatements.push(vpcEpStatement);
+    return vpcEpStatements;
+  };
+
+  // For each unique VPC Endpoint, add a condition to limit their respective study access from that endpoint
+  const vpcEndpoints = Object.keys(vpcEpStudyMap);
+  _.forEach(vpcEndpoints, vpcEndpoint => createConditionForVpce(vpcEndpoint, vpcEpStudyMap[vpcEndpoint]));
+
+  return studyPolicy.createPolicyDocAddStatements(vpcEpStatements);
 }
 
 function toTrustPolicyDoc(fsRoleEntity = {}) {

@@ -8,6 +8,7 @@
   "dependencies": {
     "@amzn/base-api-services": "workspace:*",
     "@amzn/base-services": "workspace:*",
+    "@amzn/base-raas-services": "workspace:*",
     "@amzn/base-services-container": "workspace:*",
     "aws-sdk": "^2.1228.0",
     "generate-password": "^1.7.0",

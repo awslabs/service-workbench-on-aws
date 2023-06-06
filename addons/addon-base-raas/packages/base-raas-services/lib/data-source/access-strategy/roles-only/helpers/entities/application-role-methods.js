@@ -39,14 +39,14 @@ function addStudy(appRoleEntity = {}, studyEntity = {}) {
   return appRoleEntity;
 }
 
-function maxReached(appRoleEntity = {}, maxSize = 6 * 1024 - 255) {
+function maxReached(appRoleEntity = {}, maxSize = 6 * 1024 - 255, vpcEpStudyMap = {}) {
   // The max characters count for a managed policy is 6k, we add some buffer here (255 character).
 
   // Generate the json boundary policy doc and count its characters
   // Notice that we count the permission boundary policy doc characters and not role doc characters
   // because the boundary policy is always going to run out of space before the role doc.
 
-  const policyDoc = JSON.stringify(toManagedPolicyCfnResource(appRoleEntity));
+  const policyDoc = JSON.stringify(toManagedPolicyCfnResource(appRoleEntity, vpcEpStudyMap));
   return _.size(policyDoc) >= maxSize;
 }
 
@@ -156,7 +156,32 @@ function newAppRoleEntity(accountEntity = {}, bucketEntity = {}, studyEntity = {
  * @param appRoleEntity The application role entity
  */
 function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
-  const { name, accountId, qualifier, boundaryPolicyArn } = appRoleEntity;
+  const { name, studies, accountId, qualifier, boundaryPolicyArn, bucket, bucketKmsArn, awsPartition } = appRoleEntity;
+
+  const studyPolicy = new StudyPolicy();
+
+  _.forEach(studies, study => {
+    const { folder, kmsArn, kmsScope } = study;
+    const item = {
+      bucket,
+      awsPartition,
+      folder,
+      permission: {
+        read: isReadonly(study) || isReadwrite(study),
+        write: isReadwrite(study) || isWriteonly(study),
+      },
+    };
+
+    if (kmsScope === 'bucket') {
+      item.kmsArn = bucketKmsArn;
+    } else if (kmsScope === 'study') {
+      item.kmsArn = kmsArn;
+    }
+
+    studyPolicy.addStudy(item);
+  });
+
+  const statementsForSwbStudyAccess = studyPolicy.toPolicyDoc().Statement;
 
   // cfn logical id can not have '-'
   const logicalId = `AppRole${_.replace(name, /-/g, '')}`;
@@ -167,7 +192,8 @@ function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
       Properties: {
         RoleName: name,
         AssumeRolePolicyDocument: toTrustPolicyDoc(swbMainAccountId),
-        Description: 'An application role that allows the SWB application to create roles to access studies',
+        Description:
+          'An application role that allows the SWB application to check study existance and create roles to access those studies',
         ManagedPolicyArns: [{ Ref: getManagedPolicyLogicalId(appRoleEntity) }],
         // 12 hours see
         // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html#cfn-iam-role-maxsessionduration
@@ -178,13 +204,6 @@ function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
             PolicyDocument: {
               Version: '2012-10-17',
               Statement: [
-                // We can't simply ask for open ended storagegateway access, this is something we need to rethink it
-                // {
-                //   Sid: 'StorageGatewayAccess',
-                //   Action: 'storagegateway:*',
-                //   Effect: 'Allow',
-                //   Resource: '*',
-                // },
                 {
                   Sid: 'RoleAndPolicyManagement',
                   Effect: 'Allow',
@@ -216,6 +235,7 @@ function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
                     },
                   },
                 },
+                ...statementsForSwbStudyAccess,
               ],
             },
           },
@@ -246,12 +266,14 @@ function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
  *
  * @param appRoleEntity The application role entity
  */
-function toManagedPolicyCfnResource(appRoleEntity) {
+function toManagedPolicyCfnResource(appRoleEntity, vpcEpStudyMap = {}) {
   const { name, studies, bucket, bucketKmsArn, awsPartition } = appRoleEntity;
 
   const studyPolicy = new StudyPolicy();
+  const studyIds = Object.keys(studies);
 
-  _.forEach(studies, study => {
+  _.forEach(studyIds, studyId => {
+    const study = studies[studyId];
     const { folder, kmsArn, kmsScope } = study;
     const item = {
       bucket,
@@ -261,6 +283,7 @@ function toManagedPolicyCfnResource(appRoleEntity) {
         read: isReadonly(study) || isReadwrite(study),
         write: isReadwrite(study) || isWriteonly(study),
       },
+      id: studyId, // Need to add the SWB study ID to get the associated VPC Endpoint when creating policy doc
     };
 
     if (kmsScope === 'bucket') {
@@ -279,7 +302,7 @@ function toManagedPolicyCfnResource(appRoleEntity) {
       Properties: {
         Description: 'A managed policy that is used as the permission boundary for all roles that are created by SWB',
         ManagedPolicyName: name,
-        PolicyDocument: studyPolicy.toPolicyDoc(),
+        PolicyDocument: studyPolicy.toPolicyDocVpcEndpointSeparated(vpcEpStudyMap),
       },
     },
   };
@@ -310,9 +333,9 @@ function getManagedPolicyLogicalId(appRoleEntity) {
  * Returns an array of the following shape:
  * [ { logicalId: <logicalId>, resource }, ... ]
  */
-function toCfnResources(appRoleEntity, swbMainAccountId) {
-  const managedPolicy = toManagedPolicyCfnResource(appRoleEntity);
-  const role = toRoleCfnResource(appRoleEntity, swbMainAccountId);
+function toCfnResources(appRoleEntity, swbMainAccountId, vpcEpStudyMap = {}) {
+  const managedPolicy = toManagedPolicyCfnResource(appRoleEntity, vpcEpStudyMap); // This policy is used as a permissions boundary by filesystem roles
+  const role = toRoleCfnResource(appRoleEntity, swbMainAccountId); // This policy is used by SWB app to check study reachability and filesystem role assumption
 
   return [managedPolicy, role];
 }

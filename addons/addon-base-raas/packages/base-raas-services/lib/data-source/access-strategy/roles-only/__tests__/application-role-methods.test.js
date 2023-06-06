@@ -234,14 +234,7 @@ describe('toCfnResources', () => {
             PolicyDocument: {
               Statement: [
                 {
-                  Action: [
-                    's3:GetObject',
-                    's3:GetObjectTagging',
-                    's3:GetObjectTorrent',
-                    's3:GetObjectVersion',
-                    's3:GetObjectVersionTagging',
-                    's3:GetObjectVersionTorrent',
-                  ],
+                  Action: ['s3:GetObject', 's3:GetObjectTagging', 's3:GetObjectVersion', 's3:GetObjectVersionTagging'],
                   Effect: 'Allow',
                   Resource: ['arn:aws:s3:::bucket-1/*'],
                   Sid: 'S3StudyReadAccess',

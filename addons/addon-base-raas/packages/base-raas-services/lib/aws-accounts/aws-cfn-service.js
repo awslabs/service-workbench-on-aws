@@ -412,6 +412,29 @@ class AwsCfnService extends Service {
     }
   }
 
+  async getVpcEndpointId(accountEntity) {
+    const region = this.settings.get(settingKeys.awsRegion);
+    const { onboardStatusRoleArn, cfnStackName, externalId } = accountEntity;
+    const cfnApi = await this.getCfnSdk(onboardStatusRoleArn, externalId, region);
+    const params = { StackName: cfnStackName };
+    const stacks = await cfnApi.describeStacks(params).promise();
+    const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === cfnStackName);
+
+    if (_.isEmpty(stack)) {
+      throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
+    }
+
+    const findOutputValue = prop => {
+      const output = _.find(_.get(stack, 'Outputs', []), item => item.OutputKey === prop);
+      return output.OutputValue;
+    };
+
+    if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+      return findOutputValue('S3AppStreamVPCE');
+    }
+    return findOutputValue('S3NonAppStreamVPCE');
+  }
+
   async onboardPendingAccounts(requestContext) {
     const awsAccountsService = await this.service('awsAccountsService');
     const accounts = await awsAccountsService.list();
