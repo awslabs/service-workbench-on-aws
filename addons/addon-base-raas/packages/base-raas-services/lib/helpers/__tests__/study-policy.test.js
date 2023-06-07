@@ -35,10 +35,8 @@ describe('study-policy', () => {
           Action: [
             's3:GetObject',
             's3:GetObjectTagging',
-            's3:GetObjectTorrent',
             's3:GetObjectVersion',
             's3:GetObjectVersionTagging',
-            's3:GetObjectVersionTorrent',
             's3:AbortMultipartUpload',
             's3:ListMultipartUploadParts',
             's3:PutObject',

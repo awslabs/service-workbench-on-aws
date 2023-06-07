@@ -5,7 +5,6 @@ importers:
   addons/addon-base-post-deployment/packages/base-post-deployment:
     specifiers:
       '@amzn/base-api-services': workspace:*
-      '@amzn/base-raas-services': workspace:*
       '@amzn/base-services': workspace:*
       '@amzn/base-services-container': workspace:*
       aws-sdk: ^2.1228.0
@@ -26,7 +25,6 @@ importers:
       source-map-support: ^0.5.21
     dependencies:
       '@amzn/base-api-services': link:../../../addon-base-rest-api/packages/services
-      '@amzn/base-raas-services': link:../../../addon-base-raas/packages/base-raas-services
       '@amzn/base-services': link:../../../addon-base/packages/services
       '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       aws-sdk: 2.1228.0
@@ -8172,7 +8170,7 @@ packages:
       loader-utils: 2.0.2
       make-dir: 3.1.0
       schema-utils: 2.7.1
-      webpack: 4.46.0_webpack-cli@3.3.12
+      webpack: 4.46.0
     dev: true
 
   /babel-loader/8.2.5_99a69055560c26eb3eb3c9c33bb65952:
@@ -9604,7 +9602,7 @@ packages:
       p-limit: 2.3.0
       schema-utils: 1.0.0
       serialize-javascript: 4.0.0
-      webpack: 4.46.0_webpack-cli@3.3.12
+      webpack: 4.46.0
       webpack-log: 2.0.0
     dev: true
 
@@ -19780,7 +19778,7 @@ packages:
       lodash: 4.17.21
       semver: 7.3.7
       serverless: 3.22.0
-      webpack: 4.46.0_webpack-cli@3.3.12
+      webpack: 4.46.0
     optionalDependencies:
       ts-node: 10.9.1
     transitivePeerDependencies:
@@ -20795,7 +20793,7 @@ packages:
       serialize-javascript: 4.0.0
       source-map: 0.6.1
       terser: 4.8.1
-      webpack: 4.46.0_webpack-cli@3.3.12
+      webpack: 4.46.0
       webpack-sources: 1.4.3
       worker-farm: 1.7.0
     dev: true

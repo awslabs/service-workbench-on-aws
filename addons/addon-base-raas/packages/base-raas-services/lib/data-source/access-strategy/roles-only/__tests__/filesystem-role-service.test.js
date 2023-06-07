@@ -21,8 +21,14 @@ jest.mock('@amzn/base-services/lib/settings/env-settings-service');
 jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
 jest.mock('@amzn/base-services/lib/helpers/utils');
+jest.mock('@amzn/base-services/lib/user/user-service');
 jest.mock('../application-role-service');
+jest.mock('../../../../study/study-permission-service');
+jest.mock('../../../../aws-accounts/aws-cfn-service');
+jest.mock('../../../../aws-accounts/aws-accounts-service');
+jest.mock('../../../../indexes/indexes-service');
 
+const UserServiceMock = require('@amzn/base-services/lib/user/user-service');
 const Utils = require('@amzn/base-services/lib/helpers/utils');
 const Aws = require('@amzn/base-services/lib/aws/aws-service');
 const Logger = require('@amzn/base-services/lib/logger/logger-service');
@@ -36,8 +42,12 @@ const ApplicationRoleService = require('../application-role-service');
 const ResourceUsageService = require('../../../../usage/resource-usage-service');
 const FilesystemRoleService = require('../filesystem-role-service');
 const StudyService = require('../../../../study/study-service');
+const StudyPermissionService = require('../../../../study/study-permission-service');
 const AwsCfnService = require('../../../../aws-accounts/aws-cfn-service');
 const ProjectService = require('../../../../project/project-service');
+const AwsCfnServiceMock = require('../../../../aws-accounts/aws-cfn-service');
+const AwsAccountsServiceMock = require('../../../../aws-accounts/aws-accounts-service');
+const IndexServiceMock = require('../../../../indexes/indexes-service');
 
 const createStudy = ({
   id = 'study-1',
@@ -120,6 +130,11 @@ describe('DataSourceBucketService', () => {
     container.register('studyService', new StudyService());
     container.register('awsCfnService', new AwsCfnService());
     container.register('projectService', new ProjectService());
+    container.register('userService', new UserServiceMock());
+    container.register('indexesService', new IndexServiceMock());
+    container.register('studyPermissionService', new StudyPermissionService());
+    container.register('awsCfnService', new AwsCfnServiceMock());
+    container.register('awsAccountsService', new AwsAccountsServiceMock());
     container.register('settings', new SettingsService());
     container.register('aws', new Aws());
     container.register('log', new Logger());

@@ -88,8 +88,6 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   };
   table('dbAuthenticationProviderTypes', 'AuthenticationProviderTypes');
   table('dbAuthenticationProviderConfigs', 'AuthenticationProviderConfigs');
-  table('dbRoleAllocations', 'RoleAllocations');
-  table('dbDsAccounts', 'DsAccounts');
   table('dbPasswords', 'Passwords');
   table('dbUserApiKeys', 'UserApiKeys');
   table('dbRevokedTokens', 'RevokedTokens');

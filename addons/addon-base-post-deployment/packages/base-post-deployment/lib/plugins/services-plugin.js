@@ -28,8 +28,6 @@ const UserService = require('@amzn/base-services/lib/user/user-service');
 const DbPasswordService = require('@amzn/base-services/lib/db-password/db-password-service');
 const AuthenticationProviderTypeService = require('@amzn/base-api-services/lib/authentication-providers/authentication-provider-type-service');
 const AuthenticationProviderConfigService = require('@amzn/base-api-services/lib/authentication-providers/authentication-provider-config-service');
-const FilesystemRoleService = require('@amzn/base-raas-services/lib/data-source/access-strategy/roles-only/filesystem-role-service');
-const DataSourceAccountService = require('@amzn/base-raas-services/lib/data-source/data-source-account-service');
 const registerBuiltInAuthProvisioners = require('@amzn/base-api-services/lib/authentication-providers/register-built-in-provisioner-services');
 
 const DeploymentStoreService = require('../deployment-store-service');
@@ -51,8 +49,6 @@ async function registerServices(container, pluginRegistry) {
   container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
   container.register('authenticationProviderTypeService', new AuthenticationProviderTypeService());
   container.register('authenticationProviderConfigService', new AuthenticationProviderConfigService());
-  container.register('roles-only/filesystemRoleService', new FilesystemRoleService());
-  container.register('dataSourceAccountService', new DataSourceAccountService());
   container.register('lockService', new LockService());
   container.register('s3Service', new S3Service());
   container.register('iamService', new IamService());

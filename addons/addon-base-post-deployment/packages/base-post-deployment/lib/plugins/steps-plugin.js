@@ -16,7 +16,6 @@
 const CreateRootUserService = require('../steps/create-root-user-service');
 const AddAuthProviders = require('../steps/add-auth-providers');
 const CreateJwtKeyService = require('../steps/create-jwt-key-service');
-const CheckByobFsRole = require('../steps/check-byob-fs-role');
 
 /**
  * Returns a map of post deployment steps
@@ -33,7 +32,6 @@ async function getSteps(existingStepsMap, pluginRegistry) {
     ['createJwtKeyService', new CreateJwtKeyService()],
     ['addAuthProviders', new AddAuthProviders()],
     ['createRootUser', new CreateRootUserService()],
-    ['checkByobFsRole', new CheckByobFsRole()],
   ]);
 
   return stepsMap;
