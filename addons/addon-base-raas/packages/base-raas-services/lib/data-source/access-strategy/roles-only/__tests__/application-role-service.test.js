@@ -135,9 +135,6 @@ describe('ApplicationRoleService', () => {
 
     service = await container.find('roles-only/applicationRoleService');
     dbService = await container.find('dbService');
-    // s3Service = await container.find('s3Service');
-    // aws = await s3Service.service('aws');
-    // AWSMock.setSDKInstance(aws.sdk);
 
     // Skip authorization
     service.assertAuthorized = jest.fn();
