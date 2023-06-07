@@ -174,7 +174,7 @@ class ApplicationRoleService extends Service {
 
   async getVpcEpStudyMap(requestContext, appRoleEntity) {
     const { studies } = appRoleEntity;
-    const studyIds = Object.keys(studies);
+    const studyIds = _.keys(studies);
     const studyService = await this.service('studyService');
     const projectService = await this.service('projectService');
     const awsCfnService = await this.service('awsCfnService');
@@ -192,7 +192,7 @@ class ApplicationRoleService extends Service {
         let vpcEndpoint;
 
         // Try to reduce async calls if project-vpce is known
-        if (_.includes(Object.keys(projVpcEpMap), projectId)) {
+        if (_.includes(_.keys(projVpcEpMap), projectId)) {
           vpcEndpoint = projVpcEpMap[projectId];
         } else {
           const accEntity = await projectService.getAccountForProjectId(requestContext, projectId);

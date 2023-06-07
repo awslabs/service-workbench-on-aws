@@ -140,7 +140,7 @@ function toInlinePolicyDoc(fsRoleEntity = {}, vpcEpStudyMap = {}) {
   const { bucket, bucketKmsArn, awsPartition } = fsRoleEntity;
   const studyPolicy = new StudyPolicy();
   const studies = fsRoleEntity.studies || [];
-  const studyIds = Object.keys(studies);
+  const studyIds = _.keys(studies);
 
   _.forEach(studyIds, studyId => {
     const study = studies[studyId];

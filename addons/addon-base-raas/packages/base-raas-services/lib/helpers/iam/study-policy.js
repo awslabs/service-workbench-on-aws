@@ -341,7 +341,7 @@ function assertStudy({ bucket, folder = '', resources = [] } = {}) {
   }
 
   if (!_.isEmpty(folder) && _.isEmpty(bucket)) {
-    errors.push(`A study a folder '${folder}' was provided without a bucket name to a study policy instance`);
+    errors.push(`A study folder '${folder}' was provided without a bucket name to a study policy instance`);
   }
 
   if (_.isEmpty(errors)) return;

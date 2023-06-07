@@ -203,6 +203,9 @@ describe('ApplicationRoleService', () => {
       service.list = jest.fn().mockReturnValue([appRole]);
       dbService.table.update = jest.fn();
       const newAppRoleEntity = jest.spyOn(AppRoleMethods, 'newAppRoleEntity');
+      service.getVpcEpStudyMap = jest.fn(() => {
+        return { 'vpce-Ep1': ['study-1'], 'vpce-Ep2': ['study-2'] };
+      });
 
       // EXECUTE
       await service.allocateRole(requestContext, accountEntity, bucketEntity, studyEntity);
@@ -363,6 +366,9 @@ describe('ApplicationRoleService', () => {
       const accountId = 'sampleAccountId';
       const cfnTemplate = new CfnTemplate({ accountId, region: 'us-east-1' });
       service.list = jest.fn().mockReturnValue([appRole]);
+      service.getVpcEpStudyMap = jest.fn(() => {
+        return { 'vpce-Ep1': ['study-1'], 'vpce-Ep2': ['study-2'] };
+      });
 
       // EXECUTE & CHECK
       await service.provideCfnResources(requestContext, cfnTemplate, accountId);

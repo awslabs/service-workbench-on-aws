@@ -424,7 +424,7 @@ class FilesystemRoleService extends Service {
 
   async getVpcEpStudyMap(requestContext, fsRoleEntity) {
     const { studies } = fsRoleEntity;
-    const studyIds = Object.keys(studies);
+    const studyIds = _.keys(studies);
     const studyService = await this.service('studyService');
     const projectService = await this.service('projectService');
     const awsCfnService = await this.service('awsCfnService');
