@@ -35,6 +35,9 @@ const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema
 const ApplicationRoleService = require('../application-role-service');
 const ResourceUsageService = require('../../../../usage/resource-usage-service');
 const FilesystemRoleService = require('../filesystem-role-service');
+const StudyService = require('../../../../study/study-service');
+const AwsCfnService = require('../../../../aws-accounts/aws-cfn-service');
+const ProjectService = require('../../../../project/project-service');
 
 const createStudy = ({
   id = 'study-1',
@@ -114,6 +117,9 @@ describe('DataSourceBucketService', () => {
 
     container.register('dbService', new DbService());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
+    container.register('studyService', new StudyService());
+    container.register('awsCfnService', new AwsCfnService());
+    container.register('projectService', new ProjectService());
     container.register('settings', new SettingsService());
     container.register('aws', new Aws());
     container.register('log', new Logger());

@@ -32,6 +32,9 @@ const ApplicationRoleService = require('../application-role-service');
 const AppRoleMethods = require('../helpers/entities/application-role-methods');
 
 const { CfnTemplate } = require('../../../../helpers/cfn-template');
+const StudyService = require('../../../../study/study-service');
+const AwsCfnService = require('../../../../aws-accounts/aws-cfn-service');
+const ProjectService = require('../../../../project/project-service');
 
 const createStudy = ({
   id = 'study-1',
@@ -105,6 +108,9 @@ describe('ApplicationRoleService', () => {
 
     container.register('dbService', new DbService());
     container.register('roles-only/applicationRoleService', new ApplicationRoleService());
+    container.register('studyService', new StudyService());
+    container.register('awsCfnService', new AwsCfnService());
+    container.register('projectService', new ProjectService());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     container.register('pluginRegistryService', new PluginRegistryService());
     container.register('settings', new SettingsService());
