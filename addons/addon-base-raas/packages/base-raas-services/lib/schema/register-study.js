@@ -71,6 +71,6 @@ const schema = {
       enum: ['readonly', 'readwrite'],
     },
   },
-  required: ['id', 'category', 'folder', 'accessType', 'adminUsers'],
+  required: ['id', 'category', 'folder', 'accessType', 'adminUsers', 'projectId'],
 };
 module.exports = schema;
