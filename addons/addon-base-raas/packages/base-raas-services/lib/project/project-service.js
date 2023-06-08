@@ -294,6 +294,20 @@ class ProjectService extends Service {
     }
   }
 
+  // Gets the AWS Account entity for the given project ID
+  async getAccountForProjectId(requestContext, id) {
+    const [awsAccountsService, indexesService] = await this.service(['awsAccountsService', 'indexesService']);
+
+    const project = await this.mustFind(requestContext, { id });
+    const { indexId } = project;
+
+    const index = await indexesService.mustFind(requestContext, { id: indexId });
+    const { awsAccountId } = index;
+
+    const awsAccount = await awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+    return awsAccount;
+  }
+
   /**
    * Check if user is associated with the project
    */

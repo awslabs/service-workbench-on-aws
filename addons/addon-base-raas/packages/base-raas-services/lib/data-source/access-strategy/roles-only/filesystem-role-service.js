@@ -19,6 +19,7 @@ const Service = require('@amzn/base-services-container/lib/service');
 const { sleep, retry } = require('@amzn/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 const { fsRoleIdCompositeKey } = require('./helpers/composite-keys');
 const {
   toDbEntity,
@@ -61,6 +62,9 @@ class FilesystemRoleService extends Service {
       'auditWriterService',
       'roles-only/applicationRoleService',
       'resourceUsageService',
+      'studyService',
+      'awsCfnService',
+      'projectService',
     ]);
   }
 
@@ -418,9 +422,45 @@ class FilesystemRoleService extends Service {
     return toFsRoleEntity(dbEntity);
   }
 
+  async getVpcEpStudyMap(requestContext, fsRoleEntity) {
+    const { studies } = fsRoleEntity;
+    const studyIds = _.keys(studies);
+    const studyService = await this.service('studyService');
+    const projectService = await this.service('projectService');
+    const awsCfnService = await this.service('awsCfnService');
+
+    // Object structure: { VPCEndpoint1: [study1, study2,...], VPCEndpoint2: [study3], ... }
+    const vpcEpStudyMap = {};
+
+    // Object structure: {Project1: VpcEndpoint1, Project2: VPCEndpoint2}
+    const projVpcEpMap = {};
+
+    // Get all unique VPC endpoints from projects
+    await Promise.all(
+      _.map(studyIds, async stdId => {
+        const { projectId } = await studyService.mustFind(requestContext, stdId);
+        let vpcEndpoint;
+
+        // Try to reduce async calls if project-vpce is known
+        if (_.includes(Object.keys(projVpcEpMap), projectId)) {
+          vpcEndpoint = projVpcEpMap[projectId];
+        } else {
+          const accEntity = await projectService.getAccountForProjectId(requestContext, projectId);
+          vpcEndpoint = await awsCfnService.getVpcEndpointId(accEntity);
+          projVpcEpMap[projectId] = vpcEndpoint;
+        }
+        const assocStudies = vpcEpStudyMap[vpcEndpoint] || [];
+        assocStudies.push(stdId);
+        vpcEpStudyMap[vpcEndpoint] = _.uniq(assocStudies);
+      }),
+    );
+    return vpcEpStudyMap;
+  }
+
   // @private
   async provisionRole(fsRoleEntity) {
     const { name, boundaryPolicyArn } = fsRoleEntity;
+    const vpcEpMap = await this.getVpcEpStudyMap(getSystemRequestContext(), fsRoleEntity);
     const iamClient = await this.getIamClient(fsRoleEntity.appRoleArn, _.get(fsRoleEntity.studies, '[0].id', ''));
     const trustPolicyDoc = toTrustPolicyDoc(fsRoleEntity);
 
@@ -436,6 +476,7 @@ class FilesystemRoleService extends Service {
 
     try {
       // Create the fs role
+      // Each filesystem role only contains a policy for a single study
       await iamClient.createRole(params).promise();
 
       // Next, we need to add an inline policy that will allow the role to access the appropriate study. However, due to
@@ -446,7 +487,7 @@ class FilesystemRoleService extends Service {
       await sleep(500);
 
       params = {
-        PolicyDocument: JSON.stringify(toInlinePolicyDoc(fsRoleEntity)),
+        PolicyDocument: JSON.stringify(toInlinePolicyDoc(fsRoleEntity, vpcEpMap)),
         PolicyName: 'StudyS3AccessPolicy',
         RoleName: name,
       };
@@ -525,7 +566,10 @@ class FilesystemRoleService extends Service {
       return iamClient;
     } catch (error) {
       throw this.boom
-        .forbidden(`Could not assume an application role to create a filesystem role for the study '${studyId}'`, true)
+        .forbidden(
+          `Could not assume an application role to create/delete a filesystem role for the study '${studyId}'`,
+          true,
+        )
         .cause(error);
     }
   }

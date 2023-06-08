@@ -39,7 +39,15 @@ const settingKeys = {
 class ApplicationRoleService extends Service {
   constructor() {
     super();
-    this.dependency(['jsonSchemaValidationService', 'authorizationService', 'dbService', 'auditWriterService']);
+    this.dependency([
+      'jsonSchemaValidationService',
+      'authorizationService',
+      'dbService',
+      'auditWriterService',
+      'studyService',
+      'awsCfnService',
+      'projectService',
+    ]);
   }
 
   async init() {
@@ -138,13 +146,18 @@ class ApplicationRoleService extends Service {
     if (!_.isUndefined(appRoleEntity)) return appRoleEntity;
 
     appRoleEntity = undefined;
-    // eslint-disable-next-line consistent-return
-    _.forEach(appRoleEntities, entity => {
-      if (!maxReached(addStudy(entity, studyEntity))) {
-        appRoleEntity = entity;
-        return false; // To stop the loop since we found a role
-      }
-    });
+    await Promise.all(
+      // eslint-disable-next-line consistent-return
+      _.map(appRoleEntities, async entity => {
+        const vpcEpStudyMap = await this.getVpcEpStudyMap(requestContext, entity);
+
+        const maxSize = 6 * 1024 - 255;
+        if (!maxReached(addStudy(entity, studyEntity), maxSize, vpcEpStudyMap)) {
+          appRoleEntity = entity;
+          return false; // To stop the loop since we found a role
+        }
+      }),
+    );
 
     if (_.isUndefined(appRoleEntity)) {
       appRoleEntity = newAppRoleEntity(accountEntity, bucketEntity, studyEntity);
@@ -157,6 +170,42 @@ class ApplicationRoleService extends Service {
       .update();
 
     return toAppRoleEntity(dbEntity);
+  }
+
+  async getVpcEpStudyMap(requestContext, appRoleEntity) {
+    const { studies } = appRoleEntity;
+    const studyIds = _.keys(studies);
+    const studyService = await this.service('studyService');
+    const projectService = await this.service('projectService');
+    const awsCfnService = await this.service('awsCfnService');
+
+    // Object structure: {VPCEndpoint1: [study1, study2,...], VPCEndpoint2: [study3]}
+    const vpcEpStudyMap = {};
+
+    // Object structure: {Project1: VpcEndpoint1, Project2: VPCEndpoint2}
+    const projVpcEpMap = {};
+
+    // Get all unique VPC endpoints from projects
+    await Promise.all(
+      _.map(studyIds, async stdId => {
+        const { projectId } = await studyService.mustFind(requestContext, stdId);
+        let vpcEndpoint;
+
+        // Try to reduce async calls if project-vpce is known
+        if (_.includes(_.keys(projVpcEpMap), projectId)) {
+          vpcEndpoint = projVpcEpMap[projectId];
+        } else {
+          const accEntity = await projectService.getAccountForProjectId(requestContext, projectId);
+          vpcEndpoint = await awsCfnService.getVpcEndpointId(accEntity);
+          projVpcEpMap[projectId] = vpcEndpoint;
+        }
+
+        const assocStudies = vpcEpStudyMap[vpcEndpoint] || [];
+        assocStudies.push(stdId);
+        vpcEpStudyMap[vpcEndpoint] = _.uniq(assocStudies);
+      }),
+    );
+    return vpcEpStudyMap;
   }
 
   /**
@@ -254,10 +303,15 @@ class ApplicationRoleService extends Service {
 
     const swbMainAccountId = this.settings.get(settingKeys.swbMainAccount);
     const list = await this.list(requestContext, accountId);
-    _.forEach(list, appRoleEntity => {
-      const resources = toCfnResources(appRoleEntity, swbMainAccountId);
-      cfnTemplate.addResources(resources);
-    });
+
+    await Promise.all(
+      _.map(list, async appRoleEntity => {
+        const vpcEpStudyMap = await this.getVpcEpStudyMap(requestContext, appRoleEntity);
+
+        const resources = toCfnResources(appRoleEntity, swbMainAccountId, vpcEpStudyMap);
+        cfnTemplate.addResources(resources);
+      }),
+    );
 
     return cfnTemplate;
   }

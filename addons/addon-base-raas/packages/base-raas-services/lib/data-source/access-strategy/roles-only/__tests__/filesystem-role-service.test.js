@@ -21,8 +21,14 @@ jest.mock('@amzn/base-services/lib/settings/env-settings-service');
 jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
 jest.mock('@amzn/base-services/lib/helpers/utils');
+jest.mock('@amzn/base-services/lib/user/user-service');
 jest.mock('../application-role-service');
+jest.mock('../../../../study/study-permission-service');
+jest.mock('../../../../aws-accounts/aws-cfn-service');
+jest.mock('../../../../aws-accounts/aws-accounts-service');
+jest.mock('../../../../indexes/indexes-service');
 
+const UserServiceMock = require('@amzn/base-services/lib/user/user-service');
 const Utils = require('@amzn/base-services/lib/helpers/utils');
 const Aws = require('@amzn/base-services/lib/aws/aws-service');
 const Logger = require('@amzn/base-services/lib/logger/logger-service');
@@ -35,6 +41,13 @@ const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema
 const ApplicationRoleService = require('../application-role-service');
 const ResourceUsageService = require('../../../../usage/resource-usage-service');
 const FilesystemRoleService = require('../filesystem-role-service');
+const StudyService = require('../../../../study/study-service');
+const StudyPermissionService = require('../../../../study/study-permission-service');
+const AwsCfnService = require('../../../../aws-accounts/aws-cfn-service');
+const ProjectService = require('../../../../project/project-service');
+const AwsCfnServiceMock = require('../../../../aws-accounts/aws-cfn-service');
+const AwsAccountsServiceMock = require('../../../../aws-accounts/aws-accounts-service');
+const IndexServiceMock = require('../../../../indexes/indexes-service');
 
 const createStudy = ({
   id = 'study-1',
@@ -114,6 +127,14 @@ describe('DataSourceBucketService', () => {
 
     container.register('dbService', new DbService());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
+    container.register('studyService', new StudyService());
+    container.register('awsCfnService', new AwsCfnService());
+    container.register('projectService', new ProjectService());
+    container.register('userService', new UserServiceMock());
+    container.register('indexesService', new IndexServiceMock());
+    container.register('studyPermissionService', new StudyPermissionService());
+    container.register('awsCfnService', new AwsCfnServiceMock());
+    container.register('awsAccountsService', new AwsAccountsServiceMock());
     container.register('settings', new SettingsService());
     container.register('aws', new Aws());
     container.register('log', new Logger());
@@ -354,7 +375,28 @@ describe('DataSourceBucketService', () => {
 
     it('ensures no errors are thrown when role and policy are created', async () => {
       // BUILD
-      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const fsRoleEntity = {
+        name: 'sampleRoleName',
+        appRoleArn: 'sampleRoleArn',
+        bucket: 'sampleBucket',
+        studies: {
+          study1: {
+            folder: 'study1folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+          study2: {
+            folder: 'study2folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+        },
+      };
+      service.getVpcEpStudyMap = jest.fn(() => {
+        return { vpcEp1: ['study1'], vpcEp2: ['study2'] };
+      });
       iamClient.createRole = jest.fn().mockImplementation(() => {
         return {
           promise: () => {
@@ -384,7 +426,28 @@ describe('DataSourceBucketService', () => {
 
     it('ensures no errors are thrown when policy entity already exists', async () => {
       // BUILD
-      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const fsRoleEntity = {
+        name: 'sampleRoleName',
+        appRoleArn: 'sampleRoleArn',
+        bucket: 'sampleBucket',
+        studies: {
+          study1: {
+            folder: 'study1folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+          study2: {
+            folder: 'study2folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+        },
+      };
+      service.getVpcEpStudyMap = jest.fn(() => {
+        return { vpcEp1: ['study1'], vpcEp2: ['study2'] };
+      });
       const error = new Error('EntityAlreadyExists');
       error.code = 'EntityAlreadyExists';
       iamClient.createRole = jest.fn().mockImplementation(() => {
@@ -407,7 +470,28 @@ describe('DataSourceBucketService', () => {
 
     it('ensures no errors are thrown when role entity already exists', async () => {
       // BUILD
-      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const fsRoleEntity = {
+        name: 'sampleRoleName',
+        appRoleArn: 'sampleRoleArn',
+        bucket: 'sampleBucket',
+        studies: {
+          study1: {
+            folder: 'study1folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+          study2: {
+            folder: 'study2folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+        },
+      };
+      service.getVpcEpStudyMap = jest.fn(() => {
+        return { vpcEp1: ['study1'], vpcEp2: ['study2'] };
+      });
       const error = new Error('EntityAlreadyExists');
       error.code = 'EntityAlreadyExists';
       iamClient.createRole = jest.fn().mockImplementation(() => {
@@ -435,7 +519,28 @@ describe('DataSourceBucketService', () => {
 
     it('ensures errors are thrown when unknown exception encountered', async () => {
       // BUILD
-      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const fsRoleEntity = {
+        name: 'sampleRoleName',
+        appRoleArn: 'sampleRoleArn',
+        bucket: 'sampleBucket',
+        studies: {
+          study1: {
+            folder: 'study1folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+          study2: {
+            folder: 'study2folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+        },
+      };
+      service.getVpcEpStudyMap = jest.fn(() => {
+        return { vpcEp1: ['study1'], vpcEp2: ['study2'] };
+      });
       const error = new Error('UnknownException');
       error.code = 'UnknownException';
       iamClient.createRole = jest.fn().mockImplementation(() => {
@@ -752,7 +857,25 @@ describe('DataSourceBucketService', () => {
 
     it('ensures successful deprovisionRole response when no errors are thrown', async () => {
       // BUILD
-      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const fsRoleEntity = {
+        name: 'sampleRoleName',
+        appRoleArn: 'sampleRoleArn',
+        bucket: 'sampleBucket',
+        studies: {
+          study1: {
+            folder: 'study1folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+          study2: {
+            folder: 'study2folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+        },
+      };
       iamClient.deleteRole = jest.fn().mockImplementation(() => {
         return {
           promise: () => {
@@ -775,7 +898,25 @@ describe('DataSourceBucketService', () => {
 
     it('ensures no errors are thrown when no policy entity found', async () => {
       // BUILD
-      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const fsRoleEntity = {
+        name: 'sampleRoleName',
+        appRoleArn: 'sampleRoleArn',
+        bucket: 'sampleBucket',
+        studies: {
+          study1: {
+            folder: 'study1folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+          study2: {
+            folder: 'study2folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+        },
+      };
       const error = new Error('NoSuchEntity');
       error.code = 'NoSuchEntity';
       iamClient.deleteRolePolicy = jest.fn().mockImplementation(() => {
@@ -798,7 +939,25 @@ describe('DataSourceBucketService', () => {
 
     it('ensures no errors are thrown when no role entity found', async () => {
       // BUILD
-      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const fsRoleEntity = {
+        name: 'sampleRoleName',
+        appRoleArn: 'sampleRoleArn',
+        bucket: 'sampleBucket',
+        studies: {
+          study1: {
+            folder: 'study1folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+          study2: {
+            folder: 'study2folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+        },
+      };
       const error = new Error('NoSuchEntity');
       error.code = 'NoSuchEntity';
       iamClient.deleteRole = jest.fn().mockImplementation(() => {
@@ -826,7 +985,25 @@ describe('DataSourceBucketService', () => {
 
     it('ensures errors are thrown when unknown exception encountered', async () => {
       // BUILD
-      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const fsRoleEntity = {
+        name: 'sampleRoleName',
+        appRoleArn: 'sampleRoleArn',
+        bucket: 'sampleBucket',
+        studies: {
+          study1: {
+            folder: 'study1folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+          study2: {
+            folder: 'study2folder',
+            kmsArn: 'blah',
+            kmsScope: 'study',
+            permission: { read: true, write: false },
+          },
+        },
+      };
       const error = new Error('UnknownException');
       error.code = 'UnknownException';
       iamClient.deleteRole = jest.fn().mockImplementation(() => {

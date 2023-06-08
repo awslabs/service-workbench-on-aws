@@ -21,17 +21,30 @@ jest.mock('@amzn/base-services/lib/logger/logger-service');
 jest.mock('@amzn/base-services/lib/settings/env-settings-service');
 jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+jest.mock('../../../../study/study-permission-service');
+jest.mock('../../../../aws-accounts/aws-cfn-service');
+jest.mock('../../../../aws-accounts/aws-accounts-service');
+jest.mock('../../../../project/project-service');
 
+const LockServiceMock = require('@amzn/base-services/lib/lock/lock-service');
 const DbService = require('@amzn/base-services/lib/db-service');
 const SettingsService = require('@amzn/base-services/lib/settings/env-settings-service');
 const AuthService = require('@amzn/base-services/lib/authorization/authorization-service');
 const AuditService = require('@amzn/base-services/lib/audit/audit-writer-service');
 const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
 const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
 const ApplicationRoleService = require('../application-role-service');
 const AppRoleMethods = require('../helpers/entities/application-role-methods');
 
+const CfnTemplateMock = require('../../../../cfn-templates/cfn-template-service');
 const { CfnTemplate } = require('../../../../helpers/cfn-template');
+const StudyService = require('../../../../study/study-service');
+const StudyPermissionService = require('../../../../study/study-permission-service');
+const AwsCfnServiceMock = require('../../../../aws-accounts/aws-cfn-service');
+const AwsAccountsServiceMock = require('../../../../aws-accounts/aws-accounts-service');
+const ProjectServiceMock = require('../../../../project/project-service');
 
 const createStudy = ({
   id = 'study-1',
@@ -103,8 +116,16 @@ describe('ApplicationRoleService', () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
 
+    container.register('aws', new AwsService());
     container.register('dbService', new DbService());
     container.register('roles-only/applicationRoleService', new ApplicationRoleService());
+    container.register('studyService', new StudyService());
+    container.register('studyPermissionService', new StudyPermissionService());
+    container.register('lockService', new LockServiceMock());
+    container.register('awsCfnService', new AwsCfnServiceMock());
+    container.register('awsAccountsService', new AwsAccountsServiceMock());
+    container.register('projectService', new ProjectServiceMock());
+    container.register('cfnTemplateService', new CfnTemplateMock());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     container.register('pluginRegistryService', new PluginRegistryService());
     container.register('settings', new SettingsService());
@@ -179,6 +200,9 @@ describe('ApplicationRoleService', () => {
       service.list = jest.fn().mockReturnValue([appRole]);
       dbService.table.update = jest.fn();
       const newAppRoleEntity = jest.spyOn(AppRoleMethods, 'newAppRoleEntity');
+      service.getVpcEpStudyMap = jest.fn(() => {
+        return { 'vpce-Ep1': ['study-1'], 'vpce-Ep2': ['study-2'] };
+      });
 
       // EXECUTE
       await service.allocateRole(requestContext, accountEntity, bucketEntity, studyEntity);
@@ -339,6 +363,9 @@ describe('ApplicationRoleService', () => {
       const accountId = 'sampleAccountId';
       const cfnTemplate = new CfnTemplate({ accountId, region: 'us-east-1' });
       service.list = jest.fn().mockReturnValue([appRole]);
+      service.getVpcEpStudyMap = jest.fn(() => {
+        return { 'vpce-Ep1': ['study-1'], 'vpce-Ep2': ['study-2'] };
+      });
 
       // EXECUTE & CHECK
       await service.provideCfnResources(requestContext, cfnTemplate, accountId);

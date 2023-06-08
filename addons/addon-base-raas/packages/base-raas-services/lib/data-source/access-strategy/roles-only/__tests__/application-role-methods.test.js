@@ -234,24 +234,29 @@ describe('toCfnResources', () => {
             PolicyDocument: {
               Statement: [
                 {
-                  Action: [
-                    's3:GetObject',
-                    's3:GetObjectTagging',
-                    's3:GetObjectTorrent',
-                    's3:GetObjectVersion',
-                    's3:GetObjectVersionTagging',
-                    's3:GetObjectVersionTorrent',
-                  ],
+                  Action: ['s3:GetObject', 's3:GetObjectTagging', 's3:GetObjectVersion', 's3:GetObjectVersionTagging'],
+                  Condition: {
+                    StringEquals: {
+                      'aws:SourceVpce': 'vpce-Ep1',
+                    },
+                  },
                   Effect: 'Allow',
                   Resource: ['arn:aws:s3:::bucket-1/*'],
-                  Sid: 'S3StudyReadAccess',
+                  Sid: 'AllowReadFromEp1',
                 },
                 {
                   Action: ['s3:ListBucket', 's3:ListBucketVersions'],
-                  Condition: { StringLike: { 's3:prefix': ['*'] } },
+                  Condition: {
+                    StringEquals: {
+                      'aws:SourceVpce': 'vpce-Ep1',
+                    },
+                    StringLike: {
+                      's3:prefix': ['*'],
+                    },
+                  },
                   Effect: 'Allow',
                   Resource: 'arn:aws:s3:::bucket-1',
-                  Sid: 'studyListS3Access1',
+                  Sid: 'AllowListFromEp1Count1',
                 },
               ],
               Version: '2012-10-17',
@@ -268,7 +273,8 @@ describe('toCfnResources', () => {
               Statement: [{ Action: ['sts:AssumeRole'], Effect: 'Allow', Principal: { AWS: 'sampleAccountId' } }],
               Version: '2012-10-17',
             },
-            Description: 'An application role that allows the SWB application to create roles to access studies',
+            Description:
+              'An application role that allows the SWB application to check study existance and create roles to access those studies',
             ManagedPolicyArns: [{ Ref: 'ManagedPolicyswbIhsKhN8GsLneiis11ujlb8app1234567890xxx' }],
             MaxSessionDuration: 43200,
             Policies: [
@@ -307,6 +313,28 @@ describe('toCfnResources', () => {
                       Resource: 'arn:aws:iam::1122334455:role/swb-IhsKhN8GsLneiis11ujlb8-fs-*',
                       Sid: 'RoleCreation',
                     },
+                    {
+                      Action: [
+                        's3:GetObject',
+                        's3:GetObjectTagging',
+                        's3:GetObjectVersion',
+                        's3:GetObjectVersionTagging',
+                      ],
+                      Effect: 'Allow',
+                      Resource: ['arn:aws:s3:::bucket-1/*'],
+                      Sid: 'S3StudyReadAccess',
+                    },
+                    {
+                      Action: ['s3:ListBucket', 's3:ListBucketVersions'],
+                      Condition: {
+                        StringLike: {
+                          's3:prefix': ['*'],
+                        },
+                      },
+                      Effect: 'Allow',
+                      Resource: 'arn:aws:s3:::bucket-1',
+                      Sid: 'studyListS3Access1',
+                    },
                   ],
                   Version: '2012-10-17',
                 },
@@ -319,8 +347,9 @@ describe('toCfnResources', () => {
         },
       },
     ];
+    const vpcEpStudyMap = { 'vpce-Ep1': ['study-1'], 'vpce-Ep2': ['study-2'] };
 
     // EXECUTE & CHECK
-    expect(toCfnResources(appRoleEntity, swbMainAccountId)).toStrictEqual(returnVal);
+    expect(toCfnResources(appRoleEntity, swbMainAccountId, vpcEpStudyMap)).toStrictEqual(returnVal);
   });
 });

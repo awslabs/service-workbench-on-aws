@@ -773,6 +773,7 @@ Resources:
               - 'arn:aws:iam::*:role/*-xacc-env-mgmt'
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
               - 'arn:aws:iam::*:role/${self:custom.settings.globalNamespace}-DevopsRole'
+              - 'arn:aws:iam::*:role/*-cfn-status-role'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
