@@ -9,19 +9,19 @@
     "cognitoClientId": "3do9bsosfmol7r7hdnutbn5tup",
     "workspaces": {
       "sagemaker": {
-        "workspaceTypeName": "SageMaker Notebook-v11",
-        "configuration": "SageMaker-v11",
+        "workspaceTypeName": "SageMaker Notebook-v12",
+        "configuration": "SageMaker-v12",
         "projectId": "TRE-Project"
       },
       "ec2": {
         "linux": {
-          "workspaceTypeName": "EC2 Linux-v9",
-          "configuration": "Linux-v9",
+          "workspaceTypeName": "EC2 Linux-v10",
+          "configuration": "Linux-v10",
           "projectId": "TRE-Project"
         },
         "windows": {
-          "workspaceTypeName": "EC2 Windows-v9",
-          "configuration": "Windows-v9",
+          "workspaceTypeName": "EC2 Windows-v10",
+          "configuration": "Windows-v10",
           "projectId": "TRE-Project"
         }
       },
