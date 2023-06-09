@@ -46,6 +46,7 @@ class Studies extends CollectionResource {
       name: id,
       category: 'Organization',
       folder,
+      projectId: this.setup.defaults.project.id,
       description: this.setup.gen.description(),
       accessType: 'readwrite',
       kmsScope: 'bucket',

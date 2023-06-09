@@ -112,6 +112,7 @@ function getRegisterStudyForm() {
     'studies[].folder': 'required|min:1|max:1000',
     'studies[].kmsArn': 'string|max:90',
     'studies[].category': 'required',
+    'studies[].projectId': 'required',
     'studies[].adminUsers': 'required',
   };
 
