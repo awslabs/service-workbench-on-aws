@@ -2,8 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.11.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.11...mainline)
+## [6.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.11...v6.0.0) (2023-06-12)
+
+
+### Bug Fixes
+
+* BYOB role updates for VPCE restrictions ([#1197](https://github.com/awslabs/service-workbench-on-aws/issues/1197)) ([cb876ca](https://github.com/awslabs/service-workbench-on-aws/commit/cb876caeae3c1c05c27c58c14cd03528e2525b8f))
+* making projectId required for BYOB ([#1198](https://github.com/awslabs/service-workbench-on-aws/issues/1198)) ([0d66648](https://github.com/awslabs/service-workbench-on-aws/commit/0d6664843685a16601cae228b3a0c9d2d08f4813))
 
 ### [5.2.11](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.10...v5.2.11) (2023-05-05)
 
