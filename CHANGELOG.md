@@ -2,8 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.2.11.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.11...mainline)
+## [6.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.11...v6.0.0) (2023-06-12)
+
+Going forward, a BYOB study will now have to be assigned to a SWB project ID. This is to enforce access to the BYOB study's S3 prefix only from its project's linked VPC endpoint.
+
+### For upgrade installations
+
+**Before upgrade:**
+
+* Terminate all environments that are accessing BYOB studies. This is optional but recommended by the service team.
+* Make sure your hosting accounts are in the `Up-to-Date` status. You can check by visiting the `Accounts` tab on SWB UI and clicking on the `AWS Accounts` tab. If they’re not, please re-onboard the accounts that need updating.
+
+**After upgrade:**
+
+* Once the new version of SWB has been installed, navigate to the `Data Sources` tab in SWB UI. 
+* On each of the Data Source bucket that has been registered, click on the “CloudFormation” tab, click the `Update Stack` button, while being logged into the Data Source account console. This will navigate you to the CloudFormation stack for that bucket. Continue with the stack update.
+
+**Note:**
+To continue using existing BYOB studies that were not assigned to a SWB project ID please add a key `projectId` to that study’s entry in the `<stage>-<regionShortName>-<solutionName>-Studies` DynamoDB table in the SWB main account with its value equal to the SWB project ID you would like to associate it with. Please work with your AWS partner if you need help.
+
+### Bug Fixes
+
+* BYOB role updates for VPCE restrictions ([#1197](https://github.com/awslabs/service-workbench-on-aws/issues/1197)) ([cb876ca](https://github.com/awslabs/service-workbench-on-aws/commit/cb876caeae3c1c05c27c58c14cd03528e2525b8f))
+* making projectId required for BYOB ([#1198](https://github.com/awslabs/service-workbench-on-aws/issues/1198)) ([0d66648](https://github.com/awslabs/service-workbench-on-aws/commit/0d6664843685a16601cae228b3a0c9d2d08f4813))
 
 ### [5.2.11](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.10...v5.2.11) (2023-05-05)
 

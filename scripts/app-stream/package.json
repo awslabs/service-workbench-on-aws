@@ -17,6 +17,7 @@
     "jest": "^27.0.4"
   },
   "resolutions": {
-    "minimatch": "^3.0.5"
+    "minimatch": "^3.0.5",
+    "fast-xml-parser": "^4.2.4"
   }
 }
