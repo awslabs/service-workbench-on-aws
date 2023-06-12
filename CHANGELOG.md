@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [6.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.11...v6.0.0) (2023-06-12)
 
+Going forward, a BYOB study will now have to be assigned to a SWB project ID. This is to enforce access to the BYOB study's S3 prefix only from its project's linked VPC endpoint.
+
+### For upgrade installations
+
+**Before upgrade:**
+
+* Terminate all environments that are accessing BYOB studies. This is optional but recommended by the service team.
+* Make sure your hosting accounts are in the `Up-to-Date` status. You can check by visiting the `Accounts` tab on SWB UI and clicking on the `AWS Accounts` tab. If they’re not, please re-onboard the accounts that need updating.
+
+**After upgrade:**
+
+* Once the new version of SWB has been installed, navigate to the `Data Sources` tab in SWB UI. 
+* On each of the Data Source bucket that has been registered, click on the “CloudFormation” tab, click the `Update Stack` button, while being logged into the Data Source account console. This will navigate you to the CloudFormation stack for that bucket. Continue with the stack update.
+
+**Note:**
+To continue using existing BYOB studies that were not assigned to a SWB project ID please add a key `projectId` to that study’s entry in the `<stage>-<regionShortName>-<solutionName>-Studies` DynamoDB table in the SWB main account with its value equal to the SWB project ID you would like to associate it with. Please work with your AWS partner if you need help.
 
 ### Bug Fixes
 
