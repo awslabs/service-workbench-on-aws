@@ -115,7 +115,7 @@ class ScEnvSshConnRowExpanded extends React.Component {
 
   startCountDown = () => {
     if (!_.isUndefined(this.intervalId)) return;
-    this.countDown = 60;
+    this.countDown = 240;
 
     this.intervalId = setInterval(async () => {
       // eslint-disable-next-line consistent-return
