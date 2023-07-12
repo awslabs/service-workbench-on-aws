@@ -149,8 +149,8 @@ Resources:
         Ref: VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 8192
-          ToPort: 8192
+          FromPort: 9443
+          ToPort: 9443
           CidrIp:
             Ref: AccessFromCIDRBlock
 
@@ -288,22 +288,7 @@ Resources:
         - Name: Hadoop
         - Name: Hive
         - Name: Spark
-      BootstrapActions:
-        - Name: Run-Python-Jupyter
-          ScriptBootstrapAction:
-            Path: !Sub 's3://${AWS::Region}.elasticmapreduce/bootstrap-actions/run-if'
-            Args:
-              - 'instance.isMaster=true'
-              - '/opt/hail-on-AWS-spot-instances/src/jupyter_run.sh'
-        - Name: Mount-S3-Resources
-          ScriptBootstrapAction:
-            Path: !Sub '${EnvironmentInstanceFiles}/get_bootstrap.sh'
-            Args:
-              - !Ref EnvironmentInstanceFiles
-              - !Ref S3Mounts
-        - Name: Patch-Log-4j
-          ScriptBootstrapAction:
-            Path: 's3://elasticmapreduce/bootstrap-actions/log4j/patch-log4j-emr-5.27.1-v1.sh'
+        - Name: JupyterHub
       CustomAmiId:
         Ref: AmiId
       Configurations:
@@ -374,7 +359,7 @@ Resources:
           Value: !Sub '${Namespace}-emr'
       ServiceRole:
         Ref: ServiceRole
-      ReleaseLabel: emr-5.27.1 # Make sure to change/remove the S3 location from Patch-Log-4j bootstrap if changing the release label
+      ReleaseLabel: emr-6.11.0
       # This has to be true because we assume a new user each time.
       VisibleToAllUsers: true
       SecurityConfiguration: !Ref EmrSecurityConfiguration
@@ -383,7 +368,7 @@ Resources:
 Outputs:
   JupyterUrl:
     Description: Open Jupyter on your new EMR cluster
-    Value: !Sub 'http://${EmrCluster.MasterPublicDNS}:8192'
+    Value: !Sub 'https://${EmrCluster.MasterPublicDNS}:9443'
   LogBucket:
     Description: EMR Scratch data and Logs bucket
     Value: !Ref LogBucket
@@ -424,4 +409,4 @@ Outputs:
 
   MetaConnection1Url:
     Description: URL to connect to the Jupyter Notebook
-    Value: !Sub 'http://${EmrCluster.MasterPublicDNS}:8192'
+    Value: !Sub 'https://${EmrCluster.MasterPublicDNS}:9443'

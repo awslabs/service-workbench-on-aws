@@ -20,7 +20,7 @@
       "source_ami_filter": {
         "filters": {
           "virtualization-type": "hvm",
-          "name": "amzn-ami-hvm-*-x86_64-ebs",
+          "name": "amzn2-ami-hvm-*-x86_64-ebs",
           "root-device-type": "ebs"
         },
         "owners": ["amazon"],
@@ -29,12 +29,6 @@
       "instance_type": "t2.medium",
       "ssh_username": "ec2-user",
       "ami_name": "{{user `emrAmiPrefix`}}-{{timestamp}}"
-    }
-  ],
-  "provisioners": [
-    {
-      "type": "shell",
-      "script": "./config/infra/provisioners/provision-hail.sh"
     }
   ]
 }
