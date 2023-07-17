@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## Beta
+[This release is in beta. Click here to see changes since 6.0.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v6.0.0...mainline)
+
 ## [6.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.11...v6.0.0) (2023-06-12)
 
 Going forward, a BYOB study will now have to be assigned to a SWB project ID. This is to enforce access to the BYOB study's S3 prefix only from its project's linked VPC endpoint.
