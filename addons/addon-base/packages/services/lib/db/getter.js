@@ -122,19 +122,24 @@ class DbGetter {
     if (this.params.Key && this.params.Keys)
       throw new Error('DbGetter <== only key() or keys() may be called, not both');
 
-    let data;
+    let data = [];
     if (this.params.Key) data = (await this.client.get(this.params).promise()).Item;
     else if (this.params.Keys) {
-      // BatchGet
-      const batchParams = { RequestItems: {} };
-      batchParams.RequestItems[this.params.TableName] = { ...this.params };
+      // BatchGet supports a maximum of 100 keys, since this becomes
+      // possible within HIC TRE, we want to break it up into chunks.
+      for (let keySet of _.chunk([ ...this.params.Keys ], 100)) {
+	this.params.Keys = keySet;
 
-      if (this.params.ReturnConsumedCapacity) {
-        batchParams.RequestItems.ReturnConsumedCapacity = this.params.ReturnConsumedCapacity;
-        delete batchParams.RequestItems[this.params.TableName].ReturnConsumedCapacity;
+	const batchParams = { RequestItems: {} };
+	batchParams.RequestItems[this.params.TableName] = { ...this.params };
+
+	if (this.params.ReturnConsumedCapacity) {
+          batchParams.RequestItems.ReturnConsumedCapacity = this.params.ReturnConsumedCapacity;
+          delete batchParams.RequestItems[this.params.TableName].ReturnConsumedCapacity;
+	}
+
+	data.push(...(await this.client.batchGet(batchParams).promise()).Responses[this.params.TableName]);
       }
-
-      data = (await this.client.batchGet(batchParams).promise()).Responses[this.params.TableName];
     }
 
     return unmarshal(data);
