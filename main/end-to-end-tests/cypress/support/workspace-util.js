@@ -119,10 +119,10 @@ function checkWorkspaceAvailableAndClickConnectionsButton(workspaceName) {
     .click();
 }
 
-function checkWorkspaceAvailable(workspaceName) {
+function checkWorkspaceAvailable(workspaceName, timeout = 1000000) {
   cy.contains(workspaceName)
     .parent()
-    .contains('AVAILABLE', { timeout: 1000000 });
+    .contains('AVAILABLE', { timeout });
 }
 
 function checkWorkspaceAutoStop(workspaceName) {
