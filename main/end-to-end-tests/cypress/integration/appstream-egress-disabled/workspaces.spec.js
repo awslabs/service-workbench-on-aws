@@ -12,7 +12,6 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-import _ from 'lodash';
 import {
   terminateWorkspaces,
   launchWorkspace,
@@ -74,6 +73,6 @@ describe('Launch a workspace', () => {
     const emr = workspaces.emr;
     const workspaceName = launchWorkspace(emr, 'EMR');
     checkDetailsTable(workspaceName);
-    checkWorkspaceAvailable(workspaceName);
+    checkWorkspaceAvailable(workspaceName, 2000000);
   });
 });
