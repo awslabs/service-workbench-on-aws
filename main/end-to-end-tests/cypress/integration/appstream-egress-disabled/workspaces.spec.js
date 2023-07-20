@@ -18,7 +18,7 @@ import {
   navigateToWorkspaces,
   checkDetailsTable,
   checkWorkspaceAvailable,
-  checkWorkspaceAutoStop,
+  checkWorkspaceAutoStop
 } from '../../support/workspace-util';
 
 describe('Launch a workspace', () => {
