@@ -123,7 +123,7 @@ class ServerlessPackerPlugin {
 
     // For each AMI, add IMDSv2 support
     return Promise.all(
-      _.forEach(amis, async ami => {
+      amis.map(async ami => {
         this.serverless.cli.log(`${ami}: Adding IMDSv2 support`);
         const args = _.concat(
           'ec2',
