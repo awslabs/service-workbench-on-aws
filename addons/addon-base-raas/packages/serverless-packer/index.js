@@ -33,7 +33,7 @@ class ServerlessPackerPlugin {
     this.commands = {
       'build-image': {
         usage: 'Build an AMI using packer',
-        lifecycleEvents: ['build'],
+        lifecycleEvents: ['build', 'add-imds-v2-support'],
         options: {
           files: {
             usage:
@@ -49,6 +49,7 @@ class ServerlessPackerPlugin {
 
     this.hooks = {
       'build-image:build': this.buildImages.bind(this),
+      'build-image:add-imds-v2-support': this.addIMDSv2Support.bind(this),
     };
   }
 
@@ -67,7 +68,7 @@ class ServerlessPackerPlugin {
       filePaths.map(async filePath => {
         this.serverless.cli.log(`${filePath}: Building packer image`);
 
-        const args = _.concat('build', this.packageVarArgs(), `${PACKER_FILE_DIR}/${filePath}`);
+        const args = _.concat('build', '-machine-readable', this.packageVarArgs(), `${PACKER_FILE_DIR}/${filePath}`);
 
         try {
           await runCommand({
@@ -78,6 +79,7 @@ class ServerlessPackerPlugin {
               raw: msg => {
                 this.serverless.cli.log(`${filePath}: ${msg}`);
               },
+              fileStream: fs.createWriteStream(`${filePath}_build.log`),
             },
           });
         } catch (err) {
@@ -85,6 +87,71 @@ class ServerlessPackerPlugin {
         }
 
         this.serverless.cli.log(`${filePath}: Finished packer image`);
+      }),
+    );
+  }
+
+  async addIMDSv2Support() {
+    this.serverless.cli.log('Adding IMDSv2 support to AMIs');
+    let filePaths;
+    if (this.options.files) {
+      // Parse files passed via CLI arg
+      filePaths = this.options.files.split(',');
+    } else {
+      // Look for files in default location
+      filePaths = await this.getPackerFiles();
+    }
+    this.serverless.cli.log(`Adding IMDSv2 support to: ${filePaths.join(', ')}`);
+    // Parse AMI IDs from packer build log
+    const amis = [];
+    filePaths.forEach(filePath => {
+      const logFile = fs.readFileSync(`${filePath}_build.log`, 'utf8');
+      const amiLineIndexStart = logFile.lastIndexOf('AMIs were created');
+      const amiLine = logFile.substring(amiLineIndexStart);
+      const amiRegex = 'ami-[0-9a-z]{17}';
+      const result = amiLine.match(amiRegex);
+      amis.push(result);
+    });
+
+    // Get AWS Profile name and region from settings
+    const customSettings = this.serverless.service.custom.settings;
+    if (customSettings.enableAmiSharing) {
+      customSettings.awsProfile = customSettings.devopsProfile;
+    }
+    const awsProfile = customSettings.awsProfile;
+    const awsRegion = customSettings.awsRegion;
+
+    // For each AMI, add IMDSv2 support
+    return Promise.all(
+      _.forEach(amis, async ami => {
+        this.serverless.cli.log(`${ami}: Adding IMDSv2 support`);
+        const args = _.concat(
+          'ec2',
+          'modify-image-attribute',
+          '--image-id',
+          ami,
+          '--imds-support',
+          'v2.0',
+          '--profile',
+          awsProfile,
+          '--region',
+          awsRegion,
+        );
+
+        try {
+          await runCommand({
+            command: 'aws',
+            args,
+            stdout: {
+              log: this.serverless.cli.consoleLog,
+              raw: msg => {
+                this.serverless.cli.log(`${ami}: ${msg}`);
+              },
+            },
+          });
+        } catch (err) {
+          throw new Error(`${ami}: Error running aws command: ${err}`);
+        }
       }),
     );
   }

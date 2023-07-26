@@ -21,8 +21,11 @@ const chalk = require('chalk');
 const spawn = require('cross-spawn');
 
 const runCommand = ({ command, args, successCodes = [0], cwd, stdout }) => {
-  const child = spawn(command, args, { stdio: 'pipe', cwd });
+  const options = { stdio: 'pipe', cwd };
+  if (stdout.fileStream) options.stdout = stdout.fileStream;
+  const child = spawn(command, args, options);
   stdout.log(`${chalk.bgGreen('>>')} ${command} ${args.join(' ')}`);
+  if (stdout.fileStream) child.stdout.pipe(stdout.fileStream);
   return new Promise((resolve, reject) => {
     // we are using _.once() because the error and exit events might be fired one after the other
     // see https://nodejs.org/api/child_process.html#child_process_event_error
