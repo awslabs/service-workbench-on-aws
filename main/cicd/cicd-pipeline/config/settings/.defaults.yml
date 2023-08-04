@@ -5,7 +5,7 @@ sourceAwsRegion: ${self:custom.settings.awsRegion}
 repoName: service-workbench-on-aws
 
 # The git branch name of the source code repository the code pipeline should build and deploy
-repoBranch: master
+repoBranch: main
 
 # Path to repo token (e.g. Github access token) in parameter store
 tokenName: /${self:custom.settings.paramStoreRoot}/github/token
@@ -15,7 +15,7 @@ pipelineName: ${self:custom.settings.namespace}-${self:custom.settings.repoBranc
 cicdAppArtifactBucketName: ${self:custom.settings.globalNamespace}-cicd-appartifacts
 
 # Either specify a Github owner (and an OAuth Token in CloudFormation) or source account and role (for CodeCommit)
-githubOwner: 'awslabs'
+githubOwner: 'CRUKorg'
 sourceAccountId: ''
 sourceRoleArn: ''
 
@@ -28,7 +28,7 @@ sourceRoleArn: ''
 # If this flag is set to true then you MUST also provide settings file for the staging env.
 # For example, if createStagingEnv=true and if the stgEnvName=t"prodstg" then make sure you have
 # "prodstg.yml" file in top level "config/settings" directory
-createStagingEnv: false
+createStagingEnv: true
 
 # Flag indicating whether to require manual approval before deploying to target environment
 requireManualApproval: false

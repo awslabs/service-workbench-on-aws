@@ -117,7 +117,7 @@ rootUserFirstName: root
 rootUserLastName: root
 # Root user's email address
 # Note: The value set to rootUserEmail will be used ad the username for Cognito native user pool's default user
-rootUserEmail: root@example.com
+rootUserEmail: ammar.rahman@cancer.org.uk
 
 # Enable/disable external researchers feature
 # When enableExternalResearchers = true, it allows users to be assigned to an "External Researcher" role.

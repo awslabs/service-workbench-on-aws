@@ -1,9 +1,9 @@
 Parameters:
-  GitHubOAuthToken:
-    Description: OAuth token used by AWS CodePipeline to connect to GitHub
+  GitHubConnectionArn:
+    Description: The ARN for codepipeline github conenction
     Type: String
     Default: 'to-be-specified'
-    NoEcho: true
+
 
 Conditions:
   UseCodeCommit: !Not
@@ -671,15 +671,13 @@ Resources:
               - Name: GitHubSource
                 ActionTypeId:
                   Category: Source
-                  Owner: ThirdParty
-                  Provider: GitHub
+                  Owner: AWS
+                  Provider: CodeStarSourceConnection
                   Version: '1'
                 Configuration:
-                  OAuthToken: !Ref GitHubOAuthToken
-                  Owner: ${self:custom.settings.githubOwner}
-                  Repo: ${self:custom.settings.repoName}
-                  Branch: ${self:custom.settings.repoBranch}
-                  PollForSourceChanges: true
+                  ConnectionArn: !Ref GitHubConnectionArn
+                  FullRepositoryId: ${self:custom.settings.githubOwner}/${self:custom.settings.repoName}
+                  BranchName: ${self:custom.settings.repoBranch}
                 OutputArtifacts:
                   - Name: SourceArtifact
 
