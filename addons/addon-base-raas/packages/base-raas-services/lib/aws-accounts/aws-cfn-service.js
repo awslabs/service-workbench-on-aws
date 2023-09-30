@@ -29,6 +29,8 @@ const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
 const settingKeys = {
   awsRegion: 'awsRegion',
   envBootstrapBucket: 'envBootstrapBucketName',
+  studyDataBucket: 'studyDataBucketName',
+  egressStoreBucket: 'egressStoreBucketName',
   apiHandlerRoleArn: 'apiHandlerArn',
   workflowLoopRunnerRoleArn: 'workflowRoleArn',
   swbMainAccount: 'mainAcct',
@@ -72,6 +74,8 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     domainName,
     enableAmiSharing,
     devopsAccountId,
+    studyDataBucketName,
+    egressStoreBucketName,
   } = createParams;
   const url = [
     `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
@@ -94,6 +98,8 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     `&param_DomainName=${domainName || ''}`,
     `&param_EnableAmiSharing=${enableAmiSharing || false}`,
     `&param_DevopsAccountId=${devopsAccountId || ''}`,
+    `&param_StudyDataBucketName=${studyDataBucketName || ''}`,
+    `&param_EgressStoreBucketName=${egressStoreBucketName || ''}`,
   ].join('');
 
   // This one takes us directly to the review stage but will require that we access the cloudformation console first
@@ -128,6 +134,11 @@ const getCfnHomeUrl = cfnTemplateInfo => {
   const { region } = cfnTemplateInfo;
 
   return `https://console.aws.amazon.com/cloudformation/home?region=${region}`;
+};
+
+const findOutputValue = (stack, prop) => {
+  const output = _.find(_.get(stack, 'Outputs', []), item => item.OutputKey === prop);
+  return output.OutputValue;
 };
 
 class AwsCfnService extends Service {
@@ -223,6 +234,8 @@ class AwsCfnService extends Service {
     createParams.namespace = cfnTemplateInfo.name;
     createParams.enableAmiSharing = this.settings.get(settingKeys.enableAmiSharing);
     createParams.devopsAccountId = _.split(this.settings.get(settingKeys.devopsRoleArn), ':')[4];
+    createParams.studyDataBucketName = this.settings.get(settingKeys.studyDataBucket);
+    createParams.egressStoreBucketName = this.settings.get(settingKeys.egressStoreBucket) || '';
 
     // The id of the template is actually the hash of the of the content of the template
     const hash = crypto.createHash('sha256');
@@ -424,15 +437,50 @@ class AwsCfnService extends Service {
       throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
     }
 
-    const findOutputValue = prop => {
-      const output = _.find(_.get(stack, 'Outputs', []), item => item.OutputKey === prop);
-      return output.OutputValue;
-    };
-
     if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
-      return findOutputValue('S3AppStreamVPCE');
+      return findOutputValue(stack, 'S3AppStreamVPCE');
     }
-    return findOutputValue('S3NonAppStreamVPCE');
+    return findOutputValue(stack, 'S3NonAppStreamVPCE');
+  }
+
+  async getKmsVpcEndpointId(accountEntity) {
+    const isAppStreamEnabled = this.settings.getBoolean(settingKeys.isAppStreamEnabled);
+    if (!isAppStreamEnabled) {
+      // Returning null to signify that this is not an appstream enabled environment and therefore modifying VPCe should be skipped.
+      return null;
+    }
+    const region = this.settings.get(settingKeys.awsRegion);
+    const { onboardStatusRoleArn, cfnStackName, externalId } = accountEntity;
+    const cfnApi = await this.getCfnSdk(onboardStatusRoleArn, externalId, region);
+    const params = { StackName: cfnStackName };
+    const stacks = await cfnApi.describeStacks(params).promise();
+    const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === cfnStackName);
+
+    if (_.isEmpty(stack)) {
+      throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
+    }
+
+    return findOutputValue(stack, 'KMSVPCE');
+  }
+
+  async getStsVpcEndpointId(accountEntity) {
+    const isAppStreamEnabled = this.settings.getBoolean(settingKeys.isAppStreamEnabled);
+    if (!isAppStreamEnabled) {
+      // Returning null to signify that this is not an appstream enabled environment and therefore modifying VPCe should be skipped.
+      return null;
+    }
+    const region = this.settings.get(settingKeys.awsRegion);
+    const { onboardStatusRoleArn, cfnStackName, externalId } = accountEntity;
+    const cfnApi = await this.getCfnSdk(onboardStatusRoleArn, externalId, region);
+    const params = { StackName: cfnStackName };
+    const stacks = await cfnApi.describeStacks(params).promise();
+    const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === cfnStackName);
+
+    if (_.isEmpty(stack)) {
+      throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
+    }
+
+    return findOutputValue(stack, 'STSVPCE');
   }
 
   async onboardPendingAccounts(requestContext) {
@@ -485,33 +533,29 @@ class AwsCfnService extends Service {
     }
 
     const fieldsToUpdate = {};
-    const findOutputValue = prop => {
-      const output = _.find(_.get(stack, 'Outputs', []), item => item.OutputKey === prop);
-      return output.OutputValue;
-    };
 
     fieldsToUpdate.cfnStackId = stack.StackId;
     fieldsToUpdate.externalId = accountEntity.externalId;
-    fieldsToUpdate.vpcId = findOutputValue('VPC');
-    fieldsToUpdate.encryptionKeyArn = findOutputValue('EncryptionKeyArn');
-    fieldsToUpdate.roleArn = findOutputValue('CrossAccountExecutionRoleArn');
-    fieldsToUpdate.xAccEnvMgmtRoleArn = findOutputValue('CrossAccountEnvMgmtRoleArn');
+    fieldsToUpdate.vpcId = findOutputValue(stack, 'VPC');
+    fieldsToUpdate.encryptionKeyArn = findOutputValue(stack, 'EncryptionKeyArn');
+    fieldsToUpdate.roleArn = findOutputValue(stack, 'CrossAccountExecutionRoleArn');
+    fieldsToUpdate.xAccEnvMgmtRoleArn = findOutputValue(stack, 'CrossAccountEnvMgmtRoleArn');
     fieldsToUpdate.permissionStatus = 'CURRENT'; // If we just onboarded it's safe to assume the account is up to date
     // we have to update the permission status or the account will get stuck in PENDING
     fieldsToUpdate.id = accountEntity.id;
     fieldsToUpdate.rev = accountEntity.rev;
 
     if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
-      fieldsToUpdate.subnetId = findOutputValue('PrivateWorkspaceSubnet');
-      fieldsToUpdate.appStreamStackName = findOutputValue('AppStreamStackName');
-      fieldsToUpdate.appStreamFleetName = findOutputValue('AppStreamFleet');
-      fieldsToUpdate.appStreamSecurityGroupId = findOutputValue('AppStreamSecurityGroup');
+      fieldsToUpdate.subnetId = findOutputValue(stack, 'PrivateWorkspaceSubnet');
+      fieldsToUpdate.appStreamStackName = findOutputValue(stack, 'AppStreamStackName');
+      fieldsToUpdate.appStreamFleetName = findOutputValue(stack, 'AppStreamFleet');
+      fieldsToUpdate.appStreamSecurityGroupId = findOutputValue(stack, 'AppStreamSecurityGroup');
       if (this.settings.optional(settingKeys.domainName, '') !== '') {
-        fieldsToUpdate.route53HostedZone = findOutputValue('Route53HostedZone');
+        fieldsToUpdate.route53HostedZone = findOutputValue(stack, 'Route53HostedZone');
       }
     } else {
-      fieldsToUpdate.subnetId = findOutputValue('VpcPublicSubnet1');
-      fieldsToUpdate.publicRouteTableId = findOutputValue('PublicRouteTableId');
+      fieldsToUpdate.subnetId = findOutputValue(stack, 'VpcPublicSubnet1');
+      fieldsToUpdate.publicRouteTableId = findOutputValue(stack, 'PublicRouteTableId');
     }
     await awsAccountsService.update(requestContext, fieldsToUpdate);
 

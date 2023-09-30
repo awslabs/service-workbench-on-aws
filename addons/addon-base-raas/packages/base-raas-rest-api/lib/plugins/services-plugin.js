@@ -61,6 +61,7 @@ const ResourceUsageService = require('@amzn/base-raas-services/lib/usage/resourc
 const StudyOperationService = require('@amzn/base-raas-services/lib/study/study-operation-service');
 const DataEgressService = require('@amzn/base-raas-services/lib/data-egress/data-egress-service');
 const MigrationService = require('@amzn/base-raas-services/lib/migration/migration-service');
+const VpcePolicyService = require('@amzn/base-raas-services/lib/data-source/access-strategy/roles-only/vpce-policy-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -124,6 +125,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('studyOperationService', new StudyOperationService());
   container.register('dataEgressService', new DataEgressService());
   container.register('migrationService', new MigrationService());
+  container.register('roles-only/vpcePolicyService', new VpcePolicyService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());

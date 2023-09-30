@@ -37,6 +37,27 @@ async function onStudyRegistration(payload) {
   const studyService = await container.find('studyService');
   const studyEntityUpdated = await studyService.update(systemContext, { id: studyEntity.id, appRoleArn: appRole.arn });
 
+  const vpcePolicyService = await container.find('roles-only/vpcePolicyService');
+  const ec2Client = await vpcePolicyService.getEc2ServiceForStudy(systemContext, studyEntity);
+
+  const { accountId, region } = studyEntity;
+
+  // Dynamically add the BYOB fs role to the STS VPCE Policy
+  const stsVpceId = await vpcePolicyService.getVpceIdFromStudy(systemContext, studyEntity, 'STS');
+
+  // null means this is not appstream enabled therefore these steps can be skipped.
+  if (stsVpceId !== null) {
+    const roleArn = `arn:aws:iam::${accountId}:role/swb-*-fs-*`;
+    await vpcePolicyService.addRoleToStsVpcePolicy(ec2Client, roleArn, stsVpceId, 'AllowAssumeRole');
+
+    // Dynamically add the BYOB bucket account to the KMS VPCE Policy if bucket is SSE-KMS encyrpted
+    const isSseKmsEncrypted = appRole.bucketKmsArn;
+    if (isSseKmsEncrypted) {
+      const kmsVpceId = await vpcePolicyService.getVpceIdFromStudy(systemContext, studyEntity, 'KMS');
+      await vpcePolicyService.addAccountToKmsVpcePolicy(ec2Client, accountId, kmsVpceId, region, 'BYOB Account Keys');
+    }
+  }
+
   return { ...payload, studyEntity: studyEntityUpdated, applicationRoleEntity: appRole };
 }
 

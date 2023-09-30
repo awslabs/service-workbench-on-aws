@@ -118,6 +118,16 @@ Parameters:
     Description: The account id of the central AWS account where the appstream image is created.
     Default: ''
 
+  StudyDataBucketName:
+    Type: String
+    Description: The name of the S3 bucket that hosts the data for internal studies in the main account. The name is likely <accountId>-<stage>-<regionShortName>-<solutionName>-studydata. Supply to grant write access to this bucket.
+    Default: ''
+
+  EgressStoreBucketName:
+    Type: String
+    Description: The name of the S3 bucket that hosts the egress store for environments in the main account. The name is likely <accountId>-<stage>-<regionShortName>-<solutionName>-egress-store. Supply to grant write access to this bucket.
+    Default: ''
+
   # Note: While adding additional CIDRs/Subnets ensure they don't overlap with those used by RStudio ALB (10.0.96.0 to 10.0.97.255)
 
 Metadata:
@@ -472,6 +482,8 @@ Resources:
               - ec2:CreateTags
               - ec2:DeleteTags
               - ec2:DescribeInternetGateways
+              - ec2:DescribeVpcEndpoints
+              - ec2:ModifyVpcEndpoint
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:
@@ -854,17 +866,14 @@ Resources:
       PolicyDocument:
         Version: 2012-10-17
         Statement:
-          - Effect: Allow
+          - Sid: 'S3 Read/Write Access'
+            Effect: Allow
             Principal: '*'
             Action:
               - 's3:GetObject'
               - 's3:GetObjectTagging'
-              - 's3:GetObjectTorrent'
               - 's3:GetObjectVersion'
               - 's3:GetObjectVersionTagging'
-              - 's3:GetObjectVersionTorrent'
-              - 's3:AbortMultipartUpload'
-              - 's3:ListMultipartUploadParts'
               - 's3:PutObject'
               - 's3:PutObjectAcl'
               - 's3:PutObjectTagging'
@@ -874,8 +883,23 @@ Resources:
               - 's3:DeleteObjectVersion'
               - 's3:DeleteObjectVersionTagging'
               - 's3:ListBucket' # Required in get_bootstrap.sh when running `aws s3 sync`
+              - 's3:ListBucketVersions'
             Resource:
-              - '*'
+              - !Sub 'arn:aws:s3:::${EgressStoreBucketName}'
+              - !Sub 'arn:aws:s3:::${EgressStoreBucketName}/*'
+              - !Sub 'arn:aws:s3:::${StudyDataBucketName}'
+              - !Sub 'arn:aws:s3:::${StudyDataBucketName}/*'
+          - Sid: 'S3 Read Only Access'
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:GetObject'
+              - 's3:GetObjectTagging'
+              - 's3:GetObjectVersion'
+              - 's3:GetObjectVersionTagging'
+              - 's3:ListBucket' # Required in get_bootstrap.sh when running `aws s3 sync`
+              - 's3:ListBucketVersions'
+            Resource: '*'
       RouteTableIds:
         - !Ref PrivateWorkspaceRouteTable
       VpcEndpointType: Gateway
@@ -909,6 +933,7 @@ Resources:
               - 's3:DeleteObjectVersion'
               - 's3:DeleteObjectVersionTagging'
               - 's3:ListBucket' # Required in get_bootstrap.sh when running `aws s3 sync`
+              - 's3:ListBucketVersions'
             Resource:
               - '*'
       RouteTableIds:
@@ -917,10 +942,28 @@ Resources:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       VpcId: !Ref VPC
 
+  # Do not edit this policy or it may remove access to onboarded BYOB studies--see VPCE Policy Service
   KMSEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Condition: isAppStream
     Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 'kms:Decrypt'
+              - 'kms:DescribeKey'
+              - 'kms:Encrypt'
+              - 'kms:GenerateDataKey'
+              - 'kms:ReEncrypt*'
+            Resource:
+              - !Sub 'arn:aws:kms:${AWS::Region}:${CentralAccountId}:key/*'
+            Condition:
+              StringEquals:
+                aws:ResourceAccount:
+                  - Ref: CentralAccountId
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
       PrivateDnsEnabled: true
@@ -930,10 +973,21 @@ Resources:
       SecurityGroupIds:
         - !Ref InterfaceEndpointSecurityGroup
 
+  # Do not edit this policy or it may remove access to onboarded BYOB studies--see VPCE Policy Service
   STSEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Condition: isAppStream
     Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowAssumeRole
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sts:AssumeRole'
+            Resource:
+              - !Sub 'arn:aws:iam::${CentralAccountId}:role/swb-study-*'
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
       VpcEndpointType: Interface
@@ -943,23 +997,20 @@ Resources:
       SecurityGroupIds:
         - !Ref InterfaceEndpointSecurityGroup
 
-  EC2Endpoint:
-    Type: 'AWS::EC2::VPCEndpoint'
-    Condition: isAppStream
-    Properties:
-      SubnetIds:
-        - !Ref PrivateWorkspaceSubnet
-      VpcEndpointType: Interface
-      PrivateDnsEnabled: true
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
-      VpcId: !Ref VPC
-      SecurityGroupIds:
-        - !Ref InterfaceEndpointSecurityGroup
-
   CfnEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Condition: isAppStream
     Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowSignalResource
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'cloudformation:SignalResource'
+            Resource:
+              - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SC-${AWS::AccountId}-pp-*'
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
       VpcEndpointType: Interface
@@ -1016,6 +1067,19 @@ Resources:
     Type: 'AWS::EC2::VPCEndpoint'
     Condition: isAppStreamAndCustomDomain
     Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 'ssm:PutParameter'
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/rstudio/publickey/sc-environments/ec2-instance/*'
+            Condition:
+              StringEquals:
+                aws:ResourceAccount:
+                  - Ref: AWS::AccountId
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
       VpcEndpointType: Interface
@@ -1030,6 +1094,21 @@ Resources:
     Type: 'AWS::EC2::VPCEndpoint'
     Condition: isAppStream
     Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sagemaker:DescribeNotebookInstance'
+              - 'sagemaker:StopNotebookInstance'
+              - 'sagemaker:CreatePresignedNotebookInstanceUrl'
+            Resource:
+              - !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/*'
+            Condition:
+              StringEquals:
+                aws:ResourceAccount:
+                  - Ref: AWS::AccountId
       SubnetIds:
         - !Ref PrivateAppStreamSubnet
       VpcEndpointType: Interface
@@ -1043,6 +1122,21 @@ Resources:
     Type: 'AWS::EC2::VPCEndpoint'
     Condition: isAppStream
     Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 'sagemaker:DescribeNotebookInstance'
+              - 'sagemaker:StopNotebookInstance'
+              - 'sagemaker:CreatePresignedNotebookInstanceUrl'
+            Resource:
+              - !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/*'
+            Condition:
+              StringEquals:
+                aws:ResourceAccount:
+                  - Ref: AWS::AccountId
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
       VpcEndpointType: Interface
@@ -1197,7 +1291,7 @@ Outputs:
     Condition: isNotAppStream
     Value: !Ref S3NonAppStreamEndpoint
     Export:
-      Name: !Join [ '', [ Ref: Namespace, '-S3NonAppStreamVPCE' ] ]
+      Name: !Join ['', [Ref: Namespace, '-S3NonAppStreamVPCE']]
 
   #------------AppStream Output Below-------
   PrivateAppStreamSubnet:
@@ -1275,4 +1369,18 @@ Outputs:
     Condition: isAppStream
     Value: !Ref S3Endpoint
     Export:
-      Name: !Join [ '', [ Ref: Namespace, '-S3AppStreamVPCE' ] ]
+      Name: !Join ['', [Ref: Namespace, '-S3AppStreamVPCE']]
+
+  KMSVPCE:
+    Description: KMS interface endpoint
+    Condition: isAppStream
+    Value: !Ref KMSEndpoint
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-KMSVPCE']]
+
+  STSVPCE:
+    Description: STS interface endpoint
+    Condition: isAppStream
+    Value: !Ref STSEndpoint
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-STSVPCE']]

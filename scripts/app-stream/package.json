@@ -6,11 +6,17 @@
   "license": "MIT",
   "scripts": {
     "start-image-builder": "node -e \"require('./start-image-builder.js').runCodeAsScript()\"",
-    "test": "jest --silent"
+    "test": "jest --silent",
+    "update-vpce-with-existing-byob": "node -e \"require('./update-vpce-with-existing-byob.js').runCodeAsScript()\""
   },
   "dependencies": {
     "@aws-sdk/client-appstream": "^3.369.0",
-    "@aws-sdk/client-ec2": "^3.369.0"
+    "@aws-sdk/client-cloudformation": "^3.369.0",
+    "@aws-sdk/client-dynamodb": "^3.369.0",
+    "@aws-sdk/client-ec2": "^3.369.0",
+    "@aws-sdk/client-sts": "^3.369.0",
+    "@aws-sdk/util-dynamodb": "^3.369.0",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "aws-sdk-client-mock": "^0.5.2",
