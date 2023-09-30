@@ -2,8 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 6.0.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v6.0.0...mainline)
+## [6.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v6.0.0...v6.1.0) (2023-09-30)
+
+Version 6.1.0 of Service Workbench on AWS brings a security enhancement to improve SWB management of the VPC endpoint policy. The enhancement only applies to customers who enabled AppStream within their environments.
+
+**Backwards compatibility:**
+
+As part of this release, a new script is included to ensure the new policies are applied to existing accounts and their respective environments. The script can be found in the GitHub Repo and should get executed as follows once all hosting accounts are updated to the latest release:
+
+```
+npm install
+npm run update-vpce-with-existing-byob -- <stage-regionAbbreviation-solutionName> <region>
+# Example: npm run update-vpce-with-existing-byob -- dev-va-sw us-east-1
+```
+
+### Features
+
+* Harden VPCe Policies for AppStream environments ([#1223](https://github.com/awslabs/service-workbench-on-aws/pull/1223)) ([d87e468](https://github.com/awslabs/service-workbench-on-aws/commit/d87e4683977bfc1c9c25cd4dc0eb5443b6216ab9))
+* add IMDSv2 support on AMI creation ([#1215](https://github.com/awslabs/service-workbench-on-aws/issues/1215)) ([3432768](https://github.com/awslabs/service-workbench-on-aws/commit/343276851d74f9166c537fa5c3d5bce864aec445))
 
 ## [6.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.2.11...v6.0.0) (2023-06-12)
 
