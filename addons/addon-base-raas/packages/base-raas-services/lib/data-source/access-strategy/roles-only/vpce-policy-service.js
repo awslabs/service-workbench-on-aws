@@ -49,6 +49,9 @@ class VpcePolicyService extends Service {
     });
 
     const sts = new this.aws.sdk.STS();
+    if (!requestContext.principalIdentifier.username) {
+      throw new Error('Username is required');
+    }
     const {
       Credentials: { AccessKeyId: accessKeyId, SecretAccessKey: secretAccessKey, SessionToken: sessionToken },
     } = await sts
@@ -98,6 +101,7 @@ class VpcePolicyService extends Service {
           PolicyDocument: JSON.stringify(vpcePolicy),
         })
         .promise();
+      return;
     }
     // get resource list
     const resourceList = sidStatement.Resource;
@@ -155,6 +159,7 @@ class VpcePolicyService extends Service {
           PolicyDocument: JSON.stringify(vpcePolicy),
         })
         .promise();
+      return;
     }
     // get resource list
     const resourceList = sidStatement.Resource;
@@ -186,7 +191,8 @@ class VpcePolicyService extends Service {
    */
   async getVpcePolicy(ec2Client, vpceId) {
     const vpces = await ec2Client.describeVpcEndpoints().promise();
-    const vpcePolicy = vpces.VpcEndpoints.find(vpcEndpoint => vpcEndpoint.VpcEndpointId === vpceId).PolicyDocument;
+    const vpce = vpces.VpcEndpoints.find(vpcEndpoint => vpcEndpoint.VpcEndpointId === vpceId);
+    const vpcePolicy = vpce ? vpce.PolicyDocument : JSON.stringify({ Version: '2012-10-17', Statement: [] });
     return JSON.parse(vpcePolicy);
   }
 
@@ -200,9 +206,6 @@ class VpcePolicyService extends Service {
     const studyId = studyEntity.id;
     const { projectId } = await this.studyService.mustFind(requestContext, studyId);
     const accEntity = await this.projectService.getAccountForProjectId(requestContext, projectId);
-    if (vpceServiceName === 'S3') {
-      return this.awsCfnService.getVpcEndpointId(accEntity);
-    }
     if (vpceServiceName === 'KMS') {
       return this.awsCfnService.getKmsVpcEndpointId(accEntity);
     }
