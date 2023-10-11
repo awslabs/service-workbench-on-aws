@@ -376,7 +376,7 @@ describe('VPCE Policy Service', () => {
       expect(policyDocument).toEqual(vpcePolicy);
     });
 
-    test('should return nothing when no VPCE Policy can be found', async () => {
+    test('should return basic policy when no VPCE Policy can be found', async () => {
       // BUILD
       const vpceEndpoints = [];
       const ec2Client = new MockEC2();
@@ -386,7 +386,7 @@ describe('VPCE Policy Service', () => {
       const policyDocument = await service.getVpcePolicy(ec2Client, vpceId);
 
       // CHECK
-      expect(policyDocument).toEqual({});
+      expect(policyDocument).toEqual({ Version: '2012-10-17', Statement: [] });
     });
   });
 
