@@ -57,6 +57,10 @@ class S3 {
     await this.sdk.upload({ Bucket: bucket, Key: key, Body: content }).promise();
   }
 
+  async putObject(bucket, key, content) {
+    return this.sdk.putObject({ Bucket: bucket, Key: key, Body: content }).promise();
+  }
+
   async deleteObject(s3Location) {
     const { s3BucketName, s3Key } = this.parseS3Details(s3Location);
     await this.sdk.deleteObject({ Bucket: s3BucketName, Key: s3Key }).promise();

@@ -19,10 +19,16 @@ const errorCode = require('../../../../support/utils/error-code');
 describe('Create URL scenarios', () => {
   let setup;
   let adminSession;
-  const nonEmptyEgressEnvId = 'ea8e5286-45ca-402a-8c98-7d4495f646e2';
+  let nonEmptyEgressEnvId;
+  let egressBucketName;
+  let projectId;
 
   beforeAll(async () => {
     setup = await runSetup();
+    const defaults = await setup.getDefaults();
+    egressBucketName = defaults.egressBucketName;
+    nonEmptyEgressEnvId = defaults.linuxEnvId;
+    projectId = defaults.project.id;
     adminSession = await setup.defaultAdminSession();
   });
 
@@ -48,13 +54,13 @@ describe('Create URL scenarios', () => {
       // BUILD
       const body = { id: nonEmptyEgressEnvId };
       const expected = {
-        egress_store_id: 'ea8e5286-45ca-402a-8c98-7d4495f646e2',
+        egress_store_id: nonEmptyEgressEnvId,
         egress_store_name: 'AppStream-Egress-Linux-egress-store',
-        project_id: 'TRE-Project',
-        s3_bucketname: '824558622956-tre-va-swb-egress-store',
-        s3_bucketpath: 'ea8e5286-45ca-402a-8c98-7d4495f646e2/',
+        project_id: projectId,
+        s3_bucketname: egressBucketName,
+        s3_bucketpath: `${nonEmptyEgressEnvId}/`,
         status: 'PENDING',
-        workspace_id: 'ea8e5286-45ca-402a-8c98-7d4495f646e2',
+        workspace_id: nonEmptyEgressEnvId,
       };
       // set isAbleToSubmitEgressRequest flag to true
       await adminSession.resources.dataEgresses.notify().activateEgressRequest(nonEmptyEgressEnvId);

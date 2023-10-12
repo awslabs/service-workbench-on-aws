@@ -216,7 +216,7 @@ class DragDrop extends Component {
               return (
                 <div {...getRootProps()}>
                   <input {...getInputProps()} />
-                  {<Icon name="cloud upload" size="massive" color="grey" />}
+                  <Icon name="cloud upload" size="massive" color="grey" />
                   {isFileTooLarge && <div className="text-danger mt-2">File is too large.</div>}
                 </div>
               );

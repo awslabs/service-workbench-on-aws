@@ -1,0 +1,33 @@
+'brazil_package_spec@1.0'
+
+common::{
+  name: "Service-Workbench-on-AWS",
+  major_version: "1.0",
+
+  dependencies: {
+    default_closure: run,
+
+    closures: {
+      run: public::{
+        include: [self],
+      },
+    },
+  },
+
+  build: {
+    command: null,
+
+    env: {
+      PATH: [
+        (env PATH),
+      ],
+    },
+
+    outputs: {
+      public_dir: null,
+      private_dir: null,
+    },
+
+    cleaned: [],
+  },
+}

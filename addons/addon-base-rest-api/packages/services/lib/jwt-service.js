@@ -14,7 +14,7 @@
  */
 
 const Service = require('@amzn/base-services-container/lib/service');
-const jwt = require('jsonwebtoken'); // https://github.com/auth0/node-jsonwebtoken/tree/v8.3.0
+const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
 const settingKeys = {

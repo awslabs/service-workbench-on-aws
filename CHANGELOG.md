@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## Beta
+[This release is in beta. Click here to see changes since 6.1.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v6.1.0...mainline)
+
 ## [6.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v6.0.0...v6.1.0) (2023-09-30)
 
 Version 6.1.0 of Service Workbench on AWS brings a security enhancement to improve SWB management of the VPC endpoint policy. The enhancement only applies to customers who enabled AppStream within their environments.

@@ -19,12 +19,19 @@ const errorCode = require('../../../../support/utils/error-code');
 describe('Create URL scenarios', () => {
   let setup;
   let adminSession;
-  const emptyEgressEnvId = '690b4eb6-c04e-4771-b0c5-1f1656738e89';
-  const nonEmptyEgressEnvId = 'ea8e5286-45ca-402a-8c98-7d4495f646e2';
+  let emptyEgressEnvId;
+  let nonEmptyEgressEnvId;
+  let projectId;
+  let egressBucketName;
 
   beforeAll(async () => {
     setup = await runSetup();
+    const defaults = await setup.getDefaults();
+    nonEmptyEgressEnvId = defaults.linuxEnvId;
+    emptyEgressEnvId = defaults.sagemakerEnvId;
+    projectId = defaults.project.id;
     adminSession = await setup.defaultAdminSession();
+    egressBucketName = defaults.egressBucketName;
   });
 
   afterAll(async () => {
@@ -50,6 +57,8 @@ describe('Create URL scenarios', () => {
         objectList: [],
         isAbleToSubmitEgressRequest: true,
       };
+      // set isAbleToSubmitEgressRequest flag to true
+      await adminSession.resources.dataEgresses.notify().activateEgressRequest(emptyEgressEnvId);
 
       // OPERATE
       const retVal = await adminSession.resources.dataEgresses.dataEgress(emptyEgressEnvId).get();
@@ -59,28 +68,32 @@ describe('Create URL scenarios', () => {
     });
 
     it('should return Egress data for non-empty egress folder', async () => {
+      // this is assumed that the notify egress test ran before this one
       // BUILD
+      // put the text file in the egress folder
+      const S3data = await adminSession.resources.dataEgresses
+        .dataEgress(nonEmptyEgressEnvId)
+        .putTestTxtFileInS3(egressBucketName, nonEmptyEgressEnvId);
+
+      const expectedObject = { ...S3data, projectId };
+
       const expected = {
-        objectList: [
-          {
-            Key: 'test.txt',
-            LastModified: '2021-08-26T18:06:02.000Z',
-            ETag: '"0df0f2b1ae20b285e0f2852b3b968e8a"',
-            Size: '39 Bytes',
-            StorageClass: 'STANDARD',
-            projectId: 'TRE-Project',
-            workspaceId: 'ea8e5286-45ca-402a-8c98-7d4495f646e2',
-            ChecksumAlgorithm: [], // new attribute introduced in Feb 2022 https://aws.amazon.com/blogs/aws/new-additional-checksum-algorithms-for-amazon-s3/
-          },
-        ],
+        objectList: [expectedObject],
         isAbleToSubmitEgressRequest: false,
       };
 
       // OPERATE
       const retVal = await adminSession.resources.dataEgresses.dataEgress(nonEmptyEgressEnvId).get();
+      delete retVal.objectList[0].LastModified;
+      delete retVal.objectList[0].Size;
 
       // CHECK
       expect(retVal).toStrictEqual(expected);
+
+      // CLEANUP
+      await adminSession.resources.dataEgresses
+        .dataEgress(nonEmptyEgressEnvId)
+        .deleteTestTxtFileInS3(egressBucketName, nonEmptyEgressEnvId);
     });
   });
 });
