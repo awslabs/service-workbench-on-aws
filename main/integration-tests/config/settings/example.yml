@@ -76,3 +76,9 @@ byobStudy: "sampleByobStudyName"
 
 # Provide the id of a Windows workspace actively running in SWB
 #windowsEnvId: ""
+
+# Provide the name of the egress bucket like "XXXXXXXXXXXX-<stage>-<region>-swb-egress-store"
+#egressBucketName: ""
+
+# Provide the AppStreamFleet name from the outputs of the onboarding account stack
+#appStreamFleet: ""

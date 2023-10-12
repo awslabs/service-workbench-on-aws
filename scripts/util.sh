@@ -34,6 +34,7 @@ export SOLUTION_ROOT_DIR="${PWD}"
 export SOLUTION_DIR="${SOLUTION_ROOT_DIR}/main/solution"
 export CONFIG_DIR="${SOLUTION_ROOT_DIR}/main/config"
 export INT_TEST_DIR="${SOLUTION_ROOT_DIR}/main/integration-tests"
+export E2E_TEST_DIR="${SOLUTION_ROOT_DIR}/main/end-to-end-tests"
 # By default, we assume test config file exists. 
 # The check for it happens later
 export TEST_CONFIG_EXISTS=true

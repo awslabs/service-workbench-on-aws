@@ -197,9 +197,11 @@ class Setup {
   async getConfigForAppStreamEnabledTests() {
     const sagemakerEnvId = await this.settings.optional('sagemakerEnvId', '');
     const linuxEnvId = await this.settings.optional('linuxEnvId', '');
-    const windowsEnvId = await this.settings.optional('windowsEnvId');
+    const windowsEnvId = await this.settings.optional('windowsEnvId', '');
+    const egressBucketName = await this.settings.optional('egressBucketName', '');
+    const appStreamFleet = await this.settings.optional('appStreamFleet', '');
 
-    return { sagemakerEnvId, linuxEnvId, windowsEnvId };
+    return { sagemakerEnvId, linuxEnvId, windowsEnvId, egressBucketName, appStreamFleet };
   }
 
   async createAdminSession() {

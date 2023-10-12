@@ -592,7 +592,7 @@ class UserOnboarding extends React.Component {
                 ) : (
                   <p>Drag and drop a credentials.csv files here, or click to select a file</p>
                 )}
-                {<Icon name="cloud upload" size="huge" color="grey" />}
+                <Icon name="cloud upload" size="huge" color="grey" />
                 {isFileTooLarge && <div className="text-danger mt-2">File is too large.</div>}
               </div>
             );

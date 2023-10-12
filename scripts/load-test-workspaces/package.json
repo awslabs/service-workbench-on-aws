@@ -16,7 +16,7 @@
     "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' "
   },
   "devDependencies": {
-    "eslint": "^7.0.0",
+    "eslint": "^8.48.0",
     "eslint-config-airbnb": "^18.1.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-config-prettier": "^6.10.0",
@@ -33,6 +33,8 @@
   "resolutions": {
     "minimatch": "^3.0.5",
     "path-parse": "^1.0.7",
-    "ansi-regex": "^6.0.1"
+    "ansi-regex": "^6.0.1",
+    "tsconfig-paths": "^4.2.0",
+    "semver": "^6.3.1"
   }
 }

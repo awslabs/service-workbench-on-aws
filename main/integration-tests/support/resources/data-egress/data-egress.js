@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const Resource = require('../base/resource');
+const { putTestTxtFileInS3, deleteTestTxtFileInS3 } = require('../../complex/egress-store-setup');
 
 class DataEgress extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -29,6 +30,13 @@ class DataEgress extends Resource {
   }
 
   // ************************ Helpers methods ************************
+  async putTestTxtFileInS3(bucketName, environmentId) {
+    return putTestTxtFileInS3({ aws: this.setup.aws, bucketName, environmentId });
+  }
+
+  async deleteTestTxtFileInS3(bucketName, environmentId) {
+    await deleteTestTxtFileInS3({ aws: this.setup.aws, bucketName, environmentId });
+  }
 }
 
 module.exports = DataEgress;

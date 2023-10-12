@@ -24,6 +24,8 @@
   },
   "resolutions": {
     "minimatch": "^3.0.5",
-    "fast-xml-parser": "^4.2.4"
+    "fast-xml-parser": "^4.2.4",
+    "escape-string-regexp": "^5.0.0",
+    "semver": "^6.3.1"
   }
 }

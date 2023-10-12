@@ -19,9 +19,14 @@ const { runSetup } = require('../../../../../support/setup');
 describe('Create URL scenarios', () => {
   let setup;
   let adminSession;
+  let awsRegion;
+  let appStreamFleet;
 
   beforeAll(async () => {
     setup = await runSetup();
+    const defaults = await setup.getDefaults();
+    awsRegion = defaults.awsRegion;
+    appStreamFleet = defaults.appStreamFleet;
     adminSession = await setup.defaultAdminSession();
   });
 
@@ -38,8 +43,8 @@ describe('Create URL scenarios', () => {
       const connectionId = 'id-0';
       const applicationName = 'Firefox';
       const sagemakerUrlPrefix = 'https://basicnotebookinstance';
-      const preAuthStreamingUrl = 'https://appstream2.us-east-1.aws.amazon.com/authenticate?parameters=';
-      const redirectStreamingUrl = `appstream2.us-east-1.aws.amazon.com/#/streaming/?reference=fleet%2Finitial-stack-1629237287942-ServiceWorkbenchFleet&app=${applicationName}`;
+      const preAuthStreamingUrl = `https://appstream2.${awsRegion}.aws.amazon.com/authenticate?parameters=`;
+      const redirectStreamingUrl = `appstream2.${awsRegion}.aws.amazon.com/#/streaming/?reference=fleet%2F${appStreamFleet}&app=${applicationName}`;
 
       // OPERATE
       const connectionUrlResponse = await adminSession.resources.workspaceServiceCatalogs
@@ -55,7 +60,7 @@ describe('Create URL scenarios', () => {
 
       const token = connectionUrlResponse.url.split('parameters=')[1];
       const headers = {
-        Authority: 'appstream2.us-east-1.aws.amazon.com',
+        Authority: `appstream2.${awsRegion}.aws.amazon.com`,
         Authorization: token,
       };
 
@@ -86,9 +91,9 @@ describe('Create URL scenarios', () => {
           envIdPath: 'windowsEnvId',
           connectionId: 'id-1',
           applicationName: 'MicrosoftRemoteDesktop',
-          preAuthStreamingUrl: 'https://appstream2.us-east-1.aws.amazon.com/authenticate?parameters=',
-          redirectStreamingUrl:
-            'appstream2.us-east-1.aws.amazon.com/#/streaming/?reference=fleet%2Finitial-stack-1629237287942-ServiceWorkbenchFleet&app=',
+          preAuthStreamingUrl: () => `https://appstream2.${awsRegion}.aws.amazon.com/authenticate?parameters=`,
+          redirectStreamingUrl: () =>
+            `appstream2.${awsRegion}.aws.amazon.com/#/streaming/?reference=fleet%2F${appStreamFleet}&app=`,
           expected: { scheme: 'rdp', name: 'RDP to EC2 Windows Instance' },
         },
       ],
@@ -98,9 +103,9 @@ describe('Create URL scenarios', () => {
           envIdPath: 'linuxEnvId',
           connectionId: 'id-1',
           applicationName: 'EC2Linux',
-          preAuthStreamingUrl: 'https://appstream2.us-east-1.aws.amazon.com/authenticate?parameters=',
-          redirectStreamingUrl:
-            'appstream2.us-east-1.aws.amazon.com/#/streaming/?reference=fleet%2Finitial-stack-1629237287942-ServiceWorkbenchFleet&app=',
+          preAuthStreamingUrl: () => `https://appstream2.${awsRegion}.aws.amazon.com/authenticate?parameters=`,
+          redirectStreamingUrl: () =>
+            `appstream2.${awsRegion}.aws.amazon.com/#/streaming/?reference=fleet%2F${appStreamFleet}&app=`,
           expected: { scheme: 'ssh', name: 'SSH to Main EC2 instance' },
         },
       ],
@@ -113,16 +118,18 @@ describe('Create URL scenarios', () => {
         .connections()
         .connection(testContext.connectionId)
         .createUrl();
+      const preAuthStreamingUrl = testContext.preAuthStreamingUrl();
+      const redirectStreamingUrl = testContext.redirectStreamingUrl();
 
       // CHECK
       expect(connectionUrlResponse.scheme).toContain(testContext.expected.scheme);
       expect(connectionUrlResponse.name).toContain(testContext.expected.name);
       expect(connectionUrlResponse.id).toEqual(testContext.connectionId);
-      expect(connectionUrlResponse.url).toContain(testContext.preAuthStreamingUrl);
+      expect(connectionUrlResponse.url).toContain(preAuthStreamingUrl);
 
       const token = connectionUrlResponse.url.split('parameters=')[1];
       const headers = {
-        Authority: 'appstream2.us-east-1.aws.amazon.com',
+        Authority: `appstream2.${awsRegion}.aws.amazon.com`,
         Authorization: token,
       };
 
@@ -142,7 +149,7 @@ describe('Create URL scenarios', () => {
       }
 
       // CHECK
-      expect(redirectUrl).toContain(testContext.redirectStreamingUrl);
+      expect(redirectUrl).toContain(redirectStreamingUrl);
     });
   });
 });

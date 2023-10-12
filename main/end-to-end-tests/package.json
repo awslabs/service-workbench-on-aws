@@ -10,12 +10,14 @@
     "cypress:open:dev": "cypress open -C cypress.dev.json",
     "cypress:run-tests:local": "CYPRESS_BASE_URL=http://localhost:3000 cypress run -C cypress.dev.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
     "cypress:run-tests:dev": "cypress run -C cypress.dev.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
-    "cypress:run-tests:github": "cypress run -C cypress.github.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
+    "cypress:run-tests:mainline": "cypress run -C cypress.mainline.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
+    "cypress:run-tests:develop": "cypress run -C cypress.develop.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
+    "cypress:run-tests:mainline-tre": "cypress run -C cypress.mainline-tre.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*",
+    "cypress:run-tests:develop-tre": "cypress run -C cypress.develop-tre.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*",
     "cypress:open:local:appstream-egress-enabled": "CYPRESS_BASE_URL=http://localhost:3000 cypress open -C cypress.dev.appstream-egress.json",
     "cypress:open:dev:appstream-egress-enabled": "cypress open -C cypress.dev.appstream-egress.json",
     "cypress:run-tests:local:appstream-egress-enabled": "CYPRESS_BASE_URL=http://localhost:3000 cypress run -C cypress.dev.appstream-egress.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*",
-    "cypress:run-tests:dev:appstream-egress-enabled": "cypress run -C cypress.dev.appstream-egress.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*",
-    "cypress:run-tests:github:appstream-egress-enabled": "cypress run -C cypress.github.appstream-egress.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*"
+    "cypress:run-tests:dev:appstream-egress-enabled": "cypress run -C cypress.dev.appstream-egress.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*"
   },
   "husky": {
     "hooks": {
@@ -25,8 +27,8 @@
   "devDependencies": {
     "amazon-cognito-identity-js": "^5.2.10",
     "clipboardy": "^2.3.0",
-    "cypress": "^9.7.0",
-    "eslint": "^8.24.0",
+    "cypress": "^13.0.0",
+    "eslint": "^8.48.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^8.5.0",
@@ -42,6 +44,9 @@
     "tcp-ping": "^0.1.1"
   },
   "resolutions": {
-    "minimatch": "^3.0.5"
+    "minimatch": "^3.0.5",
+    "semver": "^6.3.1",
+    "escape-string-regexp": "^5.0.0",
+    "tsconfig-paths": "^4.2.0"
   }
 }
