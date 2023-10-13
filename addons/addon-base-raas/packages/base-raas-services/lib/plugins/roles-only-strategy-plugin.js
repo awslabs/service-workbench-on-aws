@@ -38,15 +38,16 @@ async function onStudyRegistration(payload) {
   const studyEntityUpdated = await studyService.update(systemContext, { id: studyEntity.id, appRoleArn: appRole.arn });
 
   const vpcePolicyService = await container.find('roles-only/vpcePolicyService');
-  const ec2Client = await vpcePolicyService.getEc2ServiceForStudy(systemContext, studyEntity);
-
-  const { accountId, region } = studyEntity;
 
   // Dynamically add the BYOB fs role to the STS VPCE Policy
   const stsVpceId = await vpcePolicyService.getVpceIdFromStudy(systemContext, studyEntity, 'STS');
 
   // null means this is not appstream enabled therefore these steps can be skipped.
   if (stsVpceId !== null) {
+    const ec2Client = await vpcePolicyService.getEc2ServiceForStudy(systemContext, studyEntity);
+
+    const { accountId, region } = studyEntity;
+
     const roleArn = `arn:aws:iam::${accountId}:role/swb-*-fs-*`;
     await vpcePolicyService.addRoleToStsVpcePolicy(ec2Client, roleArn, stsVpceId, 'AllowAssumeRole');
 
