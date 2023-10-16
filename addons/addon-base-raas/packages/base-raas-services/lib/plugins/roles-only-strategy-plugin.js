@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
+// const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 /**
  * A plugin method to implement any specific logic for the 'roles only' access logic when a study is registered
@@ -26,25 +26,25 @@ const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/sys
  * @param studyEntity the study entity (the permissions attribute is not expected to be populated)
  */
 async function onStudyRegistration(payload) {
-  const { container, accountEntity, bucketEntity = {}, studyEntity = {} } = payload;
+  const { requestContext, container, accountEntity, bucketEntity = {}, studyEntity = {} } = payload;
   // Allocating an application role is only applicable for bucket with access = 'roles'
   if (studyEntity.bucketAccess !== 'roles') return payload;
-  const systemContext = getSystemRequestContext();
+  // const systemContext = getSystemRequestContext();
 
   const applicationRoleService = await container.find('roles-only/applicationRoleService');
-  const appRole = await applicationRoleService.allocateRole(systemContext, accountEntity, bucketEntity, studyEntity);
+  const appRole = await applicationRoleService.allocateRole(requestContext, accountEntity, bucketEntity, studyEntity);
 
   const studyService = await container.find('studyService');
-  const studyEntityUpdated = await studyService.update(systemContext, { id: studyEntity.id, appRoleArn: appRole.arn });
+  const studyEntityUpdated = await studyService.update(requestContext, { id: studyEntity.id, appRoleArn: appRole.arn });
 
   const vpcePolicyService = await container.find('roles-only/vpcePolicyService');
 
   // Dynamically add the BYOB fs role to the STS VPCE Policy
-  const stsVpceId = await vpcePolicyService.getVpceIdFromStudy(systemContext, studyEntity, 'STS');
+  const stsVpceId = await vpcePolicyService.getVpceIdFromStudy(requestContext, studyEntity, 'STS');
 
   // null means this is not appstream enabled therefore these steps can be skipped.
   if (stsVpceId !== null) {
-    const ec2Client = await vpcePolicyService.getEc2ServiceForStudy(systemContext, studyEntity);
+    const ec2Client = await vpcePolicyService.getEc2ServiceForStudy(requestContext, studyEntity);
 
     const { accountId, region } = studyEntity;
 
@@ -54,7 +54,7 @@ async function onStudyRegistration(payload) {
     // Dynamically add the BYOB bucket account to the KMS VPCE Policy if bucket is SSE-KMS encyrpted
     const isSseKmsEncrypted = appRole.bucketKmsArn;
     if (isSseKmsEncrypted) {
-      const kmsVpceId = await vpcePolicyService.getVpceIdFromStudy(systemContext, studyEntity, 'KMS');
+      const kmsVpceId = await vpcePolicyService.getVpceIdFromStudy(requestContext, studyEntity, 'KMS');
       await vpcePolicyService.addAccountToKmsVpcePolicy(ec2Client, accountId, kmsVpceId, region, 'BYOB Account Keys');
     }
   }
