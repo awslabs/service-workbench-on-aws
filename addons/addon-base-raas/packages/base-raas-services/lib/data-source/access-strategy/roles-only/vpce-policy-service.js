@@ -49,7 +49,7 @@ class VpcePolicyService extends Service {
     });
 
     const sts = new this.aws.sdk.STS();
-    if (!requestContext.principalIdentifier.username) {
+    if (!requestContext.principal.username) {
       throw new Error('Username is required');
     }
     const {
@@ -57,7 +57,7 @@ class VpcePolicyService extends Service {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}`,
+        RoleSessionName: `RaaS-${requestContext.principal.username}`,
         ExternalId,
       })
       .promise();
