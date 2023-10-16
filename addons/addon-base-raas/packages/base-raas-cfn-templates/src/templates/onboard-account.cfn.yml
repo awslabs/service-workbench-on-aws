@@ -997,6 +997,29 @@ Resources:
       SecurityGroupIds:
         - !Ref InterfaceEndpointSecurityGroup
 
+  EC2Endpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowPrefixListDescription
+            Effect: Allow
+            Principal: '*'
+            Action:
+              - 'ec2:DescribeManagedPrefixLists'
+              - 'ec2:DescribePrefixLists'
+            Resource: '*'
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
+
   CfnEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Condition: isAppStream
