@@ -112,7 +112,7 @@ class StartSagemakerEnvironmentSc extends StepBase {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}`,
+        RoleSessionName: `RaaS-${requestContext.principal.username}`,
         ExternalId,
       })
       .promise();
