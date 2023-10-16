@@ -2,8 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 6.1.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v6.1.0...mainline)
+### [6.1.1](https://github.com/awslabs/service-workbench-on-aws/compare/v6.1.0...v6.1.1) (2023-10-16)
+
+For TRE deployments, please Update the Permissions on any hosting accounts on the Accounts page, AWS Accounts tab to ensure all hosting accounts are "Up to Date".
+
+### Bug Fixes
+
+* fix bugs and add tests ([#1225](https://github.com/awslabs/service-workbench-on-aws/issues/1225)) ([53d2134](https://github.com/awslabs/service-workbench-on-aws/commit/53d2134b6e3de8bd8d057b38bf695c82fe0966a2))
 
 ## [6.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v6.0.0...v6.1.0) (2023-09-30)
 
