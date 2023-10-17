@@ -87,7 +87,7 @@ describe('VPCE Policy Service', () => {
   let awsAccountsService;
   let aws;
   let awsCfnService;
-  const requestContext = { principalIdentifier: { username: 'sampleUsername' } };
+  const requestContext = { principal: { username: 'sampleUsername' } };
   const studyEntity = { id: 'sampleBYOBstudyId' };
   const projectId = 'sampleProjectId';
   const awsAccountId = 'sampleAwsAccountId';
@@ -147,7 +147,7 @@ describe('VPCE Policy Service', () => {
       // CHECK
       expect(mockAssumeRole).toHaveBeenCalledWith({
         RoleArn: roleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}`,
+        RoleSessionName: `RaaS-${requestContext.principal.username}`,
         ExternalId: externalId,
       });
     });
@@ -157,7 +157,7 @@ describe('VPCE Policy Service', () => {
       studyService.mustFind = jest.fn().mockReturnValue(projectId);
       projectService.getAccountForProjectId = jest.fn().mockReturnValue(awsAccountId);
       awsAccountsService.mustFind = jest.fn().mockReturnValue({ roleArn, externalId });
-      requestContext.principalIdentifier.username = undefined;
+      requestContext.principal.username = undefined;
 
       // OPERATE n CHECK
       await expect(service.getEc2ServiceForStudy(requestContext, studyEntity)).rejects.toThrow();
