@@ -68,9 +68,11 @@
     "serverless-s3-sync": "^1.17.3",
     "serverless-webpack": "^5.10.0",
     "source-map-support": "^0.5.21",
-    "webpack": "^4.46.0",
+    "webpack": "^5",
     "webpack-cli": "^5.1.4",
-    "webpack-node-externals": "^1.7.2"
+    "webpack-node-externals": "^1.7.2",
+    "typescript": "^3.2.1",
+    "@types/node": "*"
   },
   "optionalDependencies": {
     "fsevents": "*"

@@ -46,7 +46,9 @@
     "jest-junit": "^10.0.0",
     "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
-    "regenerator-runtime": "^0.13.9"
+    "regenerator-runtime": "^0.13.9",
+    "prop-types": "^15.7.0",
+    "webpack": "^2"
   },
   "scripts": {
     "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",

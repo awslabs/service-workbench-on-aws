@@ -10,35 +10,35 @@ After a successful initial deployment, you can deploy individually to the five s
 
 ```bash
 $ cd solution/infrastructure
-$ pnpx sls deploy -s <stage>
+$ pnpx serverless deploy -s <stage>
 ```
 
 ### Deploying Updates to the Backend Serverless Project
 
 ```bash
 $ cd solution/backend
-$ pnpx sls deploy -s <stage>
+$ pnpx serverless deploy -s <stage>
 ```
 
 ### Deploying Updates to the Machine-Images Serverless Project
 
 ```bash
 $ cd solution/machine-images
-$ pnpx sls deploy -s <stage>
+$ pnpx serverless deploy -s <stage>
 ```
 
 ### Deploying Updates to the Post-Deployment Serverless Project
 
 ```bash
 $ cd solution/post-deployment
-$ pnpx sls invoke local -f postDeployment --env WEBPACK_ON=true -s <stage>
+$ pnpx serverless invoke local -f postDeployment --env WEBPACK_ON=true -s <stage>
 ```
 
 ### Deploying Updates to the UI Serverless Project
 
 ```bash
 $ cd solution/ui
-$ pnpx sls package-ui --stage <stage> --local
-$ pnpx sls package-ui --stage <stage>
-$ pnpx sls deploy-ui --stage <stage> --invalidate-cache
+$ pnpx serverless package-ui --stage <stage> --local
+$ pnpx serverless package-ui --stage <stage>
+$ pnpx serverless deploy-ui --stage <stage> --invalidate-cache
 ```

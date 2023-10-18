@@ -5,13 +5,13 @@
 After you run:
 
 ```bash
-$ pnpx sls deploy -s <stage>
+$ pnpx serverless deploy -s <stage>
 ```
 
 You can invoke lambda locally:
 
 ```bash
-$ pnpx sls invoke local -f preDeployment -s <stage>
+$ pnpx serverless invoke local -f preDeployment -s <stage>
 ```
 
 ## Overview of Lambda Functions

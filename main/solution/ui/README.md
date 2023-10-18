@@ -3,25 +3,25 @@
 To package locally (to populate .env.local only)
 
 ```
-$ pnpx sls package-ui --stage <stage name> --local=true
+$ pnpx serverless package-ui --stage <stage name> --local=true
 ```
 
 To package for deployment (to populate .env.production and create a build via "npm build")
 
 ```
-$ pnpx sls package-ui --stage <stage name>
+$ pnpx serverless package-ui --stage <stage name>
 ```
 
 To run locally
 
 ```
-$ pnpx sls start-ui --stage <stage name>
+$ pnpx serverless start-ui --stage <stage name>
 ```
 
 To deploy to S3
 
 ```
-$ pnpx sls deploy-ui --stage <stage name> --invalidate-cache=true
+$ pnpx serverless deploy-ui --stage <stage name> --invalidate-cache=true
 ```
 
 ## Useful commands
@@ -29,5 +29,5 @@ $ pnpx sls deploy-ui --stage <stage name> --invalidate-cache=true
 To list all resolved variables
 
 ```
-$ pnpx sls print --stage <stage name>
+$ pnpx serverless print --stage <stage name>
 ```

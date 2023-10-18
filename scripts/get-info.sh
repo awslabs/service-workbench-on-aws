@@ -21,12 +21,12 @@ init_package_manager
 function get_info() {
   pushd "$SOLUTION_DIR/infrastructure" > /dev/null
   local stack_name_infrastructure
-  stack_name_infrastructure=$($EXEC sls info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+  stack_name_infrastructure=$($EXEC serverless info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
   popd > /dev/null
 
   pushd "$SOLUTION_DIR/backend" > /dev/null
   local stack_name_backend
-  stack_name_backend=$($EXEC sls info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+  stack_name_backend=$($EXEC serverless info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
   popd > /dev/null
 
   local solution_name aws_region aws_profile

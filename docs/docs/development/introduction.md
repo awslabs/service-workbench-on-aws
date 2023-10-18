@@ -8,7 +8,7 @@ Once you have deployed the app and the UI, you can start developing locally on y
 
 ```bash
 $ cd solution/backend
-$ pnpx sls offline -s $STAGE
+$ pnpx serverless offline -s $STAGE
 $ cd -
 ```
 
@@ -16,6 +16,6 @@ Then, in a separate terminal, run the following commands to start the ui server 
 
 ```bash
 $ cd solution/ui
-$ pnpx sls start-ui -s $STAGE
+$ pnpx serverless start-ui -s $STAGE
 $ cd -
 ```

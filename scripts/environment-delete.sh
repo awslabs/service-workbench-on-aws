@@ -36,7 +36,7 @@ function removeComponentWithNoStack() {
     if [ "$shouldRemoveComponent" == "TRUE" ]; then
         printf "\n- Removing Component $COMPONENT_NAME ... \n"
         set +e
-        $EXEC sls remove -s "$STAGE"
+        $EXEC serverless remove -s "$STAGE"
         set -e
     fi
 }
@@ -58,7 +58,7 @@ function removeStack() {
         emptyS3BucketsFromNames "DO_NOT_DELETE" "DONT_ASK_CONFIRMATION" $aws_profile ${bucket_names[@]}
         printf "\n- Removing Stack $COMPONENT_NAME ...\n"
         set +e
-        $EXEC sls remove -s "$STAGE"
+        $EXEC serverless remove -s "$STAGE"
         set -e
     fi
 }
@@ -75,7 +75,7 @@ function shouldStackBeRemoved() {
 
     # Ask if current folder stack info and temporarily accept errors
     set +e
-    local stackInfo=$($EXEC sls info -s "$STAGE")
+    local stackInfo=$($EXEC serverless info -s "$STAGE")
     set -e
 
     if [[ "$stackInfo" == *"security token"* ]]; then

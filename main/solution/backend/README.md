@@ -5,13 +5,13 @@
 To package cfn without deploying it
 
 ```bash
-$ pnpx sls package --stage <stage name>
+$ pnpx serverless package --stage <stage name>
 ```
 
 To deploy:
 
 ```bash
-$ pnpx sls deploy --stage <stage name>
+$ pnpx serverless deploy --stage <stage name>
 ```
 
 ## Useful commands
@@ -19,7 +19,7 @@ $ pnpx sls deploy --stage <stage name>
 To list all resolved variables:
 
 ```bash
-$ pnpx sls print --stage <stage name>
+$ pnpx serverless print --stage <stage name>
 ```
 
 ## Overview of Lambda Functions

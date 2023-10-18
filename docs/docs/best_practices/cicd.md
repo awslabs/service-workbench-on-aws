@@ -48,7 +48,7 @@ You can now deploy the `cicd-source` stack.
 
 ```bash
 cd cicd/cicd-source
-pnpx sls deploy --stage <env-name>
+pnpx serverless deploy --stage <env-name>
 ```
 
 ### 2. Deploy `cicd-pipeline` stack to the Target Account
@@ -61,7 +61,7 @@ You can now deploy the `cicd-pipeline` stack:
 
 ```bash
 cd cicd/cicd-pipeline
-pnpx sls deploy --stage <env-name>
+pnpx serverless deploy --stage <env-name>
 ```
 
 ### 3. Re-deploy `cicd-source` stack to the Source Account
@@ -73,7 +73,7 @@ Note down the CloudFormation stack output variables `AppArtifactBucketArn` and `
 You can also use `sls info` command with `--verbose` flag to print stack output variables from the `cicd/cicd-pipeline`  folder:
   
 ```bash
-pnpx sls info --verbose -s <env-name>
+pnpx serverless info --verbose -s <env-name>
 ```
   
 ### 4. Update CloudFormation variables
@@ -88,5 +88,5 @@ Next you will need to re-deploy the `cicd-source` stack to lock down the permiss
 
 ```bash
 cd cicd/cicd-source
-pnpx sls deploy --stage <env-name>
+pnpx serverless deploy --stage <env-name>
 ```

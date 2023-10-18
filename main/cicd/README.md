@@ -75,7 +75,7 @@ The pipeline stops upon failure of any stage and notifies user via configured SN
   ```bash
     cd cicd/cicd-source
 
-    pnpx sls deploy --stage <env-name>
+    pnpx serverless deploy --stage <env-name>
   ```
 
 2. Deploy `cicd-pipeline` stack to the Target Account
@@ -92,7 +92,7 @@ The pipeline stops upon failure of any stage and notifies user via configured SN
   ```bash
     cd cicd/cicd-pipeline
 
-    pnpx sls deploy --stage <env-name>
+    pnpx serverless deploy --stage <env-name>
   ```
 
 3. Re-deploy `cicd-source` stack to the Source Account to lock down permissions for the artifacts bucket
@@ -104,7 +104,7 @@ The pipeline stops upon failure of any stage and notifies user via configured SN
     
   * CD to the `cicd/cicd-pipeline` 
   ```bash
-    pnpx sls info --verbose -s <env-name>
+    pnpx serverless info --verbose -s <env-name>
   ```
 
   * Set the CloudFormation stack output variables `AppArtifactBucketArn`
@@ -122,7 +122,7 @@ The pipeline stops upon failure of any stage and notifies user via configured SN
   ```bash
     cd cicd/cicd-source
   
-    pnpx sls deploy --stage <env-name>
+    pnpx serverless deploy --stage <env-name>
   ```
 
   Note: Delete the `awsProfile` line from `/main/config/settings/<stage>.yml` file while deploying the CI/CD stack to avoid the following error in CodePipeline:

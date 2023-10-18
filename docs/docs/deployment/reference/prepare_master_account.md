@@ -29,18 +29,18 @@ To deploy the `prepare_master_acc` SDC, perform the following:
 2. Deploy the orhanizational account SDC from the directory,  `main/solution/prepare-master-acc`:
 
 ```{.sh}
-    pnpx sls deploy --stage <stage>
+    pnpx serverless deploy --stage <stage>
 ```
 
 3. To display the ARN of the organizational role from the same directory:
 
 ```{.sh}
-    pnpx sls info --verbose --stage <stage>
+    pnpx serverless info --verbose --stage <stage>
 ```
 
 The organizational role ARN will be needed when adding accounts within Service Workbench.
 
-_**Note**: Running the convenience script `scripts/master-account-deploy.sh <stage>` will perform the same steps as `pnpx sls deploy`, above._
+_**Note**: Running the convenience script `scripts/master-account-deploy.sh <stage>` will perform the same steps as `pnpx serverless deploy`, above._
 
 ### Confirm the creation of organizational role
 

@@ -24,7 +24,7 @@ To deploy the machine images SDC, follow the steps outlined in the readme file l
 2.	Change directory to `/main/solution/machine-images`. 
 3.	Run the command below. The command takes approximately 15 minutes to complete: 
 ```
-pnpx sls build-image -s <mystage>
+pnpx serverless build-image -s <mystage>
 ```
 - ** If the above command does not work, you might have to fetch the custom AMI package created in step 1 with `curl` or `wget`, unzip the package, and copy it to the `directory /usr/local/bin`. Resume from step 2.**
 

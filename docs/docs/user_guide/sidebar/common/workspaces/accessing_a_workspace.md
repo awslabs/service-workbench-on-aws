@@ -26,7 +26,7 @@ To change the default password for Jupyter Notebook instances, contact your Solu
        `s/sha1:<salt1>:<hash1>/sha1:<salt2>:<hash2>/`
 3.	Update `<salt2>` and `<hash2>` to match your password’s corresponding values.
 4.	On your local repo, navigate to `main/solution/machine-images`.
-5.	Run `pnpx sls build-image -s <stage>` to create a new AMI for EMR environment types.
+5.	Run `pnpx serverless build-image -s <stage>` to create a new AMI for EMR environment types.
 6.	Use the generated AMI ID in the environment type configuration key AmId. Your selected password becomes active.
 
 
