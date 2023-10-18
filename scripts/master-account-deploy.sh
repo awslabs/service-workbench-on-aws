@@ -15,7 +15,7 @@ function disableStats {
   pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
     # Disable serverless stats globally (only strictly needs to be done one time)
     # For more information: https://www.serverless.com/framework/docs/providers/aws/cli-reference/slstats#disable-statistics-and-usage-tracking
-    $EXEC sls slstats --disable
+    $EXEC serverless slstats --disable
   popd > /dev/null
 }
 
@@ -25,9 +25,9 @@ function componentDeploy {
 
   pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
   printf "\nDeploying component: %s ...\n\n" "$COMPONENT_NAME"
-  $EXEC sls deploy -s "$STAGE"
+  $EXEC serverless deploy -s "$STAGE"
   printf "\nDeployed component: %s successfully \n\n" "$COMPONENT_NAME"
-  stack_name=$($EXEC sls info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+  stack_name=$($EXEC serverless info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
   set +e
   solution_name="$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" 2> /dev/null | grep '^solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
   aws_region="$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" 2> /dev/null | grep '^awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"

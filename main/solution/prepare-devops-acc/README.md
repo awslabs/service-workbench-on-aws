@@ -8,5 +8,5 @@ to grant AssumeRole permissions to the main account. The solution deployed in th
 To deploy:
 
 ```bash
-$ pnpx sls deploy --stage <stage name>
+$ pnpx serverless deploy --stage <stage name>
 ```

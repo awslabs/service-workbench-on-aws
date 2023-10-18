@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-pnpm run lint --recursive --if-present --no-bail $@
+pnpm --recursive --if-present --no-bail --filter @amzn/service-workbench-on-aws... run lint $@

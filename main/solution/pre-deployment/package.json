@@ -17,8 +17,8 @@
     "@amzn/internal-auth-dep-check": "workspace:*",
     "@amzn/key-pair-mgmt-services": "workspace:*",
     "aws-sdk": "^2.1228.0",
-    "lodash": "^4.17.21",
     "crypto-browserify": "^3.12.0",
+    "lodash": "^4.17.21",
     "services": "workspace:*"
   },
   "devDependencies": {
@@ -26,6 +26,7 @@
     "@amzn/base-serverless-settings-helper": "workspace:*",
     "@babel/core": "^7.19.3",
     "@babel/preset-env": "^7.19.3",
+    "@types/node": "*",
     "babel-loader": "^8.2.5",
     "babel-plugin-source-map-support": "^2.2.0",
     "copy-webpack-plugin": "^5.1.2",
@@ -48,6 +49,7 @@
     "serverless-s3-sync": "^1.17.3",
     "serverless-webpack": "^5.10.0",
     "source-map-support": "^0.5.21",
+    "typescript": "^3.2.1",
     "webpack": "^4.46.0"
   },
   "scripts": {

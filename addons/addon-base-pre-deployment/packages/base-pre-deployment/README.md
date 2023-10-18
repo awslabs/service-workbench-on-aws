@@ -3,11 +3,11 @@
 After you run
 
 ```
-$ pnpx sls deploy -s <stage>
+$ pnpx serverless deploy -s <stage>
 ```
 
 You can invoke lambda locally
 
 ```
-$ pnpx sls invoke local -f preDeployment -s <stage>
+$ pnpx serverless invoke local -f preDeployment -s <stage>
 ```

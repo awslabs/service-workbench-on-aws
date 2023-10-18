@@ -25,7 +25,7 @@ function componentRemove {
 
     printf "\Removing component: %s ...\n\n" "$COMPONENT_NAME"
     cd "$SOLUTION_DIR/$COMPONENT_DIR"
-    $EXEC sls remove -s "$STAGE"
+    $EXEC serverless remove -s "$STAGE"
 }
 
 componentRemove "prepare-master-acc" "Master Account"

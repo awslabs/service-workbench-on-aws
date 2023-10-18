@@ -8,5 +8,5 @@ security related HTTP headers in the response before serving the website content
 To deploy:
 
 ```bash
-$ pnpx sls deploy --stage <environment-name>
+$ pnpx serverless deploy --stage <environment-name>
 ```

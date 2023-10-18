@@ -10,7 +10,7 @@ install_dependencies "$@"
 
 function get_cicd_pipeline_artifacts_bucket_info() {
   pushd $SOLUTION_ROOT_DIR/cicd/cicd-pipeline
-  local pipeline_stack_name=$($EXEC sls info -s $STAGE | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+  local pipeline_stack_name=$($EXEC serverless info -s $STAGE | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
   popd
 
   echo "pipeline_stack_name=${pipeline_stack_name}"

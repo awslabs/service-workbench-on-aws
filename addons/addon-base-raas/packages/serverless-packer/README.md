@@ -14,7 +14,7 @@ All variables in the settings will be added as -var parameters into the packer b
 
 When installed as a [Serverless plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/), this provides the following CLI commands:
 
-### `pnpx sls build-image -s <STAGE> [--file]`
+### `pnpx serverless build-image -s <STAGE> [--file]`
 
 By convention, this looks in the `./config/infra` directory for a json file that starts with packer. This file is then used by packer to build the AMI.
 
