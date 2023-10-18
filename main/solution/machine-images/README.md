@@ -15,7 +15,7 @@ Support for the legacy version of RStudio has now been deprecated. The AMI and S
 To build Amazon Machine Images:
 
 ```bash
-$ pnpx sls build-image -s $STAGE
+$ pnpx serverless build-image -s $STAGE
 ```
 
 Note that if no configuration is provided the default VPC will be used to create AMIs, and if

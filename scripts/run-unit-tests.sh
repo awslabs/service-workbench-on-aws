@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-pnpm run test --recursive --if-present $@
+pnpm --recursive --if-present --filter @amzn/service-workbench-on-aws... run test $@

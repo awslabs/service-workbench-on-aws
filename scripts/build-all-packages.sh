@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-pnpm run build --recursive --if-present
+pnpm --recursive --if-present --filter @amzn/service-workbench-on-aws... run build

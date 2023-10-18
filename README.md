@@ -129,7 +129,7 @@ Following an initial successful deployment, you can subsequently deploy updates 
 
 ```bash
 cd main/solution/<component>
-pnpx sls deploy -s $STAGE
+pnpx serverless deploy -s $STAGE
 cd -
 ```
 
@@ -137,7 +137,7 @@ To run (rerun) the post-deployment steps:
 
 ```bash
 cd main/solution/post-deployment
-pnpx sls invoke -f postDeployment -s $STAGE
+pnpx serverless invoke -f postDeployment -s $STAGE
 cd -
 ```
 
@@ -145,9 +145,9 @@ To re-deploy the UI
 
 ```bash
 cd main/solution/ui
-pnpx sls package-ui --stage $STAGE --local=true
-pnpx sls package-ui --stage $STAGE
-pnpx sls deploy-ui --stage $STAGE --invalidate-cache=true
+pnpx serverless package-ui --stage $STAGE --local=true
+pnpx serverless package-ui --stage $STAGE
+pnpx serverless deploy-ui --stage $STAGE --invalidate-cache=true
 cd -
 ```
 
@@ -169,7 +169,7 @@ You will be running a local server that uses the same lambda functions code. To 
 
 ```bash
 cd main/solution/backend
-pnpx sls offline -s $STAGE
+pnpx serverless offline -s $STAGE
 cd -
 ```
 
@@ -177,7 +177,7 @@ Then, in a separate terminal, run the following commands to start the ui server 
 
 ```bash
 cd main/solution/ui
-pnpx sls start-ui -s $STAGE
+pnpx serverless start-ui -s $STAGE
 cd -
 ```
 
@@ -244,7 +244,7 @@ Pre-requisites: Before creating a workspace, you must setup Service Catalog. Ref
        `s/sha1:<salt1>:<hash1>/sha1:<salt2>:<hash2>/`
    3. Update `<salt2>` and `<hash2>` to match your password’s corresponding values.
    4. On your local repo, navigate to `main/solution/machine-images`.
-   5. Run `pnpx sls build-image -s <stage>` to create a new AMI for EMR environment types.
+   5. Run `pnpx serverless build-image -s <stage>` to create a new AMI for EMR environment types.
    6. Use the generated AMI ID in the environment type configuration key AmId. Your selected password becomes active.
 
    **Note:** EMR workspaces are not available if AppStream is enabled for the deployment.

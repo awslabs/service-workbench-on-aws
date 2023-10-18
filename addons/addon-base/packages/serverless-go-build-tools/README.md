@@ -35,10 +35,10 @@ This tool will build and deploy the golang targets after deployment. This functi
 
 When installed as a [Serverless plugin](https://serverless.com/framework/docs/providers/aws/guide/plugins/), this provides the following CLI commands:
 
-### `pnpx sls build-go -s <STAGE>`
+### `pnpx serverless build-go -s <STAGE>`
 
 This will just build the targets specified in the configuration
 
-### `pnpx sls deploy-go -s <STAGE>`
+### `pnpx serverless deploy-go -s <STAGE>`
 
 This command will build the targets specified and then upload the artifacts to S3.

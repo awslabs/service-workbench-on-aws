@@ -18,11 +18,11 @@ Build AMIs for EC2-based workspaces:
 1. Change to the directory `/service-workbench-on-aws/main/solutions/machine-images`:. Ensure that the environment variable `STAGE_NAME` has been set (or) replace `${STAGE_NAME}` with your stage file name without the extension. 
 2. Run the following command to start building AMIs
 
-      `pnpx sls build-image -s ${STAGE_NAME}`
+      `pnpx serverless build-image -s ${STAGE_NAME}`
 
       Example: 
       
-      `pnpx sls build-image -s dev`
+      `pnpx serverless build-image -s dev`
 
 2. Verify that the AMIs have been created by going to Amazon EC2 service console, select AMI in the left-hand navigation. You should see AMIs for EC2-LINUX, EC2-RSTUDIO, EC2-WINDOWS, and Amazon EMR.  
 

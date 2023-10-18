@@ -5,5 +5,5 @@
 To deploy:
 
 ```bash
-$ pnpx sls deploy --stage <stage name>
+$ pnpx serverless deploy --stage <stage name>
 ```

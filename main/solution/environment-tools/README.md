@@ -5,13 +5,13 @@ This package is used to build and deploy tools and artifacts used in environment
 ## Build and Packaging
 
 ```bash
-$ pnpx sls build-go -s <stage>
+$ pnpx serverless build-go -s <stage>
 ```
 
 ## Deployment
 
 ```bash
-$ pnpx sls deploy-go -s <stage>
+$ pnpx serverless deploy-go -s <stage>
 ```
 
 ## Overview of Lambda Functions
