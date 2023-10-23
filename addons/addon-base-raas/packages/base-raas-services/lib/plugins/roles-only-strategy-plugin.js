@@ -13,8 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-// const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
-
 /**
  * A plugin method to implement any specific logic for the 'roles only' access logic when a study is registered
  *
@@ -29,7 +27,6 @@ async function onStudyRegistration(payload) {
   const { requestContext, container, accountEntity, bucketEntity = {}, studyEntity = {} } = payload;
   // Allocating an application role is only applicable for bucket with access = 'roles'
   if (studyEntity.bucketAccess !== 'roles') return payload;
-  // const systemContext = getSystemRequestContext();
 
   const applicationRoleService = await container.find('roles-only/applicationRoleService');
   const appRole = await applicationRoleService.allocateRole(requestContext, accountEntity, bucketEntity, studyEntity);
