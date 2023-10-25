@@ -6,6 +6,7 @@
 **/pnpm-debug.log
 
 .pnpm-store/*
+**/.pnpm-store/*
 
 .build
 docs/build

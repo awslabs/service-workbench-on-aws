@@ -12,6 +12,8 @@ popd > /dev/null
 # Install
 install_dependencies "$@"
 
+export NODE_OPTIONS=--openssl-legacy-provider
+
 function disableStats {
   COMPONENT_DIR=$1
   pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
