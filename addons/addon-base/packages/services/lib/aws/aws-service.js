@@ -39,6 +39,7 @@ class AwsService extends Service {
       await this.prepareForLocal(this._sdk);
     } else {
       const AWSXRay = require('aws-xray-sdk');
+      AWSXRay.setContextMissingStrategy('LOG_ERROR');
       this._sdk = AWSXRay.captureAWS(this._sdk);
       this._sdk.config.update({
         customUserAgent: this.settings.get('customUserAgent'),

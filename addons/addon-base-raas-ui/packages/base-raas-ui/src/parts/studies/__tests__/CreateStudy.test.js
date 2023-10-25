@@ -91,7 +91,7 @@ describe('CreateStudy', () => {
       expect.hasAssertions();
     } catch (err) {
       expect(displayErrorMock.displayError).toHaveBeenCalled();
-      expect(err.message).toEqual("Cannot read property 'createStudy' of undefined");
+      expect(err.message).toEqual("Cannot read properties of undefined (reading 'createStudy')");
     }
   });
 });
