@@ -19,6 +19,7 @@
     "@amzn/base-workflow-ui": "workspace:*",
     "@amzn/environment-type-mgmt-ui": "workspace:*",
     "@amzn/key-pair-mgmt-ui": "workspace:*",
+    "@babel/runtime": "^7.9.0",
     "animate.css": "3.7.0",
     "aws-sdk": "^2.1228.0",
     "classnames": "^2.3.2",
@@ -64,8 +65,8 @@
     "serverless-deployment-bucket": "^1.6.0"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "INLINE_RUNTIME_CHUNK=false react-scripts build",
+    "start": "react-scripts --openssl-legacy-provider start",
+    "build": "INLINE_RUNTIME_CHUNK=false react-scripts --openssl-legacy-provider build",
     "test": "react-scripts test --watchAll=false --passWithNoTests --verbose --coverage",
     "test:watch": "react-scripts test --passWithNoTests --verbose --coverage",
     "eject": "react-scripts eject",

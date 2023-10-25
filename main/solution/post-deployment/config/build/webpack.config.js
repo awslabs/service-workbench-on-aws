@@ -30,10 +30,6 @@ module.exports = {
     hints: false,
   },
   devtool: 'nosources-source-map',
-  externals: [
-    /aws-sdk/, // Available on AWS Lambda
-    // slsw.lib.webpack.isLocal && nodeExternals(), // Do NOT uncomment this line
-  ], // .filter(x => !!x),
   plugins,
   node: {
     __dirname: false,
