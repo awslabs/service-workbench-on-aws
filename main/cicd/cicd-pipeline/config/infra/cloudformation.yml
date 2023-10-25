@@ -815,7 +815,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Type: LINUX_CONTAINER
-        Image: aws/codebuild/standard:5.0
+        Image: aws/codebuild/standard:7.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
             Value: ${self:provider.deploymentBucket.name}
@@ -844,7 +844,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Type: LINUX_CONTAINER
-        Image: aws/codebuild/standard:5.0
+        Image: aws/codebuild/standard:7.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
             Value: ${self:provider.deploymentBucket.name}
@@ -871,7 +871,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Type: LINUX_CONTAINER
-        Image: aws/codebuild/standard:5.0
+        Image: aws/codebuild/standard:7.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
             Value: ${self:provider.deploymentBucket.name}
@@ -898,7 +898,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Type: LINUX_CONTAINER
-        Image: aws/codebuild/standard:5.0
+        Image: aws/codebuild/standard:7.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
             Value: ${self:provider.deploymentBucket.name}
@@ -926,7 +926,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Type: LINUX_CONTAINER
-        Image: aws/codebuild/standard:5.0
+        Image: aws/codebuild/standard:7.0
         EnvironmentVariables:
           - Name: DEPLOYMENT_BUCKET
             Value: ${self:provider.deploymentBucket.name}
@@ -953,7 +953,7 @@ Resources:
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Type: LINUX_CONTAINER
-        Image: aws/codebuild/standard:5.0
+        Image: aws/codebuild/standard:7.0
       ServiceRole: !GetAtt AppDeployerRole.Arn
       QueuedTimeoutInMinutes: 180
       TimeoutInMinutes: 90
