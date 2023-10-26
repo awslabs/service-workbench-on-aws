@@ -54,7 +54,7 @@
     "js-yaml-loader": "^1.2.2",
     "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
-    "serverless": "^3.22.0",
+    "serverless": "^3.34.0",
     "serverless-deployment-bucket": "^1.6.0",
     "serverless-plugin-ifelse": "^1.0.7",
     "serverless-s3-sync": "^1.17.3",

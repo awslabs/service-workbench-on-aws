@@ -14,6 +14,6 @@
     "@amzn/serverless-go-build-tools": "workspace:*",
     "@amzn/base-serverless-settings-helper": "workspace:*",
     "@amzn/s3-synchronizer": "workspace:*",
-    "serverless": "^3.22.0"
+    "serverless": "^3.34.0"
   }
 }
