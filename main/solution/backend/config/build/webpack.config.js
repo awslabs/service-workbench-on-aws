@@ -15,7 +15,6 @@
 
 const CopyPlugin = require('copy-webpack-plugin'); // see https://github.com/boazdejong/webpack-plugin-copy
 const slsw = require('serverless-webpack');
-const nodeExternals = require('webpack-node-externals');
 
 const plugins = [new CopyPlugin([])];
 
