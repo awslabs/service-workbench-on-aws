@@ -15,6 +15,7 @@
 
 const CopyPlugin = require('copy-webpack-plugin'); // see https://github.com/boazdejong/webpack-plugin-copy
 const slsw = require('serverless-webpack');
+const nodeExternals = require('webpack-node-externals');
 
 const plugins = [new CopyPlugin([])];
 
@@ -29,6 +30,10 @@ module.exports = {
     hints: false,
   },
   devtool: 'nosources-source-map',
+  externals: [
+    /aws-sdk/, // Available on AWS Lambda
+    slsw.lib.webpack.isLocal && nodeExternals(),
+  ].filter(x => !!x),
   plugins,
   node: {
     __dirname: false,
