@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const fetch = require('node-fetch');
 const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
 const Logger = require('@amzn/base-services/lib/logger/logger-service');
@@ -144,6 +145,9 @@ describe('EnvironmentScConnectionService', () => {
           },
         },
       };
+      const currentIpAddress = await fetch('http://checkip.amazonaws.com/').then(function(res) {
+        return res.text();
+      });
       const newPolicy = {
         Statement: [
           {
@@ -162,13 +166,13 @@ describe('EnvironmentScConnectionService', () => {
             Resource: connection.notebookArn,
             Condition: {
               IpAddress: {
-                'aws:SourceIp': expect.any(String),
+                'aws:SourceIp': `${currentIpAddress.trim()}/32`,
               },
             },
           },
         ],
       };
-      iamMock.putRolePolicy = jest.fn(() => {
+      service.putRolePolicy = jest.fn(() => {
         return {
           promise: () => {},
         };
@@ -182,14 +186,7 @@ describe('EnvironmentScConnectionService', () => {
       });
 
       // CHECK
-      expect(iamMock.putRolePolicy).toHaveBeenCalledTimes(1);
-      expect(iamMock.putRolePolicy.mock.calls[0][0]).toEqual(
-        expect.objectContaining({
-          RoleName: 'presigned-role',
-          PolicyName: 'presigned-url-access',
-        }),
-      );
-      expect(JSON.parse(iamMock.putRolePolicy.mock.calls[0][0].PolicyDocument)).toEqual(newPolicy);
+      expect(service.putRolePolicy).toHaveBeenCalledWith(iamMock, connection, JSON.stringify(newPolicy));
     });
   });
 
