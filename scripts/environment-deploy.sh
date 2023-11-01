@@ -12,7 +12,7 @@ popd > /dev/null
 # Install
 install_dependencies "$@"
 
-export NODE_OPTIONS=--openssl-legacy-provider
+export NODE_OPTIONS="--openssl-legacy-provider --max_old_space_size=8172"
 
 function disableStats {
   COMPONENT_DIR=$1
