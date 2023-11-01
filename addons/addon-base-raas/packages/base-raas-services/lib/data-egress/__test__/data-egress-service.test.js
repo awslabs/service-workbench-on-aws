@@ -359,6 +359,7 @@ describe('DataEgressService', () => {
           Policy: JSON.stringify(s3Policy),
         });
       });
+      AWSMock.mock('S3', 'putObject', () => {});
 
       const createPolicyArn = 'test-policy-arn';
       AWSMock.mock('IAM', 'createPolicy', (params, callback) => {
