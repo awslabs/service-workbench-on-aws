@@ -38,8 +38,6 @@ module.exports = (on, config) => {
   // Clipboard test plugin
   on('task', {
     // Clipboard test plugin
-    getClipboard: () => {
-      return clipboardy.readSync();
-    },
+    getClipboard: () => clipboardy.readSync(),
   });
 };

@@ -6,18 +6,18 @@
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "scripts": {
-    "cypress:open:local": "CYPRESS_BASE_URL=http://localhost:3000 cypress open -C cypress.dev.json",
-    "cypress:open:dev": "cypress open -C cypress.dev.json",
-    "cypress:run-tests:local": "CYPRESS_BASE_URL=http://localhost:3000 cypress run -C cypress.dev.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
-    "cypress:run-tests:dev": "cypress run -C cypress.dev.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
-    "cypress:run-tests:mainline": "cypress run -C cypress.mainline.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
-    "cypress:run-tests:develop": "cypress run -C cypress.develop.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
-    "cypress:run-tests:mainline-tre": "cypress run -C cypress.mainline-tre.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*",
-    "cypress:run-tests:develop-tre": "cypress run -C cypress.develop-tre.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*",
-    "cypress:open:local:appstream-egress-enabled": "CYPRESS_BASE_URL=http://localhost:3000 cypress open -C cypress.dev.appstream-egress.json",
-    "cypress:open:dev:appstream-egress-enabled": "cypress open -C cypress.dev.appstream-egress.json",
-    "cypress:run-tests:local:appstream-egress-enabled": "CYPRESS_BASE_URL=http://localhost:3000 cypress run -C cypress.dev.appstream-egress.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*",
-    "cypress:run-tests:dev:appstream-egress-enabled": "cypress run -C cypress.dev.appstream-egress.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*"
+    "cypress:open:local": "CYPRESS_BASE_URL=http://localhost:3000 cypress open -C cypress.dev.config.js",
+    "cypress:open:dev": "cypress open -C cypress.dev.config.js",
+    "cypress:run-tests:local": "CYPRESS_BASE_URL=http://localhost:3000 cypress run -C cypress.dev.config.js --spec cypress/e2e/common/*,cypress/e2e/appstream-egress-disabled/*",
+    "cypress:run-tests:dev": "cypress run -C cypress.dev.config.js --spec cypress/e2e/common/*,cypress/e2e/appstream-egress-disabled/*",
+    "cypress:run-tests:mainline": "cypress run -C cypress.mainline.config.js --spec cypress/e2e/common/*,cypress/e2e/appstream-egress-disabled/*",
+    "cypress:run-tests:develop": "cypress run -C cypress.develop.config.js --spec cypress/e2e/common/*,cypress/e2e/appstream-egress-disabled/*",
+    "cypress:run-tests:mainline-tre": "cypress run -C cypress.mainline-tre.config.js --spec cypress/e2e/common/*,cypress/e2e/appstream-egress-enabled/*",
+    "cypress:run-tests:develop-tre": "cypress run -C cypress.develop-tre.config.js --spec cypress/e2e/common/*,cypress/e2e/appstream-egress-enabled/*",
+    "cypress:open:local:appstream-egress-enabled": "CYPRESS_BASE_URL=http://localhost:3000 cypress open -C cypress.dev.appstream-egress.config.js",
+    "cypress:open:dev:appstream-egress-enabled": "cypress open -C cypress.dev.appstream-egress.config.js",
+    "cypress:run-tests:local:appstream-egress-enabled": "CYPRESS_BASE_URL=http://localhost:3000 cypress run -C cypress.dev.appstream-egress.config.js --spec cypress/e2e/common/*,cypress/e2e/appstream-egress-enabled/*",
+    "cypress:run-tests:dev:appstream-egress-enabled": "cypress run -C cypress.dev.appstream-egress.config.js --spec cypress/e2e/common/*,cypress/e2e/appstream-egress-enabled/*"
   },
   "husky": {
     "hooks": {

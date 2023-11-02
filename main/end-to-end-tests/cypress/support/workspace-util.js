@@ -138,5 +138,5 @@ module.exports = {
   checkDetailsTable,
   checkWorkspaceAvailableAndClickConnectionsButton,
   checkWorkspaceAvailable,
-  checkWorkspaceAutoStop
+  checkWorkspaceAutoStop,
 };
