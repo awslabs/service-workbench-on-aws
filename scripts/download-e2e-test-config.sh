@@ -9,8 +9,8 @@ popd > /dev/null
 DEPLOYMENT_BUCKET="${1}"
 ENV_NAME="${2}"
 
-CONFIG_S3_PATH="s3://${DEPLOYMENT_BUCKET}/e2e-test-configs/cypress.${ENV_NAME}.json"
-CONFIG_TARGET_PATH="$E2E_TEST_DIR/cypress.${ENV_NAME}.json"
+CONFIG_S3_PATH="s3://${DEPLOYMENT_BUCKET}/e2e-test-configs/cypress.${ENV_NAME}.config.js"
+CONFIG_TARGET_PATH="$E2E_TEST_DIR/cypress.${ENV_NAME}.config.js"
 
 echo "Checking config file ${CONFIG_TARGET_PATH}"
 if [ -e "${CONFIG_TARGET_PATH}" ]; then
