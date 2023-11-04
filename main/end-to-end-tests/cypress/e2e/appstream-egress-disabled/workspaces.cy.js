@@ -18,12 +18,12 @@ import {
   navigateToWorkspaces,
   checkDetailsTable,
   checkWorkspaceAvailable,
-  checkWorkspaceAutoStop
+  checkWorkspaceAutoStop,
 } from '../../support/workspace-util';
 
 describe('Launch a workspace', () => {
   before(() => {
-    cy.login('researcher');
+    cy.login('admin');
     navigateToWorkspaces();
     terminateWorkspaces();
   });
@@ -36,6 +36,8 @@ describe('Launch a workspace', () => {
     // eslint-disable-next-line cypress/no-unnecessary-waiting
     const workspaces = Cypress.env('workspaces');
     const rstudioServer = workspaces.rstudioServer;
+    cy.login('researcher');
+    navigateToWorkspaces();
     const workspaceName = launchWorkspace(rstudioServer, 'RStudio-Server');
     checkDetailsTable(workspaceName);
     checkWorkspaceAvailable(workspaceName);
@@ -44,6 +46,8 @@ describe('Launch a workspace', () => {
   it('should launch a new sagemaker workspace and auto-stops correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const sagemaker = workspaces.sagemaker;
+    cy.login('researcher');
+    navigateToWorkspaces();
     const workspaceName = launchWorkspace(sagemaker, 'Sagemaker');
     checkDetailsTable(workspaceName);
     checkWorkspaceAvailable(workspaceName);
@@ -55,6 +59,8 @@ describe('Launch a workspace', () => {
   it('should launch a new ec2 Linux workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const ec2 = workspaces.ec2;
+    cy.login('researcher');
+    navigateToWorkspaces();
     const workspaceName = launchWorkspace(ec2.linux, 'Linux');
     checkDetailsTable(workspaceName);
     checkWorkspaceAvailable(workspaceName);
@@ -63,6 +69,8 @@ describe('Launch a workspace', () => {
   it('should launch a new ec2 Windows workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const ec2 = workspaces.ec2;
+    cy.login('researcher');
+    navigateToWorkspaces();
     const workspaceName = launchWorkspace(ec2.windows, 'Windows');
     checkDetailsTable(workspaceName);
     checkWorkspaceAvailable(workspaceName);
@@ -71,6 +79,8 @@ describe('Launch a workspace', () => {
   it('should launch a new emr workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const emr = workspaces.emr;
+    cy.login('researcher');
+    navigateToWorkspaces();
     const workspaceName = launchWorkspace(emr, 'EMR');
     checkDetailsTable(workspaceName);
     checkWorkspaceAvailable(workspaceName, 2000000);
