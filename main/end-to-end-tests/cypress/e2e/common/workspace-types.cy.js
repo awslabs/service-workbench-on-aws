@@ -15,18 +15,15 @@
  */
 
 describe('Check that variables prepopulate when making a new configuration', () => {
-  before(() => {
-    cy.login('admin');
-    navigateToWorkspaceTypes();
-  });
-
   const navigateToWorkspaceTypes = () => {
+    cy.login('admin');
     cy.get('.left.menu')
       .contains('Types')
       .click();
   };
 
   it('should display a portfolio id', () => {
+    navigateToWorkspaceTypes();
     cy.get('[data-testid=portfolio-id]').contains('Portfolio Id: ');
   });
 
