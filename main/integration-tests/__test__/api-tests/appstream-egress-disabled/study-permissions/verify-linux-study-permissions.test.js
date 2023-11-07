@@ -103,7 +103,7 @@ describe('EC2 Linux scenarios', () => {
       await setup.cleanup();
     });
 
-    it('should propagate for BYOB Study', async () => {
+    it('should lose access to BYOB Study once user permissions are updated', async () => {
       const { adminSession, admin2Session, keyPair } = await testSetup();
       const externalStudy = setup.defaults.byobStudy;
       const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
@@ -124,8 +124,9 @@ describe('EC2 Linux scenarios', () => {
         .versions('wf-provision-environment-sc')
         .version(1)
         .findAndPollWorkflow(env.id, 10000, 60);
+
       // Connect to workspace
-      const networkInfo = await admin2Session.resources.workspaceServiceCatalogs
+      let networkInfo = await admin2Session.resources.workspaceServiceCatalogs
         .workspaceServiceCatalog(env.id) // env.id
         .connections()
         .connection('id-1')
@@ -150,8 +151,39 @@ describe('EC2 Linux scenarios', () => {
       await adminSession.resources.studies
         .study(externalStudy)
         .propagatePermission(admin2Session, ['readonly'], ['readwrite']);
-      output = await readWrite(ssh, externalStudy);
-      expect(output.stderr).toEqual(expect.stringMatching(/reading directory .: Permission denied/));
+
+      await sleep(60000);
+
+      // Stop and start instance
+      await admin2Session.resources.workspaceServiceCatalogs.workspaceServiceCatalog(env.id).stop();
+      // Poll until workspace is stopped
+      await sleep(2000);
+      await adminSession.resources.workflows
+        .versions('wf-stop-ec2-environment-sc')
+        .version(1)
+        .findAndPollWorkflow(env.id, 10000, 60);
+      await admin2Session.resources.workspaceServiceCatalogs.workspaceServiceCatalog(env.id).start();
+      // Poll until workspace is started
+      await sleep(2000);
+      await adminSession.resources.workflows
+        .versions('wf-start-ec2-environment-sc')
+        .version(1)
+        .findAndPollWorkflow(env.id, 10000, 60);
+
+      networkInfo = await admin2Session.resources.workspaceServiceCatalogs
+        .workspaceServiceCatalog(env.id) // env.id
+        .connections()
+        .connection('id-1')
+        .sendSshPublicKey({ keyPairId: keyPair.id });
+
+      await ssh.connect({
+        host: networkInfo.networkInterfaces[0].publicDnsName,
+        username: 'ec2-user',
+        privateKey: keyPair.privateKey,
+      });
+
+      output = await mountStudies(ssh, externalStudy);
+      expect(output.stderr).toContain('main.FATAL Unable to mount file system, see syslog for details');
 
       await ssh.dispose();
       // Removes user permission
