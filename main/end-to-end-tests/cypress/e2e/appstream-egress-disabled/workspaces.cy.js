@@ -23,7 +23,7 @@ import {
 
 describe('Launch a workspace', () => {
   before(() => {
-    cy.login('admin');
+    cy.login('researcher');
     navigateToWorkspaces();
     terminateWorkspaces();
   });

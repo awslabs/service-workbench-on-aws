@@ -13,7 +13,7 @@ To change permissions for an organization's Study:
 2.	Click the pencil icon beside the Users level.
 3.	Update permissions as needed.
 
-**Note**: Changing a user’s permissions for an external Study results in all existing workspaces for that user losing all access to the Study. This will be addressed in a future release.
+**Note**: Changing a user’s permissions for an external study results in all existing workspaces for that user losing all access to the study. The previously assigned external study permission in a given user's workspace could prevail throughout any ongoing sessions before such a loss of access occurs. Therefore in the scenario of study permission revocation for a given user, please have an SWB admin stop and start those users' workspaces (if any) which have that external study mounted.
 
 ### Creating a Study and uploading files
 To create a Study:

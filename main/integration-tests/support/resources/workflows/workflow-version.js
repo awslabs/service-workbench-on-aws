@@ -81,7 +81,7 @@ class WorkflowVersion extends Resource {
   async findAndPollWorkflow(envId, interval, maxCount) {
     const workflows = await this.instances().get();
     const foundWf = _.filter(workflows, wf => {
-      return wf.input.envId === envId;
+      return wf.input.envId ? wf.input.envId === envId : wf.input.environmentId === envId;
     })[0];
     await this.waitUntilComplete(foundWf.id, interval, maxCount);
   }
