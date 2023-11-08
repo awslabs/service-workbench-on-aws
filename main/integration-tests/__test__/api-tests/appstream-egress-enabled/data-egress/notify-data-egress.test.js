@@ -55,7 +55,7 @@ describe('Create URL scenarios', () => {
       const body = { id: nonEmptyEgressEnvId };
       const expected = {
         egress_store_id: nonEmptyEgressEnvId,
-        egress_store_name: 'AppStream-Egress-Linux-egress-store',
+        egress_store_name: 'Do-Not-Delete-Linux-egress-store',
         project_id: projectId,
         s3_bucketname: egressBucketName,
         s3_bucketpath: `${nonEmptyEgressEnvId}/`,
