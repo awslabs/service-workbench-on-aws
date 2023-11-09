@@ -288,8 +288,10 @@ Resources:
         - Name: Hadoop
         - Name: Hive
         - Name: Spark
+        - Name: JupyterHub
       CustomAmiId:
         Ref: AmiId
+      EbsRootVolumeSize: 20
       Configurations:
         - Classification: spark
           ConfigurationProperties:
