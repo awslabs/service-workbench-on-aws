@@ -179,7 +179,7 @@ class CreateInternalEnvForm extends React.Component {
           {({ processing, onCancel }) => (
             <>
               <Input dataTestId="workspace-name" field={form.$('name')} />
-              {shouldAskforCidr && <Input field={cidrField} />}
+              {shouldAskforCidr && <Input field={cidrField} dataTestId="cidr" />}
               {shouldAskforCidr && !_.isEmpty(cidrField.value) && cidrField.value.split('/')[1] <= 16 && (
                 <Message
                   className="mb4"
