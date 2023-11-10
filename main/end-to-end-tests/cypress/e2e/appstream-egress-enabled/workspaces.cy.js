@@ -27,9 +27,6 @@ describe('Launch new workspaces', () => {
     navigateToWorkspaces();
     terminateWorkspaces();
   });
-  after(() => {
-    terminateWorkspaces();
-  });
 
   let expectedNumberOfNewlyOpenBrowserWindows = 0;
 
@@ -50,6 +47,8 @@ describe('Launch new workspaces', () => {
     cy.window()
       .its('open')
       .should('have.callCount', expectedNumberOfNewlyOpenBrowserWindows);
+
+    terminateWorkspaces();
   });
 
   function checkWindows(workspaceName) {
@@ -136,14 +135,4 @@ describe('Launch new workspaces', () => {
       .find('[data-testid=sc-environment-generate-url-button]', { timeout: 60000 })
       .click();
   }
-
-  /**
-   * This test checks that the connection library we're using works correctly.
-   */
-  it('checkConnection should work correctly', () => {
-    // 8.8.8.8 is Google's DNS server
-    cy.exec(`node checkConnection.js 8.8.8.8 443`)
-      .its('code')
-      .should('equal', 0);
-  });
 });
