@@ -79,11 +79,11 @@ You can view the online documentation if you do not have Service Workbench local
 
 ## Software requirements
 
-- **Node.Js:** [Node.js v14.x](https://nodejs.org/en/) or later is required.
+- **Node.Js:** [Node.js v18.x](https://nodejs.org/en/) or later is required.
 - **PNPM:** Install [pnpm](https://pnpm.js.org/en/) as follows
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@latest-8
 ```
 
 - **Go:** You also need to install [Go 1.13.7](https://golang.org/doc/install) or later. `Go` is used for creating a multipart S3 downloader tool that is used in AWS Service Catalog EC2 Windows based research environments.
