@@ -3439,9 +3439,6 @@ importers:
       pretty-quick:
         specifier: ^1.11.1
         version: 1.11.1(prettier@1.19.1)
-      tcp-ping:
-        specifier: ^0.1.1
-        version: 0.1.1
 
   main/infrastructure-tests:
     dependencies:
@@ -23811,10 +23808,6 @@ packages:
       minizlib: 2.1.2
       mkdirp: 1.0.4
       yallist: 4.0.0
-    dev: true
-
-  /tcp-ping@0.1.1:
-    resolution: {integrity: sha512-7Ed10Ds0hYnF+O1lfiZ2iSZ1bCAj+96Madctebmq7Y1ALPWlBY4YI8C6pCL+UTlshFY5YogixKLpgDP/4BlHrw==}
     dev: true
 
   /terminal-link@2.1.1:
