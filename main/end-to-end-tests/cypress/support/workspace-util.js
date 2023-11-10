@@ -35,7 +35,7 @@ function terminateWorkspaces() {
   });
 }
 
-function launchWorkspace(workspaceParam, workspaceType) {
+function launchWorkspace(workspaceParam, workspaceType, isAppStreamEnabled = false) {
   navigateToWorkspaces();
 
   cy.get('[data-testid=workspaces]');
@@ -57,6 +57,12 @@ function launchWorkspace(workspaceParam, workspaceType) {
   const randomNumber = Math.floor(Math.random() * 1000);
   const workspaceName = `CypressTest${workspaceType}Workspace-${randomNumber}`;
   cy.get('[data-testid=workspace-name] input').type(workspaceName);
+
+  if (!isAppStreamEnabled) {
+    const cidr = '1.1.1.1/32'; // assign a sample CIDR range for one IP
+    cy.get('[data-testid=cidr] input').clear();
+    cy.get('[data-testid=cidr] input').type(cidr);
+  }
 
   // Select project id
   cy.get('[data-testid=project-id]').click();

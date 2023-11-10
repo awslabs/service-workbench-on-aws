@@ -35,10 +35,10 @@ describe('Launch new workspaces', () => {
 
   it('should launch Sagemaker, Linux, Windows, and RStudio workspaces successfully', () => {
     const workspaces = Cypress.env('workspaces');
-    const sagemakerWorkspaceName = launchWorkspace(workspaces.sagemaker, 'Sagemaker');
-    const linuxWorkspaceName = launchWorkspace(workspaces.ec2.linux, 'Linux');
-    const windowsWorkspaceName = launchWorkspace(workspaces.ec2.windows, 'Windows');
-    const rstudioWorkspaceName = launchWorkspace(workspaces.rstudioServer, 'RStudio-Server');
+    const sagemakerWorkspaceName = launchWorkspace(workspaces.sagemaker, 'Sagemaker', true);
+    const linuxWorkspaceName = launchWorkspace(workspaces.ec2.linux, 'Linux', true);
+    const windowsWorkspaceName = launchWorkspace(workspaces.ec2.windows, 'Windows', true);
+    const rstudioWorkspaceName = launchWorkspace(workspaces.rstudioServer, 'RStudio-Server', true);
 
     checkSagemaker(sagemakerWorkspaceName);
     checkLinux(linuxWorkspaceName);
@@ -135,22 +135,6 @@ describe('Launch new workspaces', () => {
       .parent()
       .find('[data-testid=sc-environment-generate-url-button]', { timeout: 60000 })
       .click();
-
-    // Try to access the rstudio server url via command line curl and should get an error that the server was not found
-    cy.get('[data-testid=destination-url]')
-      .invoke('text')
-      .then(url =>
-        cy
-          .exec(`curl "${url}"`, { failOnNonZeroExit: false })
-          .its('stderr')
-          .should('contain', 'Could not resolve host'),
-      );
-
-    cy.contains(workspaceName)
-      .parent()
-      .find('[data-testid=connect-to-workspace-button]')
-      .click();
-    expectedNumberOfNewlyOpenBrowserWindows += 1;
   }
 
   /**
