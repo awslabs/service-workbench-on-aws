@@ -41,7 +41,6 @@
     "lodash": "^4.17.21",
     "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
-    "tcp-ping": "^0.1.1",
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-react": "^7.28.0"
   },
