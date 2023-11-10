@@ -64,13 +64,13 @@ Type `node --version`
 
 To install long-term support version, enter:
 
-`nvm install 16`
+`nvm install 18`
 
 ### Installing Node Package Manager
 
 <a name="npm"></a>
 
-`npm install –g pnpm`
+`npm install –g pnpm@latest-8`
 
 #### Verify the Go version
 
