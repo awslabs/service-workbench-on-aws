@@ -2,6 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+
 ### [6.2.0](https://git.amazon.com/pkg/Service-Workbench-on-AWS/compare/v6.1.0...v6.1.2) (2023-11-10)
 
 In this release, we have addressed GitHub dependabot alerts, upgraded NodeJS to v18, and added IMDSv2 support on AMI creation
