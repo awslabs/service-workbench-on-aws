@@ -2,30 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [6.2.0](https://git.amazon.com/pkg/Service-Workbench-on-AWS/compare/v6.1.0...v6.1.2) (2023-11-10)
+### [6.2.0](https://github.com/awslabs/service-workbench-on-aws/compare/v6.1.1...v6.2.0) (2023-11-10)
 
 In this release, we have addressed GitHub dependabot alerts, upgraded NodeJS to v18, and added IMDSv2 support on AMI creation
 ### Bug Fixes
 
-* add missing dependency ([e05dbf1](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/e05dbf1b8620f09fce4c9ea1a799c5846cf2e077))
-* babel and integ test byob study permission ([4e76c49](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/4e76c4917925d3effc99f8197d571bdbc3f86ce6))
-* backend lambda sdk package ([ab571e8](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/ab571e83ba49fd5ae442aa99c96f305426d97157))
-* clear cidr field ([2c7ed94](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/2c7ed94a8122ea0fdadf20683c6127dc07f999a3))
-* lock file for postcss package ([e5743eb](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/e5743eb1364a5af53b2130cf03d539a3028eab8f))
-* minimum patched version of go ([b2d49ba](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/b2d49ba0a5db9df8b0e95df3a3b56a5e98c35245))
-* node version upgrade for CICD ([5460f3c](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/5460f3c7eb48280ff5ee133f50f83f10c5b23b14))
-* remove nodeExternals webpack ([f95c60b](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/f95c60bf6b5d1aa006efa97a985b00103cdf014e))
-* remove nodeExternals ([d6fd362](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/d6fd362bc07bf1e16a1a3c983bff4a7cc2786ab0))
-* revert unit test change, update s3 mock ([cc4ef74](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/cc4ef74598460a56927beec4b0c5d2776caebbfb))
-* semver package version ([dc6e2ea](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/dc6e2ea87ed3cc7c6249d7efb537115ff63b71b7))
-* undo babel update, integ test fix ([a71bddb](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/a71bddb0618b60d5dfb8cf3fcc72de8a3c0472bd))
-* undo postcss version update ([f28402b](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/f28402be80cdee01c9688d5e1a6b2f7e3a5ec36a))
-* unit tests for nodeJS16 onwards ([a050e07](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/a050e07ee3fe7d749d1824415a6125eae794df80))
-* update node max space ([27a06ec](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/27a06ecf41090b3b37a1ba656693f40ffd842564))
-* update unit test ([103e279](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/103e279e65deacf62b1b261f493dd9112af514d9))
-* upgrades + modifications for pnpm upgrade ([9024f61](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/9024f61d25d0c7f96d2caffe6ce26a6b0d22cbba))
-* use principal.username ([#1232](https://git.amazon.com/pkg/Service-Workbench-on-AWS/issues/1232)) ([c61e8c8](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/c61e8c8cd12ca9b95f2fa62fa8705c709643252d))
-* use system context ([e2c0f72](https://git.amazon.com/pkg/Service-Workbench-on-AWS/commit/e2c0f72b7a67bc58d78a71675e793d62653719ba))
+* add missing dependency ([ffb437a](https://github.com/awslabs/service-workbench-on-aws/commit/ffb437afffd76d3d200e72f9e61e4a571554b369))
+* backend lambda sdk package ([e08dab3](https://github.com/awslabs/service-workbench-on-aws/commit/e08dab3de8e027650dbc08a4a57b35eeea880664))
+* minimum patched version of go ([36e7714](https://github.com/awslabs/service-workbench-on-aws/commit/36e77145ce674b4f6eab55f15f61bcb1b36f22b5))
+* upgrade to node18 ([fb39c08](https://github.com/awslabs/service-workbench-on-aws/commit/fb39c08c8d14c9e7f7b7928326280970d317982d))
+* remove nodeExternals webpack ([c31d7a9](https://github.com/awslabs/service-workbench-on-aws/commit/c31d7a9c34ec6329ccd0dc63e493ed04acb62dec))
+* semver package version ([d51d2bc](https://github.com/awslabs/service-workbench-on-aws/commit/d51d2bc3d7c0bae45868b6e221a0b62b94523890))
+* unit tests for nodeJS16 onwards ([c8b3709](https://github.com/awslabs/service-workbench-on-aws/commit/c8b37092bb5c363a92feb23b64897886acca1e6a))
+* update node max space ([8839635](https://github.com/awslabs/service-workbench-on-aws/commit/883963525f3dbdb6607d2cdc3c8b393bd040cfcc))
+* upgrades + modifications for pnpm upgrade ([bbc8933](https://github.com/awslabs/service-workbench-on-aws/commit/bbc8933d321927ff43649598f70ebc912680b263))
+* use principal.username ([e21163f](https://github.com/awslabs/service-workbench-on-aws/commit/e21163fd21bca4bd36c07b6fd9eda7477fe4ad78))
+* use system context ([bee9675](https://github.com/awslabs/service-workbench-on-aws/commit/bee967512a0a8cb5c3a4ea90a8a0e6bed2deaa34))
 
 ### [6.1.1](https://github.com/awslabs/service-workbench-on-aws/compare/v6.1.0...v6.1.1) (2023-10-16)
 
