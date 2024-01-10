@@ -50,7 +50,7 @@ To create an account:
      + The External ID is workbench by default. See [IAM](/deployment/reference/aws_services#Organizations) for information on how to configure this to another value.
 2. During processing, the following information displays in the **AWS Accounts** tab:
      + ‘Trying to create accountID: xxx’
-     + A workflow in progress in **Workflows > Provision Account** (see [Workflows](http://swb-documentation.s3-website-us-east-1.amazonaws.com/user_guide/sidebar/admin/workflows/introduction)
+     + A workflow in progress in **Workflows > Provision Account**
 
      **Note**: If instead you see an error message such as, `Stop Internal State Account ID not found`, check that there is an AWS Organization in the console of your organizational account, if deploying Service Workbench in the organizational account. If you are deploying in a member account, check and ensure that you followed the steps described in [Preparing the organizational account](/deployment/reference/prepare_master_account).
 
