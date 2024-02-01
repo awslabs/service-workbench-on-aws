@@ -1,5 +1,9 @@
 # Service Workbench on AWS
 
+## Maintenance Notice
+
+Service Workbench on AWS has been moved to maintenance mode. While in maintenance, we will not add new features to this solution guidance. Security engagement should be directed to AWS Security at aws-security@amazon.com. If you are new to Service Workbench on AWS, we recommend that you explore using Research and Engineering Studio on AWS (https://aws.amazon.com/hpc/res/). You can get started by following instructions in the Research and Engineering Studio User Guide (https://docs.aws.amazon.com/res/latest/ug/overview.html). If you are an existing customer of Service Workbench on AWS and have additional questions or need immediate help, please contact your AWS Account team.
+
 ## Overview
 
 Service Workbench on AWS is a cloud solution that enables IT teams to provide secure, repeatable, and federated control of access to data, tooling, and compute power that researchers need. With Service Workbench, researchers no longer have to worry about navigating cloud infrastructure. They can focus on
