@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.2.1](https://github.com/awslabs/service-workbench-on-aws/compare/v6.2.0...v6.2.1) (2024-02-08)
+## Maintenance Notice
+
+Service Workbench on AWS has been moved to maintenance mode. While in maintenance, we will not add new features to this solution guidance. Security engagement should be directed to AWS Security at aws-security@amazon.com. If you are new to Service Workbench on AWS, we recommend that you explore using Research and Engineering Studio on AWS (https://aws.amazon.com/hpc/res/). You can get started by following instructions in the Research and Engineering Studio User Guide (https://docs.aws.amazon.com/res/latest/ug/overview.html). If you are an existing customer of Service Workbench on AWS and have additional questions or need immediate help, please contact your AWS Account team.
+
 ### [6.2.0](https://github.com/awslabs/service-workbench-on-aws/compare/v6.1.1...v6.2.0) (2023-11-10)
 
 In this release, we have addressed GitHub dependabot alerts, upgraded NodeJS to v18, and added IMDSv2 support on AMI creation
