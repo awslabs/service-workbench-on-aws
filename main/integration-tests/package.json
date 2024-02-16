@@ -25,7 +25,7 @@
   "dependencies": {
     "@amzn/base-services": "workspace:*",
     "aws-sdk": "^2.1228.0",
-    "axios": "^0.21.4",
+    "axios": "^1.6.0",
     "chance": "^1.1.8",
     "fs-extra": "^9.1.0",
     "generate-password": "^1.7.0",

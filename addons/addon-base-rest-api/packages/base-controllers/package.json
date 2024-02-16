@@ -9,7 +9,7 @@
     "@amzn/base-api-services": "workspace:*",
     "@amzn/base-services": "workspace:*",
     "@amzn/base-services-container": "workspace:*",
-    "axios": "^0.21.4",
+    "axios": "^1.6.0",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
