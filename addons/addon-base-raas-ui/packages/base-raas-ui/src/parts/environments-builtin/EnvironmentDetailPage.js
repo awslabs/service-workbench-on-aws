@@ -36,7 +36,7 @@ import {
 } from 'semantic-ui-react';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 
-import NodeRSA from 'node-rsa'
+import NodeRSA from 'node-rsa';
 
 import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
@@ -465,15 +465,11 @@ class EnvironmentDetailPage extends React.Component {
     const environment = this.getEnvironment();
     const [{ privateKey }, { passwordData }] = await environment.getWindowsPassword();
 
-    const keyRSA = new NodeRSA(
-      privateKey,
-      "private",
-      {
-        environment: "browser",
-        encryptionScheme: "pkcs1",
-      }
-    );
-    const password = keyRSA.decrypt(Buffer.from(passwordData, "base64"), "buffer").toString('utf8');
+    const keyRSA = new NodeRSA(privateKey, 'private', {
+      environment: 'browser',
+      encryptionScheme: 'pkcs1',
+    });
+    const password = keyRSA.decrypt(Buffer.from(passwordData, 'base64'), 'buffer').toString('utf8');
 
     runInAction(() => {
       this.windowsPassword = password;

@@ -384,15 +384,11 @@ class EnvironmentScConnectionService extends Service {
     const { PasswordData: passwordData } = await ec2.getPasswordData({ InstanceId: connection.instanceId }).promise();
     const { privateKey } = await environmentScKeypairService.mustFind(requestContext, envId);
 
-    const keyRSA = new NodeRSA(
-      privateKey,
-      "private",
-      {
-        environment: "browser",
-        encryptionScheme: "pkcs1",
-      }
-    );
-    const password = keyRSA.decrypt(Buffer.from(passwordData, "base64"), "buffer").toString('utf8');
+    const keyRSA = new NodeRSA(privateKey, 'private', {
+      environment: 'browser',
+      encryptionScheme: 'pkcs1',
+    });
+    const password = keyRSA.decrypt(Buffer.from(passwordData, 'base64'), 'buffer').toString('utf8');
 
     // Write audit event
     await this.audit(requestContext, { action: 'env-windows-password-requested', body: { id: envId, connection } });
