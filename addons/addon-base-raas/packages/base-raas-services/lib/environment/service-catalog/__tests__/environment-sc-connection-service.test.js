@@ -16,7 +16,7 @@
 const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
 const Logger = require('@amzn/base-services/lib/logger/logger-service');
-const crypto = require('crypto');
+const NodeRSA = require('node-rsa');
 const Boom = require('@amzn/base-services-container/lib/boom');
 
 // Mocked dependencies
@@ -67,6 +67,9 @@ AgMBAAE=
 -----END PUBLIC KEY-----`,
       ),
     })),
+    decrypt: jest.fn(
+        () => `rstudio-user\nfcc91a0d7cfdef9fea2854f2b8b2c80355c391ca617e08567e6584efe6833948`,
+    ),
   })),
 );
 
@@ -612,10 +615,15 @@ jM0re//6SUWx/9VfBLN+6Ul8wcqGR2uCmK/PJpzWYxz0IzhnyA==
       const encodedCreds = result.url.split('?v=')[1];
       const decodedCreds = decodeURIComponent(encodedCreds);
       const credBuff = Buffer.from(decodedCreds, 'base64');
-      const decryptedCreds = crypto.privateDecrypt(
-        { key: privateKeyBuffer, padding: crypto.constants.RSA_PKCS1_PADDING },
-        credBuff,
+      const keyRSA = new NodeRSA(
+        privateKeyBuffer,
+        "private",
+        {
+          environment: "browser",
+          encryptionScheme: "pkcs1",
+        }
       );
+      const decryptedCreds = keyRSA.decrypt(credBuff, "buffer");
       expect(decryptedCreds.toString('utf8')).toBe(credentials);
     });
 
