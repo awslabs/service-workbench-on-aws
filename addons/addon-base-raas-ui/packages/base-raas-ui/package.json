@@ -21,6 +21,7 @@
     "mobx-react": "^6.3.1",
     "mobx-react-form": "^2.0.9",
     "mobx-state-tree": "^3.17.3",
+    "node-rsa": "^1.1.1",
     "numeral": "^2.0.6",
     "pretty-bytes": "^5.6.0",
     "prop-types": "^15.8.1",

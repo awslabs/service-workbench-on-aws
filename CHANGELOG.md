@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.2.2](https://github.com/awslabs/service-workbench-on-aws/compare/v6.2.1...v6.2.2) (2024-03-13)
+
+### Bug Fixes
+
+* fix for EC2 windows connection logic ([a5b1c033](https://github.com/awslabs/service-workbench-on-aws/commit/a5b1c0330ef2355e45c0bb59182749d653d93f1e))
+
 ### [6.2.1](https://github.com/awslabs/service-workbench-on-aws/compare/v6.2.0...v6.2.1) (2024-02-08)
 ## Maintenance Notice
 
