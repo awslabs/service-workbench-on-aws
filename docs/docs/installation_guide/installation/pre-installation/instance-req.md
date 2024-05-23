@@ -64,7 +64,7 @@ To add a role to an Amazon EC2 instance that is already running:
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 source ~/.bashrc
 nvm install 18
-npm install -g serverless pnpm@latest-8 hygen
+npm install -g serverless@3 pnpm@latest-8 hygen
 ```
 
 2. Run the following command to display the version of the serverless package:
