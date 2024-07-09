@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.2.3](https://github.com/awslabs/service-workbench-on-aws/compare/v6.2.2...v6.2.3) (2024-07-10)
+
+### Bug Fixes
+
+* fix dependabot alerts ([f942e60](https://github.com/awslabs/service-workbench-on-aws/commit/f942e6076aff4367195811088106a619d85f870e))
+* remove global flag for serverless package ([3ae0474](https://github.com/awslabs/service-workbench-on-aws/commit/3ae04744fff6067bff0611831a88ac9aefc8312d))
+* pin serverless version ([9521d4d](https://github.com/awslabs/service-workbench-on-aws/commit/9521d4d459c09cb8cd32454a1d4045b3b67684e1))
+
 ### [6.2.2](https://github.com/awslabs/service-workbench-on-aws/compare/v6.2.1...v6.2.2) (2024-03-13)
 
 ### Bug Fixes

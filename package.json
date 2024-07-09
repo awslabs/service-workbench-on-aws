@@ -1,6 +1,6 @@
 {
   "name": "@amzn/service-workbench-on-aws",
-  "version": "6.2.0",
+  "version": "6.2.3",
   "private": true,
   "description": "Service Workbench on AWS",
   "author": "Amazon Web Services",
