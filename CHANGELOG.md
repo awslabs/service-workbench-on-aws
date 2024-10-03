@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [6.2.4](https://github.com/awslabs/service-workbench-on-aws/compare/v6.2.3...v6.2.4) (2024-10-03)
+## **End of Life Notice**
+
+Service Workbench (SWB) on AWS will reach the End of Life (EOL) on 2024-11-30. On November 30, 2024, the SWB on AWS solution repository will be archived (made read-only), and the listing on the AWS Solutions Library will be withdrawn.
+
+### Will there be any new feature releases for SWB on AWS?
+No. SWB on AWS has been in maintenance mode since February 8, 2024. While in maintenance, new features are not added to this solution guidance. Security engagement should be directed to AWS Security at aws-security@amazon.com. 
+
+After the EOL date, SWB on AWS will no longer receive any new feature updates, bug fixes or security updates from AWS. After the EOL date, customers who continue to use the software are responsible for the maintenance of the software and its dependencies. Of note, SWB depends on a third party open-source library, Serverless Framework v3 from Serverless, Inc.. Inquiries about extended support for Serverless Framework v3 should be directed to Serverless, Inc.
+
+### Where should I migrate to? 
+We recommend that you explore using Research and Engineering Studio on AWS (RES) (https://aws.amazon.com/hpc/res/). RES is an AWS supported, open-source product that enables IT administrators to provide a web portal for scientists and engineers to run technical computing workloads on AWS. You can get started by following instructions in the Research and Engineering Studio User Guide (https://docs.aws.amazon.com/res/latest/ug/overview.html). You can also explore additional solutions for research on the AWS Solutions Library (https://aws.amazon.com/solutions/education/research-in-the-cloud/) or by contacting your AWS Account team.
+
+### What support is available? 
+Customers should begin working with their AWS Account Managers to discuss the support needed for their individual circumstances as soon as possible. If you prefer not to migrate to RES on AWS or are not supported by RES on AWS in your region, please contact your AWS account team for alternatives.
+
 ### [6.2.3](https://github.com/awslabs/service-workbench-on-aws/compare/v6.2.2...v6.2.3) (2024-07-10)
 
 ### Bug Fixes
